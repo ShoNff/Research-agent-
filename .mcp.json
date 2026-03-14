@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "research-agent": {
+      "command": "python",
+      "args": ["-m", "research_agent.mcp_server"],
+      "env": {
+        "PYTHONPATH": "src"
+      }
+    }
+  }
+}

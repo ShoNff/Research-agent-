@@ -1,0 +1,127 @@
+"""CLI entry point for the research agent."""
+
+from __future__ import annotations
+
+import asyncio
+import sys
+from pathlib import Path
+
+import click
+
+
+@click.command()
+@click.argument("topic")
+@click.option(
+    "--format", "-f",
+    "formats",
+    default="markdown",
+    help="Output formats, comma-separated: markdown, docx, pptx, email. Default: markdown",
+)
+@click.option(
+    "--output-dir", "-o",
+    default="./output",
+    help="Output directory. Default: ./output",
+)
+@click.option(
+    "--style", "-s",
+    type=click.Choice(["concise", "detailed", "executive"]),
+    default="concise",
+    help="Writing style. Default: concise",
+)
+@click.option(
+    "--visual-emphasis",
+    type=click.Choice(["low", "medium", "high"]),
+    default="high",
+    help="How many diagrams to generate. Default: high",
+)
+@click.option(
+    "--model",
+    default=None,
+    help="Override model for all agents (opus, sonnet, haiku)",
+)
+@click.option(
+    "--verbose", "-v",
+    is_flag=True,
+    help="Show agent activity in real-time",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Show configuration without executing",
+)
+@click.option(
+    "--max-budget",
+    type=float,
+    default=2.0,
+    help="Max spend in USD. Default: 2.0",
+)
+def main(
+    topic: str,
+    formats: str,
+    output_dir: str,
+    style: str,
+    visual_emphasis: str,
+    model: str | None,
+    verbose: bool,
+    dry_run: bool,
+    max_budget: float,
+) -> None:
+    """Research a topic using a multi-agent system powered by Claude.
+
+    TOPIC is the research question or topic to investigate.
+
+    Examples:
+
+        research-agent "What is WebAssembly?" --format markdown,pptx
+
+        research-agent "Compare React vs Vue" --style concise -v
+    """
+    from research_agent.config import load_config
+
+    format_list = [f.strip() for f in formats.split(",")]
+
+    config = load_config(
+        cli_overrides={
+            "formats": format_list,
+            "output_dir": Path(output_dir),
+            "writing_style": style,
+            "visual_emphasis": visual_emphasis,
+            "model_override": model,
+            "max_budget_usd": max_budget,
+        },
+    )
+
+    if dry_run:
+        click.echo("Research Agent — Dry Run")
+        click.echo(f"  Topic:            {topic}")
+        click.echo(f"  Formats:          {', '.join(config.formats)}")
+        click.echo(f"  Style:            {config.writing_style}")
+        click.echo(f"  Visual emphasis:  {visual_emphasis}")
+        click.echo(f"  Output dir:       {config.output_dir}")
+        click.echo(f"  Max budget:       ${config.max_budget_usd:.2f}")
+        click.echo(f"  Models:")
+        click.echo(f"    Orchestrator:   {config.models.orchestrator}")
+        click.echo(f"    Search:         {config.models.search}")
+        click.echo(f"    Writer:         {config.models.writer}")
+        click.echo(f"    QA:             {config.models.qa}")
+        click.echo(f"    Visual:         {config.models.visual}")
+        sys.exit(0)
+
+    click.echo(f"Researching: {topic}")
+    click.echo(f"Formats: {', '.join(config.formats)} | Style: {config.writing_style}")
+    click.echo(f"Output: {config.output_dir}")
+    click.echo()
+
+    from research_agent.main import run_research
+
+    result = asyncio.run(run_research(topic, config, verbose=verbose))
+
+    if result:
+        click.echo("\n" + "=" * 60)
+        click.echo(result)
+    else:
+        click.echo("\nResearch completed. Check output directory for files.")
+
+
+if __name__ == "__main__":
+    main()
