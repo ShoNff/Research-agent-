@@ -55,6 +55,17 @@ import click
     default=2.0,
     help="Max spend in USD. Default: 2.0",
 )
+@click.option(
+    "--log-level",
+    type=click.Choice(["off", "summary", "full"]),
+    default="summary",
+    help="Logging level. summary=human-readable log, full=JSONL trace + summary, off=none. Default: summary",
+)
+@click.option(
+    "--log-dir",
+    default=None,
+    help="Log file directory. Default: <output-dir>/logs/",
+)
 def main(
     topic: str,
     formats: str,
@@ -65,6 +76,8 @@ def main(
     verbose: bool,
     dry_run: bool,
     max_budget: float,
+    log_level: str,
+    log_dir: str | None,
 ) -> None:
     """Research a topic using a multi-agent system powered by Claude.
 
@@ -80,16 +93,19 @@ def main(
 
     format_list = [f.strip() for f in formats.split(",")]
 
-    config = load_config(
-        cli_overrides={
-            "formats": format_list,
-            "output_dir": Path(output_dir),
-            "writing_style": style,
-            "visual_emphasis": visual_emphasis,
-            "model_override": model,
-            "max_budget_usd": max_budget,
-        },
-    )
+    overrides = {
+        "formats": format_list,
+        "output_dir": Path(output_dir),
+        "writing_style": style,
+        "visual_emphasis": visual_emphasis,
+        "model_override": model,
+        "max_budget_usd": max_budget,
+        "log_level": log_level,
+    }
+    if log_dir:
+        overrides["log_dir"] = Path(log_dir)
+
+    config = load_config(cli_overrides=overrides)
 
     if dry_run:
         click.echo("Research Agent — Dry Run")
@@ -98,6 +114,8 @@ def main(
         click.echo(f"  Style:            {config.writing_style}")
         click.echo(f"  Visual emphasis:  {visual_emphasis}")
         click.echo(f"  Output dir:       {config.output_dir}")
+        click.echo(f"  Log level:        {config.log_level}")
+        click.echo(f"  Log dir:          {config.log_dir}")
         click.echo(f"  Max budget:       ${config.max_budget_usd:.2f}")
         click.echo(f"  Models:")
         click.echo(f"    Orchestrator:   {config.models.orchestrator}")
@@ -110,6 +128,8 @@ def main(
     click.echo(f"Researching: {topic}")
     click.echo(f"Formats: {', '.join(config.formats)} | Style: {config.writing_style}")
     click.echo(f"Output: {config.output_dir}")
+    if config.log_level != "off":
+        click.echo(f"Logs: {config.log_dir} (level: {config.log_level})")
     click.echo()
 
     from research_agent.main import run_research
@@ -121,6 +141,16 @@ def main(
         click.echo(result)
     else:
         click.echo("\nResearch completed. Check output directory for files.")
+
+    # Show log file locations
+    if config.log_level != "off" and config.log_dir:
+        import glob
+        log_files = sorted(glob.glob(str(config.log_dir / "*.log")))
+        log_files += sorted(glob.glob(str(config.log_dir / "*.jsonl")))
+        if log_files:
+            click.echo(f"\nLog files:")
+            for lf in log_files[-4:]:  # Show most recent
+                click.echo(f"  {lf}")
 
 
 if __name__ == "__main__":

@@ -28,6 +28,7 @@ research-agent "your topic" --dry-run
 | `src/research_agent/main.py` | **Start here.** Wires all agents, MCP servers, and runs the orchestrator `query()` loop. |
 | `src/research_agent/cli.py` | CLI entry point using Click. Parses args, loads config, calls `run_research()`. |
 | `src/research_agent/config.py` | Configuration dataclass. Loads from `.env` + CLI overrides. |
+| `src/research_agent/tracing.py` | Structured logging: JSONL trace + human-readable summary log. See "Logging & Tracing" below. |
 | `src/research_agent/mcp_server.py` | Wraps the research pipeline as an MCP tool for Claude Code. |
 | `src/research_agent/prompts/*.py` | System prompts for each agent. These control agent behavior — edit carefully. |
 | `src/research_agent/tools/*.py` | Custom MCP tools using `@tool` decorator + `create_sdk_mcp_server()`. |
@@ -48,6 +49,44 @@ Subagents **cannot** spawn other subagents (SDK constraint). The orchestrator pa
 Two MCP tool servers are created in-process:
 - `search` server: `tavily_search`, `evaluate_source`
 - `output` server: `generate_diagram`, `render_docx`, `render_pptx`, `render_email`, `generate_slide`
+
+## Logging & Tracing
+
+Every research run produces log files in `<output_dir>/logs/` (configurable via `--log-dir`).
+
+**Log levels** (`--log-level`):
+- `summary` (default): Human-readable `*_summary.log` showing agent→tool flow timeline
+- `full`: Summary + `*_trace.jsonl` with one JSON event per line (machine-readable)
+- `off`: No log files
+
+**Summary log** shows the full execution timeline:
+```
+=== Research Agent Session ===
+Topic: What is WebAssembly?
+Started: 2026-03-14 10:30:00 UTC
+Session ID: abc-123
+
+[10:30:01] orchestrator: Decomposing topic into research questions...
+[10:30:05] ORCHESTRATOR → search-agent: "What is WebAssembly?"
+[10:30:06]   search-agent > tool: mcp__search__tavily_search (query="What is WebAssembly")
+[10:30:08]   search-agent > tool: mcp__search__evaluate_source (domain="developer.mozilla.org")
+[10:30:10]   search-agent > DONE
+
+=== Summary ===
+Duration: 96s (API: 72s)
+Cost: $0.0523
+Agents used: search-agent (×3), writer-agent (×1), qa-agent (×1), visual-agent (×1)
+Tools called: tavily_search (×6), evaluate_source (×9), generate_diagram (×2)
+```
+
+**JSONL trace** events: `session_start`, `agent_delegate`, `tool_call`, `tool_result`, `agent_complete`, `text`, `session_end`. Each line is a self-contained JSON object with timestamp.
+
+**How tracing works internally** (`tracing.py`):
+- `ResearchLogger` is instantiated in `main.py:run_research()`
+- The message loop in `_process_message()` inspects each SDK message type
+- `parent_tool_use_id` on AssistantMessage/UserMessage maps messages to their subagent
+- A `tool_use_id → agent_name` dict tracks which Agent tool call belongs to which subagent
+- Counters track agent invocations and tool calls for the summary
 
 ## Code Conventions
 

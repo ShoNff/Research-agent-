@@ -90,6 +90,8 @@ research-agent "topic" \
 | `--visual-emphasis` | Diagram quantity: `low`, `medium`, `high` | `high` |
 | `--model` | Override model for all agents: `opus`, `sonnet`, `haiku` | per-agent defaults |
 | `--max-budget` | Max API spend in USD | `2.00` |
+| `--log-level` | Logging: `off`, `summary` (readable log), `full` (JSONL trace + summary) | `summary` |
+| `--log-dir` | Log file directory | `<output-dir>/logs/` |
 | `--verbose`, `-v` | Show real-time agent activity | off |
 | `--dry-run` | Show config without executing | off |
 
@@ -123,6 +125,48 @@ result = asyncio.run(run_research("Your topic here", config, verbose=True))
 | **Word** | `report.docx` | Formatted document with color-coded source tiers and embedded diagrams |
 | **PowerPoint** | `report.pptx` | Slide deck: title → takeaways → one slide per finding with diagrams |
 | **HTML Email** | `report.html` | Concise email with key takeaways, top findings, base64 embedded images |
+
+## Logging & Tracing
+
+Every run produces log files so you can see exactly what each agent did.
+
+```bash
+# Default: human-readable summary log
+research-agent "topic"
+# → output/logs/20260314_103000_summary.log
+
+# Full trace: structured JSONL + summary
+research-agent "topic" --log-level full
+# → output/logs/20260314_103000_summary.log
+# → output/logs/20260314_103000_trace.jsonl
+
+# Disable logging
+research-agent "topic" --log-level off
+```
+
+**Summary log** — shows the timeline of which agent did what:
+```
+=== Research Agent Session ===
+Topic: What is WebAssembly?
+
+[10:30:05] ORCHESTRATOR → search-agent: "What is WebAssembly?"
+[10:30:06]   search-agent > tool: mcp__search__tavily_search (query="What is WebAssembly")
+[10:30:08]   search-agent > tool: mcp__search__evaluate_source (domain="developer.mozilla.org")
+[10:30:10]   search-agent > DONE
+[10:31:00] ORCHESTRATOR → writer-agent: Writing report...
+
+=== Summary ===
+Duration: 96s | Cost: $0.0523 | Turns: 18
+Agents used: search-agent (×3), writer-agent (×1), qa-agent (×1), visual-agent (×1)
+Tools called: tavily_search (×6), evaluate_source (×9), generate_diagram (×2)
+```
+
+**JSONL trace** — one JSON event per line, for programmatic analysis:
+```json
+{"ts":"2026-03-14T10:30:05Z","event":"agent_delegate","agent":"search-agent","tool_use_id":"abc"}
+{"ts":"2026-03-14T10:30:06Z","event":"tool_call","agent":"search-agent","tool":"mcp__search__tavily_search","input_preview":"..."}
+{"ts":"2026-03-14T10:30:08Z","event":"tool_result","tool_use_id":"def","is_error":false}
+```
 
 ## Source Reliability
 

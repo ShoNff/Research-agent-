@@ -28,6 +28,8 @@ class Config:
     max_budget_usd: float = 2.0
     models: ModelConfig = field(default_factory=ModelConfig)
     tavily_api_key: str = ""
+    log_level: str = "summary"  # "off", "summary", "full"
+    log_dir: Path | None = None  # defaults to output_dir/logs/
 
 
 def load_config(
@@ -61,6 +63,15 @@ def load_config(
                 qa=model,
                 visual=model,
             )
+        if "log_level" in cli_overrides:
+            config.log_level = cli_overrides["log_level"]
+        if "log_dir" in cli_overrides:
+            config.log_dir = Path(cli_overrides["log_dir"])
 
     config.output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Default log_dir to output_dir/logs/ if not set
+    if config.log_dir is None:
+        config.log_dir = config.output_dir / "logs"
+
     return config
