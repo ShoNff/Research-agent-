@@ -3,6 +3,12 @@
 // To add a POC, append an entry below and (for live ones) set `href` to its URL.
 // Cards left as "coming-soon" (or with href "#") render disabled until you add a
 // real link. Commit + push and Vercel redeploys automatically.
+//
+// Two kinds of href work:
+//   - An external URL (https://…) — opens that site.
+//   - An in-repo path (/decks/foo.html) — a static file served from web/public.
+//     Drop a self-contained deck/page into web/public/<path> and link to it here;
+//     it's served by the same Vercel app and stays behind the password gate.
 
 export type Poc = {
   id: string;
@@ -15,12 +21,12 @@ export type Poc = {
 
 export const POCS: Poc[] = [
   {
-    id: "deck",
-    title: "Research Deck",
-    description: "The presentation deck built with the research agent.",
-    href: "#", // <- paste the real link here (Google Slides, hosted PDF, etc.)
-    status: "coming-soon",
-    emoji: "📊",
+    id: "azure-workspaces",
+    title: "Azure Workspaces",
+    description: "Animated concept presentation on Azure workspaces.",
+    href: "/decks/azure-workspaces.html", // served from web/public/decks
+    status: "live",
+    emoji: "🔷",
   },
   // Add more POCs by appending entries here, e.g.:
   // {
