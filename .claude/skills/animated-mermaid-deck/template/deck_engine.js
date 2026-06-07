@@ -17,6 +17,15 @@
   var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var SPEECH_OK = "speechSynthesis" in window;
 
+  // Voices load asynchronously in Chrome/Edge; cache them and refresh on the
+  // voiceschanged event so speak() always sees the latest list.
+  var VOICES = [];
+  function loadVoices() { if (SPEECH_OK) VOICES = window.speechSynthesis.getVoices() || []; }
+  if (SPEECH_OK) {
+    loadVoices();
+    try { window.speechSynthesis.onvoiceschanged = loadVoices; } catch (e) {}
+  }
+
   var els = {};                    // cached DOM refs
   var sceneEls = [];               // per-scene { root, beats[], diagram, svg, edges[], edgeLabels[], plan }
   var idx = 0;
@@ -156,6 +165,7 @@
   // ---- Mermaid rendering ----------------------------------------------
 
   function initMermaid() {
+    if (!window.mermaid || typeof window.mermaid.initialize !== "function") return false;
     var cfg = Object.assign({
       startOnLoad: false,
       securityLevel: "loose",
@@ -176,11 +186,17 @@
       }
     }, DECK.mermaidConfig || {});
     window.mermaid.initialize(cfg);
+    return true;
   }
 
   function renderAll() {
     var jobs = SCENES.map(function (scene, i) {
       if (!scene.mermaid) return Promise.resolve();
+      if (!window.mermaid || typeof window.mermaid.render !== "function") {
+        sceneEls[i].diagram.innerHTML =
+          '<div style="color:#ff9d9d;font-size:.9rem">Diagram unavailable (mermaid.js failed to load)</div>';
+        return Promise.resolve();
+      }
       var id = "mmd-" + i + "-" + Math.random().toString(36).slice(2);
       return window.mermaid.render(id, scene.mermaid).then(function (res) {
         var rec = sceneEls[i];
@@ -335,20 +351,28 @@
     if (autoAdvance && i < SCENES.length - 1) armAdvance(i, fromMs, scene);
   }
 
-  function voicesAvailable() {
-    return SPEECH_OK && (window.speechSynthesis.getVoices() || []).length > 0;
+  // Rough spoken duration so a scene holds long enough for its narration even
+  // when the speech engine never fires onend (Chrome can swallow it silently).
+  function estimateSpeechMs(scene) {
+    var t = narrationText(scene);
+    if (!t) return 0;
+    var words = t.split(/\s+/).filter(Boolean).length;
+    var rate = (DECK.audio && DECK.audio.rate) || 1;
+    // ~2.4 words/sec is intentionally a touch slower than typical TTS so the
+    // scene holds until narration finishes, plus a tail buffer.
+    return (words / (2.4 * Math.max(0.5, rate))) * 1000 + 900;
   }
 
+  // Auto-advance is timer-driven and does NOT depend on the speech callback, so
+  // playback never stalls if narration is dropped or unavailable. speak()'s
+  // onend may still advance early once the visuals have finished.
   function armAdvance(i, fromMs, scene) {
     advanceArmed = true;
-    var fallback = Math.max(sceneDurationMs(scene), scene && sceneEls[i].plan.lastEvent + 1200);
-    var useSpeech = !muted && voicesAvailable() && !REDUCED && narrationText(scene);
-    if (useSpeech) {
-      // onend (set in speak()) advances; keep a generous safety timer too.
-      timers.push(setTimeout(function () { doAdvance(i); }, fallback + 9000));
-    } else {
-      timers.push(setTimeout(function () { doAdvance(i); }, Math.max(1200, fallback - fromMs)));
+    var hold = Math.max(sceneDurationMs(scene), sceneEls[i].plan.lastEvent + 1200);
+    if (!muted && SPEECH_OK && !REDUCED && narrationText(scene)) {
+      hold = Math.max(hold, estimateSpeechMs(scene));
     }
+    timers.push(setTimeout(function () { doAdvance(i); }, Math.max(1200, hold - fromMs)));
   }
 
   function doAdvance(i) {
@@ -359,7 +383,7 @@
 
   function go(i) {
     if (i < 0 || i >= SCENES.length) return;
-    if (SPEECH_OK) window.speechSynthesis.cancel();
+    if (SPEECH_OK) { stopKeepAlive(); window.speechSynthesis.cancel(); }
     idx = i;
     activate(i);
     if (playing) runScene(i, 0, true);
@@ -372,6 +396,11 @@
   function play() {
     if (els.startOverlay) els.startOverlay.classList.add("hidden");
     if (playing) return;
+    // boot() pre-renders the first scene with fromMs=Infinity (fully revealed,
+    // no autoplay). Starting from that state must begin the scene fresh, else
+    // the advance timer collapses to its floor and the first scene's narration
+    // (which only fires at fromMs===0) is skipped.
+    if (!isFinite(elapsedAtPause)) elapsedAtPause = 0;
     playing = true;
     setPlayIcon();
     runScene(idx, elapsedAtPause, true);
@@ -383,7 +412,7 @@
     advanceArmed = false;
     elapsedAtPause = performance.now() - sceneStart;
     clearTimers();
-    if (SPEECH_OK) window.speechSynthesis.cancel();
+    if (SPEECH_OK) { stopKeepAlive(); window.speechSynthesis.cancel(); }
     setPlayIcon();
   }
 
@@ -393,7 +422,7 @@
   function prev() { pause(); go(Math.max(0, idx - 1)); }
 
   function replay() {
-    if (SPEECH_OK) window.speechSynthesis.cancel();
+    if (SPEECH_OK) { stopKeepAlive(); window.speechSynthesis.cancel(); }
     idx = 0; elapsedAtPause = 0; playing = true;
     activate(0); setPlayIcon();
     if (els.startOverlay) els.startOverlay.classList.add("hidden");
@@ -409,26 +438,45 @@
     }).join(". ");
   }
 
+  var keepAlive = null;
+  function stopKeepAlive() { if (keepAlive) { clearInterval(keepAlive); keepAlive = null; } }
+
   function speak(scene) {
     var text = narrationText(scene);
     if (!text) return;
-    window.speechSynthesis.cancel();
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+    stopKeepAlive();
+
     var u = new SpeechSynthesisUtterance(text);
     var hint = (DECK.audio && DECK.audio.voiceHint) || "en";
-    var v = (window.speechSynthesis.getVoices() || []).filter(function (vc) {
+    var v = VOICES.filter(function (vc) {
       return vc.lang && vc.lang.toLowerCase().indexOf(hint.toLowerCase()) === 0;
     })[0];
     if (v) u.voice = v;
     u.rate = (DECK.audio && DECK.audio.rate) || 1;
-    var mySceneStart = sceneStart;
-    u.onend = function () {
-      // Only let speech drive advancing when real voices exist; otherwise the
-      // timer in armAdvance handles it (some browsers fire onend instantly).
-      if (voicesAvailable() && playing && idx === SCENES.indexOf(scene) && mySceneStart === sceneStart) {
-        timers.push(setTimeout(function () { doAdvance(idx); }, 400));
-      }
+
+    u.onstart = function () {
+      // Chrome silently stops utterances after ~15s; a periodic pause/resume
+      // keeps long narration going to the end.
+      stopKeepAlive();
+      keepAlive = setInterval(function () {
+        if (!window.speechSynthesis.speaking) { stopKeepAlive(); return; }
+        try { window.speechSynthesis.pause(); window.speechSynthesis.resume(); } catch (e) {}
+      }, 9000);
     };
-    window.speechSynthesis.speak(u);
+    // Pacing is driven solely by the armAdvance timer (sized to the larger of
+    // the visual timeline and the estimated narration length), NOT by onend.
+    // Browsers fire onend/onstart instantly when no voice actually speaks, which
+    // would otherwise race the deck through every scene. Narration just plays
+    // alongside and finishes within the timed window.
+    u.onend = u.onerror = function () { stopKeepAlive(); };
+
+    // Chrome drops an utterance queued in the same tick as cancel(); defer a
+    // beat and resume() first to clear any stuck paused state.
+    setTimeout(function () {
+      try { window.speechSynthesis.resume(); } catch (e) {}
+      try { window.speechSynthesis.speak(u); } catch (e) {}
+    }, 60);
   }
 
   // ---- UI glue ---------------------------------------------------------
@@ -459,7 +507,9 @@
     var mute = $("#btn-mute");
     if (mute) mute.addEventListener("click", function () {
       muted = !muted; setMuteIcon();
-      if (muted && SPEECH_OK) window.speechSynthesis.cancel();
+      if (muted && SPEECH_OK) { stopKeepAlive(); window.speechSynthesis.cancel(); }
+      // Unmuting mid-scene starts narration for the current scene immediately.
+      else if (!muted && playing) speak(SCENES[idx]);
     });
     var start = $("#start-btn");
     if (start) start.addEventListener("click", function () { idx = 0; activate(0); play(); });
