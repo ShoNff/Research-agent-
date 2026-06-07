@@ -20,10 +20,30 @@
   // Voices load asynchronously in Chrome/Edge; cache them and refresh on the
   // voiceschanged event so speak() always sees the latest list.
   var VOICES = [];
+  var started = false;   // becomes true after the first Play
   function loadVoices() { if (SPEECH_OK) VOICES = window.speechSynthesis.getVoices() || []; }
   if (SPEECH_OK) {
     loadVoices();
-    try { window.speechSynthesis.onvoiceschanged = loadVoices; } catch (e) {}
+    try {
+      window.speechSynthesis.onvoiceschanged = function () { loadVoices(); updateVoiceStatus(); };
+    } catch (e) {}
+  }
+
+  // Narration is "intended" when audio isn't explicitly disabled and at least
+  // one scene has spoken text. A voice is "missing" when speech is unsupported
+  // or the OS/browser exposes no TTS voices at all.
+  function narrationIntended() {
+    if (DECK.audio && DECK.audio.enabled === false) return false;
+    return SCENES.some(function (s) { return narrationText(s); });
+  }
+  function voiceMissing() { return !SPEECH_OK || VOICES.length === 0; }
+
+  // Show the on-screen indicator only after playback has begun (voices enumerate
+  // lazily, so checking earlier yields false positives) and while not muted.
+  function updateVoiceStatus() {
+    if (!els.voiceStatus) return;
+    els.voiceStatus.classList.toggle(
+      "show", started && !muted && narrationIntended() && voiceMissing());
   }
 
   var els = {};                    // cached DOM refs
@@ -83,6 +103,7 @@
     els.ticks = $("#progress-ticks");
     els.counter = $("#scene-counter");
     els.startOverlay = $("#start-overlay");
+    els.voiceStatus = $("#voice-status");
 
     var HIDE = computeCumulative();
     var total = totalDurationMs();
@@ -402,7 +423,11 @@
     // (which only fires at fromMs===0) is skipped.
     if (!isFinite(elapsedAtPause)) elapsedAtPause = 0;
     playing = true;
+    started = true;
     setPlayIcon();
+    // Voices often finish enumerating only after this first user gesture.
+    loadVoices();
+    updateVoiceStatus();
     runScene(idx, elapsedAtPause, true);
   }
 
@@ -510,6 +535,7 @@
       if (muted && SPEECH_OK) { stopKeepAlive(); window.speechSynthesis.cancel(); }
       // Unmuting mid-scene starts narration for the current scene immediately.
       else if (!muted && playing) speak(SCENES[idx]);
+      updateVoiceStatus();
     });
     var start = $("#start-btn");
     if (start) start.addEventListener("click", function () { idx = 0; activate(0); play(); });

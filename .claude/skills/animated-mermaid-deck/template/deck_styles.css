@@ -185,6 +185,19 @@ html, body {
 #scene-counter { margin-left: auto; font-variant-numeric: tabular-nums; color: #aebbd2; font-size: 0.95rem; }
 #deck-title-mini { color: #8294b2; font-size: 0.9rem; margin-right: 0.4rem; }
 #reduced-hint { color: var(--accent); font-size: 0.85rem; display: none; }
+#voice-status {
+  display: none;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  background: var(--accent);
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  cursor: help;
+}
+#voice-status.show { display: inline-flex; }
 
 /* ---- Start overlay (needed to unlock audio autoplay) ---------------- */
 
