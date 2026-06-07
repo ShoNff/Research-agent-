@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" style="{{THEME_VARS}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{DECK_TITLE}}</title>
+  <style>
+{{INLINE_CSS}}
+  </style>
+</head>
+<body>
+  <div id="deck">
+    <div id="progress">
+      <div id="progress-fill"></div>
+      <div id="progress-ticks"></div>
+    </div>
+
+    <div id="stage"><!-- scenes injected by engine --></div>
+
+    <div id="controls">
+      <span id="deck-title-mini">{{DECK_TITLE}}</span>
+      <button id="btn-prev" title="Previous (←)">⏮</button>
+      <button id="btn-play" title="Play / Pause (Space)">▶</button>
+      <button id="btn-next" title="Next (→)">⏭</button>
+      <button id="btn-replay" title="Replay (R)">↺</button>
+      <button id="btn-mute" title="Mute / unmute narration">🔊</button>
+      <span id="reduced-hint">Reduced motion is on — use ⏮ ⏭</span>
+      <span id="scene-counter">1 / 1</span>
+    </div>
+
+    <div id="start-overlay">
+      <h1>{{DECK_TITLE}}</h1>
+      <p>{{DECK_SUBTITLE}}</p>
+      <button id="start-btn">▶ Play</button>
+      <p style="font-size:.8rem;color:#7e90ad">Audio narration uses your browser's voice. Space = play/pause, ← → = navigate, R = replay.</p>
+    </div>
+  </div>
+
+  <script>{{MERMAID_SCRIPT}}</script>
+  <script>window.DECK = {{DECK_JSON}};</script>
+  <script>
+{{ENGINE_JS}}
+  </script>
+</body>
+</html>
