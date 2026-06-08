@@ -13,6 +13,9 @@ Research the following topic thoroughly and produce a high-quality report.
 ## Research Topic
 {topic}
 
+## Update Context
+{update_context}
+
 ## Workflow — Follow These Phases In Order
 
 ### Phase 0: Recall (do this FIRST, before anything else)
@@ -47,6 +50,9 @@ Invoke the writer-agent with a SINGLE prompt containing:
 - Any identified gaps where questions could not be answered
 - The requested output format(s): {formats}
 - The writing style: {style}
+- If this is an UPDATE (see Update Context): also include the FULL prior report and
+  instruct the writer to REVISE it — preserve still-accurate sections, update what
+  changed, and integrate the new findings — rather than writing from scratch.
 
 ### Phase 4: Quality Assurance (use qa-agent)
 Invoke the qa-agent with a prompt containing:

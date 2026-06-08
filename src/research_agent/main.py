@@ -132,8 +132,41 @@ def _build_agent_definitions(config: Config) -> dict[str, AgentDefinition]:
     }
 
 
+def _build_update_context(prior: dict | None, project_dir: Path) -> str:
+    """Describe whether this run is a fresh project or an update of an existing one.
+
+    For living reports: when a project already exists for this slug, the run
+    should revise the prior report rather than start over.
+    """
+    if not prior:
+        return "This is a NEW project — no prior version exists. Research it fresh."
+
+    version = prior.get("version", 1)
+    updated = prior.get("updated", "unknown")
+    return (
+        f"This is an UPDATE to an existing project (current version {version}, last "
+        f"updated {updated}). The prior report is at {project_dir}/report.md and its "
+        f"manifest at {project_dir}/manifest.json.\n"
+        "Before Phase 1, READ both files. Treat the prior report as the baseline to "
+        "REVISE, not replace:\n"
+        "- Keep content that is still accurate; do not discard prior work or sources.\n"
+        "- Correct anything outdated and fill gaps the prior version left open.\n"
+        "- Focus this run's research (Phases 1-2) on what is new or has changed since "
+        "the last version.\n"
+        "- In Phase 3, give the writer the prior report AND the new findings, and "
+        "instruct a revision that preserves still-valid material.\n"
+        "- In Phase 8, write a specific changelog_note describing exactly what changed "
+        "this version (e.g. 'Added 2026 benchmarks; corrected the licensing section')."
+    )
+
+
 def _build_user_prompt(
-    topic: str, config: Config, project_dir: Path, slug: str, memory_dir: Path
+    topic: str,
+    config: Config,
+    project_dir: Path,
+    slug: str,
+    memory_dir: Path,
+    update_context: str,
 ) -> str:
     """Build the orchestrator's user prompt."""
     return ORCHESTRATOR_USER_PROMPT_TEMPLATE.format(
@@ -144,6 +177,7 @@ def _build_user_prompt(
         output_dir=str(project_dir.resolve()),
         slug=slug,
         memory_dir=str(memory_dir.resolve()),
+        update_context=update_context,
     )
 
 
@@ -169,6 +203,10 @@ async def run_research(
     # The agent searches it before researching and the publish step syncs it.
     memory_dir = config.output_dir.resolve().parent / "memory"
     memory_dir.mkdir(parents=True, exist_ok=True)
+
+    # Living reports: a pre-existing manifest means this run updates that project.
+    prior_manifest = read_manifest(project_dir)
+    update_context = _build_update_context(prior_manifest, project_dir)
 
     # Resolve the log dir now that we know the project folder, and write it back
     # so the CLI can report log locations after the run.
@@ -205,7 +243,9 @@ async def run_research(
         cwd=str(project_dir),
     )
 
-    prompt = _build_user_prompt(topic, config, project_dir, slug, memory_dir)
+    prompt = _build_user_prompt(
+        topic, config, project_dir, slug, memory_dir, update_context
+    )
     result_text = None
 
     try:
@@ -217,15 +257,19 @@ async def run_research(
     finally:
         logger.close()
 
-    # Enforce the rule: a run only counts as done if it published a manifest.
-    # Without one, nothing reaches the web app or the shared memory.
-    if read_manifest(project_dir) is None:
-        if verbose:
-            print(
-                f"\n  WARNING: run finished without publishing a project "
-                f"(no manifest.json in {project_dir}). It will not appear in "
-                f"the web app or shared memory."
-            )
+    # Enforce the rule: a run only counts as done if it published. A bare
+    # manifest check isn't enough for updates (the prior manifest already
+    # exists), so confirm the publish stamp actually changed this run.
+    final_manifest = read_manifest(project_dir)
+    prior_stamp = prior_manifest.get("published_at") if prior_manifest else None
+    published = final_manifest is not None and (
+        final_manifest.get("published_at") != prior_stamp
+    )
+    if not published and verbose:
+        print(
+            f"\n  WARNING: run finished without (re)publishing a project in "
+            f"{project_dir}. It will not appear/update in the web app or shared memory."
+        )
 
     return result_text
 

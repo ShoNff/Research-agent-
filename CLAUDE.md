@@ -10,7 +10,7 @@ A multi-agent research system using the Claude Agent SDK. Five specialized agent
 
 - The orchestrator's final mandatory phase calls `mcp__publish__publish_project`, which writes `projects/<slug>/manifest.json`.
 - `projects/` is the single source of truth. The web app library and (future) shared-memory index are *derived* from it — never hand-curated.
-- Re-running a topic updates the same `projects/<slug>/` in place (deterministic slug): it preserves `created`, bumps `version`, and appends a `changelog` entry (living reports).
+- Re-running a topic updates the same `projects/<slug>/` in place (deterministic slug). The orchestrator detects the prior manifest (`main.py:_build_update_context`), reads the existing `report.md`, and **revises** it — preserving still-accurate content, integrating new findings, bumping `version`, and appending a descriptive `changelog` entry (living reports). `created` is preserved.
 - A run that finishes without a manifest has produced nothing the system can see; `main.py` warns when that happens.
 
 See `projects/README.md` for the manifest contract and `web/README.md` for how it reaches the app.
