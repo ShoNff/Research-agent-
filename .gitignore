@@ -6,3 +6,9 @@ __pycache__/
 dist/
 build/
 .venv/
+
+# Per-environment retrospective watermark (not shared)
+.claude/retrospective-state.json
+
+# Per-environment hook firing log (not shared)
+.claude/logs/

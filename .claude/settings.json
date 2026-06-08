@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "hooks": {
     "SessionStart": [
       {
@@ -6,6 +7,36 @@
           {
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "c=$(jq -r '.tool_input.command // empty'); printf '%s' \"$c\" | grep -qE '(^|[^[:alnum:]_-])git[[:space:]]+push([^[:alnum:]_-]|$)' && { mkdir -p .claude/logs; printf '%s  git-push -> retrospective triggered\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" >> .claude/logs/retrospective-hook.log; printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"A push or pull request just completed. Per the research-engine workflow, launch the conversation-retrospective skill now to capture any preferences or conventions expressed in this session since the last retrospective. It reads and updates .claude/retrospective-state.json as its watermark, considers only conversation after that point, and proposes changes for approval before editing. If nothing new has come up since the last run, briefly say so and continue.\"}}'; }; true"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__github__create_pull_request|mcp__github__update_pull_request",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "mkdir -p .claude/logs; printf '%s  pull-request -> retrospective triggered\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" >> .claude/logs/retrospective-hook.log; printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"A push or pull request just completed. Per the research-engine workflow, launch the conversation-retrospective skill now to capture any preferences or conventions expressed in this session since the last retrospective. It reads and updates .claude/retrospective-state.json as its watermark, considers only conversation after that point, and proposes changes for approval before editing. If nothing new has come up since the last run, briefly say so and continue.\"}}'"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"systemMessage\":\"\\ud83d\\udca1 Before this session is gone: run /retrospective to capture any preferences or conventions from this conversation into the repo (conversation-retrospective skill).\"}'"
           }
         ]
       }
