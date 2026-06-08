@@ -1,0 +1,162 @@
+{
+  "slug": "enterprise-llm-token-economics",
+  "title": "Enterprise LLM Token Economics (Tokenomics)",
+  "topic": "Enterprise LLM token economics (tokenomics): the basic concept, recent news stories of runaway-cost failures, and state-of-the-art practices for managing token spend across an organization",
+  "summary": "Explains how LLMs are billed by the token (input vs. output, the re-billed context window), surveys 2025-2026 news of runaway token costs (agent loops burning tens of thousands of dollars, annual AI budgets gone in a quarter), and lays out the state-of-the-art FinOps-for-AI playbook: token-level attribution, pre-execution budget enforcement, an LLM gateway with caching/routing, and governance.",
+  "tags": [
+    "ai",
+    "llm",
+    "finops",
+    "cost-management",
+    "governance",
+    "agents",
+    "tokenomics"
+  ],
+  "key_claims": [
+    "LLMs are billed by the token (~4 chars each); input and output are priced separately and output typically costs 2-4x more than input.",
+    "The context window is re-sent and re-billed on every call, so long system prompts and growing history compound cost.",
+    "Agentic workflows use an estimated 5-30x the tokens of a single chat query, and pilot per-query economics do not predict production bills.",
+    "Vendor-reported failure cases include a 4-agent loop running ~11 days for ~$47,000 and enterprises exhausting an annual AI budget within a quarter.",
+    "The core lesson of the failures: alerting is not enforcement -- you need pre-execution budget caps, not just dashboards.",
+    "The maturing response is FinOps for AI: token-level cost attribution to teams/features/workflows for unit economics.",
+    "An LLM gateway is the control plane -- centralizing budget enforcement, prompt/semantic caching, model routing, and metering.",
+    "Engineering levers stack: prompt caching (~90% off cached input), batch APIs (~50% off), and model routing (reported 40-70% savings).",
+    "Governance closes the loop with enforced per-team budgets, showback/chargeback, and forecasting on unit economics."
+  ],
+  "created": "2026-06-08",
+  "updated": "2026-06-08",
+  "published_at": "2026-06-08T15:47:51.808583+00:00",
+  "version": 1,
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "report.md"
+    },
+    {
+      "type": "deck",
+      "path": "deck.html"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://www.finops.org/wg/finops-for-ai-overview/",
+      "title": "FinOps for AI Overview",
+      "domain": "finops.org",
+      "reliability_tier": "established",
+      "confidence_score": 0.9
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/dotnet/ai/conceptual/understanding-tokens",
+      "title": "Understanding tokens",
+      "domain": "learn.microsoft.com",
+      "reliability_tier": "established",
+      "confidence_score": 0.9
+    },
+    {
+      "url": "https://developers.openai.com/api/docs/guides/prompt-caching",
+      "title": "Prompt caching (OpenAI API)",
+      "domain": "developers.openai.com",
+      "reliability_tier": "established",
+      "confidence_score": 0.9
+    },
+    {
+      "url": "https://www.silicondata.com/blog/llm-cost-per-token",
+      "title": "Understanding LLM Cost Per Token: A 2026 Practical Guide",
+      "domain": "silicondata.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.7
+    },
+    {
+      "url": "https://ngrok.com/blog/prompt-caching",
+      "title": "Prompt caching: 10x cheaper LLM tokens, but how?",
+      "domain": "ngrok.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.75
+    },
+    {
+      "url": "https://www.digitalocean.com/blog/prompt-caching-with-digital-ocean",
+      "title": "Prompt Caching for Anthropic and OpenAI Models",
+      "domain": "digitalocean.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.75
+    },
+    {
+      "url": "https://www.finout.io/blog/anthropic-api-pricing",
+      "title": "Anthropic API Pricing in 2026: Models, Caching, Batch & Optimization",
+      "domain": "finout.io",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.7
+    },
+    {
+      "url": "https://www.finout.io/blog/finops-in-the-age-of-ai-a-cpos-guide-to-llm-workflows-rag-ai-agents-and-agentic-systems",
+      "title": "FinOps in the Age of AI: A CPO's Guide",
+      "domain": "finout.io",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.7
+    },
+    {
+      "url": "https://www.virtasant.com/blog/finops-for-ai",
+      "title": "FinOps for AI: Creating Token-Level Visibility for Practitioners",
+      "domain": "virtasant.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.7
+    },
+    {
+      "url": "https://www.truefoundry.com/blog/rate-limiting-ai-agents-preventing-llm-api-exhaustion",
+      "title": "Rate Limiting AI Agents: Preventing LLM API Exhaustion",
+      "domain": "truefoundry.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.65
+    },
+    {
+      "url": "https://dev.to/waxell/the-47000-agent-loop-why-token-budget-alerts-arent-budget-enforcement-389i",
+      "title": "The $47,000 Agent Loop: Why Token Budget Alerts Aren't Budget Enforcement",
+      "domain": "dev.to",
+      "reliability_tier": "opinion",
+      "confidence_score": 0.5
+    },
+    {
+      "url": "https://www.mindstudio.ai/blog/ai-token-cost-crisis-enterprise",
+      "title": "What Is the AI Token Cost Crisis? Why Enterprise AI Bills Are Exploding",
+      "domain": "mindstudio.ai",
+      "reliability_tier": "opinion",
+      "confidence_score": 0.45
+    },
+    {
+      "url": "https://oplexa.com/ai-inference-cost-crisis-2026/",
+      "title": "AI Inference Cost Crisis 2026: Why Your AI Bill Is Exploding",
+      "domain": "oplexa.com",
+      "reliability_tier": "opinion",
+      "confidence_score": 0.45
+    },
+    {
+      "url": "https://leanopstech.com/blog/agentic-ai-cost-runaway-token-budget-2026/",
+      "title": "AI Agents Burn 50x More Tokens Than Chats",
+      "domain": "leanopstech.com",
+      "reliability_tier": "opinion",
+      "confidence_score": 0.45
+    },
+    {
+      "url": "https://lushbinary.com/blog/llm-gateway-model-routing-cost-optimization-guide/",
+      "title": "LLM Gateways & Model Routing: Cut AI Costs 2026",
+      "domain": "lushbinary.com",
+      "reliability_tier": "opinion",
+      "confidence_score": 0.5
+    },
+    {
+      "url": "https://www.getmaxim.ai/articles/top-5-ai-gateways-for-optimizing-llm-cost-in-2026/",
+      "title": "Top 5 AI Gateways for Optimizing LLM Cost in 2026",
+      "domain": "getmaxim.ai",
+      "reliability_tier": "opinion",
+      "confidence_score": 0.5
+    }
+  ],
+  "related": [],
+  "changelog": [
+    {
+      "version": 1,
+      "date": "2026-06-08",
+      "note": "Initial research: LLM token economics (tokenomics) for the enterprise -- concept, news failure cases, and FinOps-for-AI management playbook. Researched directly via web search; vendor-sourced dollar figures flagged as illustrative."
+    }
+  ]
+}

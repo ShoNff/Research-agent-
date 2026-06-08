@@ -1,0 +1,193 @@
+{
+  "title": "Enterprise LLM Token Economics",
+  "subtitle": "What a token is, how token spend spirals out of control, and how enterprises govern it.",
+  "targetDurationSec": 215,
+  "defaultAdvance": "auto",
+  "audio": {
+    "enabled": true,
+    "voiceHint": "en",
+    "rate": 1.0
+  },
+  "theme": {
+    "primary": "#1f6f78",
+    "secondary": "#2d6cdf",
+    "accent": "#e8a33d"
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "kind": "title",
+      "durationSec": 7,
+      "narration": "Enterprise LLM token economics. What a token is, how token spend spirals out of control, and how enterprises govern it. About three and a half minutes.",
+      "beats": [
+        { "text": "Enterprise LLM <b>Token Economics</b>", "style": "h1", "anim": "fade-up" },
+        { "text": "Tokenomics: the concept, the failures, and the enterprise playbook.", "style": "body", "anim": "fade" },
+        { "text": "~3.5 minutes", "style": "note", "anim": "fade" }
+      ]
+    },
+    {
+      "id": "what-token",
+      "kind": "diagram",
+      "durationSec": 18,
+      "narration": "Start with the unit of account. Models are billed by the token — a chunk of text, roughly four characters. Your prompt, instructions, history and files are input tokens. The model's reply is output tokens, and output typically costs two to four times more than input.",
+      "beats": [
+        { "text": "Models are billed by the <b>token</b>.", "style": "h2" },
+        { "text": "A token ≈ 4 characters. You pay for <b>input</b> and <b>output</b> separately.", "style": "body" },
+        { "text": "Output tokens cost <b>2–4× more</b> than input.", "style": "note" }
+      ],
+      "mermaid": "flowchart LR\n  prompt[\"Prompt + instructions + history + files\"]:::src\n  tok[\"Tokens (~4 chars each)\"]:::lever\n  model([\"LLM\"]):::model\n  out[\"Reply\"]:::warn\n  prompt --> tok\n  tok -->|\"input tokens · $\"| model\n  model -->|\"output tokens · $$\"| out\n  classDef src fill:#eef3f4,stroke:#1f6f78,color:#0f3438;\n  classDef lever fill:#dce9fb,stroke:#2d6cdf,color:#13315c;\n  classDef model fill:#1f6f78,stroke:#0f3438,color:#ffffff;\n  classDef warn fill:#f6e2c0,stroke:#e8a33d,color:#6b4a12,font-weight:bold;",
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["prompt", "tok", "edge:prompt-->tok"], "effect": "draw" },
+        { "atBeat": 1, "reveal": ["model", "edge:tok-->model"], "effect": "draw" },
+        { "atBeat": 2, "reveal": ["out", "edge:model-->out"], "effect": "draw" }
+      ],
+      "caption": "Input tokens are cheap-ish; output tokens are the expensive part"
+    },
+    {
+      "id": "context-rebill",
+      "kind": "diagram",
+      "durationSec": 17,
+      "narration": "Here's the catch. The context window holds everything — input and output together — and everything in it is re-sent and re-billed on every call. A long system prompt and a growing history get paid for again, and again, each turn.",
+      "beats": [
+        { "text": "The <b>context window</b> is re-billed every call.", "style": "h2" },
+        { "text": "System prompt + history are <b>re-sent each turn</b>.", "style": "body" },
+        { "text": "By call 20, you've paid for the same prompt ~20×.", "style": "note" }
+      ],
+      "mermaid": "flowchart TB\n  sys[\"System prompt + accumulated history\"]:::warn\n  c1([\"Call 1\"]):::model\n  c2([\"Call 2\"]):::model\n  c3([\"Call 20\"]):::model\n  sys --> c1\n  sys --> c2\n  sys --> c3\n  classDef warn fill:#f6e2c0,stroke:#e8a33d,color:#6b4a12,font-weight:bold;\n  classDef model fill:#1f6f78,stroke:#0f3438,color:#ffffff;",
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["sys"], "effect": "appear" },
+        { "atBeat": 1, "reveal": ["c1", "c2", "edge:sys-->c1", "edge:sys-->c2"], "effect": "draw" },
+        { "atBeat": 2, "reveal": ["c3", "edge:sys-->c3"], "effect": "draw" }
+      ],
+      "caption": "Everything in the window is paid for on every single call"
+    },
+    {
+      "id": "agentic-multiplier",
+      "kind": "diagram",
+      "durationSec": 15,
+      "narration": "Now scale it. One chat message is one model call. One agent task can be many — industry estimates put agentic work at five to thirty times the tokens of a single chat query. Pilot economics priced on one query don't survive contact with production.",
+      "beats": [
+        { "text": "Agents are a <b>token multiplier</b>.", "style": "h2" },
+        { "text": "1 chat call vs. an agent firing <b>5–30×</b> the tokens per task.", "style": "body" },
+        { "text": "Pilot math ≠ production math.", "style": "note" }
+      ],
+      "mermaid": "flowchart LR\n  chat[\"1 chat call = 1× tokens\"]:::lever\n  agent[\"1 agent task = 5–30× tokens\"]:::warn\n  chat ~~~ agent\n  classDef lever fill:#dce9fb,stroke:#2d6cdf,color:#13315c;\n  classDef warn fill:#f6e2c0,stroke:#e8a33d,color:#6b4a12,font-weight:bold;",
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["chat"], "effect": "appear" },
+        { "atBeat": 1, "reveal": ["agent"], "effect": "pulse" }
+      ],
+      "caption": "Agentic workflows fire many model calls per user action"
+    },
+    {
+      "id": "runaway-loop",
+      "kind": "diagram",
+      "durationSec": 17,
+      "narration": "And then it breaks. A widely-cited account describes four agents where an Analyzer and a Verifier ping-ponged with no budget cap and no termination — reportedly running eleven days and burning forty-seven thousand dollars. The team had dashboards. They did not have a stop button.",
+      "beats": [
+        { "text": "The runaway <b>agent loop</b>.", "style": "h2" },
+        { "text": "Analyzer ↔ Verifier, no cap, no termination — reportedly <b>11 days, ~$47K</b>.", "style": "body" },
+        { "text": "They had dashboards — not a stop button. (vendor-reported)", "style": "note" }
+      ],
+      "mermaid": "flowchart LR\n  analyzer([\"Analyzer\"]):::model\n  verifier([\"Verifier\"]):::model\n  bill[(\"$ → $$$\")]:::warn\n  analyzer -->|\"analyze\"| verifier\n  verifier -->|\"re-check\"| analyzer\n  analyzer --> bill\n  classDef model fill:#1f6f78,stroke:#0f3438,color:#ffffff;\n  classDef warn fill:#e7b1a6,stroke:#b04a4a,color:#5a1d1d,font-weight:bold;",
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["analyzer", "verifier"], "effect": "appear" },
+        { "atBeat": 1, "reveal": ["edge:analyzer-->verifier", "edge:verifier-->analyzer"], "effect": "draw" },
+        { "atBeat": 2, "reveal": ["bill", "edge:analyzer-->bill"], "effect": "pulse" }
+      ],
+      "caption": "No budget ceiling + no termination = a loop that bills until stopped"
+    },
+    {
+      "id": "blowout",
+      "kind": "content",
+      "durationSec": 13,
+      "narration": "It isn't only loops. Commentators report enterprises burning an entire annual AI budget within a quarter of granting broad access, and a healthcare organization reportedly consuming a trillion tokens in six months. Token prices keep falling — but total spend keeps climbing as volume and agentic use explode.",
+      "beats": [
+        { "text": "Budgets blow out — fast.", "style": "h2" },
+        { "text": "Reported: an annual AI budget gone in a <b>quarter</b>; <b>1 trillion tokens</b> in six months.", "style": "body" },
+        { "text": "Per-token prices fall; <b>total spend rises</b> as volume and agents grow.", "style": "body" },
+        { "text": "(Figures vendor-reported, illustrative.)", "style": "note" }
+      ]
+    },
+    {
+      "id": "finops-pillars",
+      "kind": "diagram",
+      "durationSec": 16,
+      "narration": "The maturing response is FinOps for AI — a recognized practice now with its own working group at the FinOps Foundation. Four pillars: visibility, engineering levers, a control plane, and governance.",
+      "beats": [
+        { "text": "The answer: <b>FinOps for AI</b>.", "style": "h2" },
+        { "text": "Four pillars — visibility, levers, control plane, governance.", "style": "body" },
+        { "text": "Treat token spend as a first-class cost scope.", "style": "note" }
+      ],
+      "mermaid": "flowchart TB\n  root[\"FinOps for AI\"]:::gov\n  vis[\"Visibility — token attribution\"]:::meter\n  lev[\"Engineering levers — cache · batch · route\"]:::lever\n  ctl[\"Control plane — gateway enforcement\"]:::enforce\n  govn[\"Governance — budgets · showback\"]:::gov\n  root --> vis\n  root --> lev\n  root --> ctl\n  root --> govn\n  classDef gov fill:#6a4fb0,stroke:#3d2a70,color:#ffffff;\n  classDef meter fill:#2d6cdf,stroke:#13315c,color:#ffffff;\n  classDef lever fill:#dce9fb,stroke:#2d6cdf,color:#13315c;\n  classDef enforce fill:#1f6f78,stroke:#0f3438,color:#ffffff;",
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["root"], "effect": "pulse" },
+        { "atBeat": 1, "reveal": ["vis", "lev", "ctl", "govn", "edge:root-->vis", "edge:root-->lev", "edge:root-->ctl", "edge:root-->govn"], "effect": "draw" }
+      ],
+      "caption": "FinOps for AI: visibility, levers, control plane, governance"
+    },
+    {
+      "id": "gateway",
+      "kind": "diagram",
+      "durationSec": 16,
+      "narration": "The architectural center of gravity is the LLM gateway — a layer between your apps and the model providers. The first job it does is the one the failure stories demand: budget and quota enforcement, before any tokens are spent.",
+      "beats": [
+        { "text": "The control plane: an <b>LLM gateway</b>.", "style": "h2" },
+        { "text": "All model traffic flows through one layer.", "style": "body" },
+        { "text": "First job: <b>enforce budgets before tokens are spent</b>.", "style": "note" }
+      ],
+      "mermaid": "flowchart LR\n  teams[\"Teams · Features · Agents\"]:::src\n  subgraph gw[\"LLM Gateway — Control Plane\"]\n    direction TB\n    budget{{\"Budget & quota enforcement\"}}:::enforce\n    cache[(\"Prompt + semantic cache\")]:::lever\n    router[\"Model router (right-size)\"]:::lever\n    meter[\"Token metering & attribution\"]:::meter\n  end\n  subgraph providers[\"Model Providers\"]\n    small[\"Small / cheap model\"]:::model\n    frontier[\"Frontier model\"]:::model\n  end\n  finops[\"FinOps — showback · forecasts · reviews\"]:::gov\n  teams --> budget\n  budget --> cache\n  cache --> router\n  router --> small\n  router --> frontier\n  budget --> meter\n  meter --> finops\n  classDef src fill:#eef3f4,stroke:#1f6f78,color:#0f3438;\n  classDef enforce fill:#1f6f78,stroke:#0f3438,color:#ffffff,font-weight:bold;\n  classDef lever fill:#dce9fb,stroke:#2d6cdf,color:#13315c;\n  classDef meter fill:#2d6cdf,stroke:#13315c,color:#ffffff;\n  classDef model fill:#0f3438,stroke:#000000,color:#ffffff;\n  classDef gov fill:#6a4fb0,stroke:#3d2a70,color:#ffffff;\n  style gw fill:#1f6f78,fill-opacity:0.08,stroke:#1f6f78,stroke-width:3px,color:#0f3438;\n  style providers fill:#eef3f4,fill-opacity:0.5,stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#3a4a66;",
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["teams"], "effect": "appear" },
+        { "atBeat": 1, "reveal": ["gw", "budget", "edge:teams-->budget"], "effect": "draw" }
+      ],
+      "caption": "A gateway puts enforcement in front of every token"
+    },
+    {
+      "id": "levers",
+      "kind": "diagram",
+      "durationSec": 17,
+      "narration": "Inside the gateway live the engineering levers. Prompt caching reuses the static prefix — about ninety percent off cached input. Batch APIs run async at roughly half price. And a router right-sizes each request, sending easy work to small models and reserving frontier models for hard tasks — reported to cut cost forty to seventy percent.",
+      "beats": [
+        { "text": "Then the <b>levers</b>.", "style": "h2" },
+        { "text": "<b>Caching</b> (~90% off cached input) · <b>batch</b> (~50% off) · <b>routing</b> (40–70%).", "style": "body" },
+        { "text": "Cheapest model that clears the quality bar.", "style": "note" }
+      ],
+      "mermaid": "flowchart LR\n  teams[\"Teams · Features · Agents\"]:::src\n  subgraph gw[\"LLM Gateway — Control Plane\"]\n    direction TB\n    budget{{\"Budget & quota enforcement\"}}:::enforce\n    cache[(\"Prompt + semantic cache\")]:::lever\n    router[\"Model router (right-size)\"]:::lever\n    meter[\"Token metering & attribution\"]:::meter\n  end\n  subgraph providers[\"Model Providers\"]\n    small[\"Small / cheap model\"]:::model\n    frontier[\"Frontier model\"]:::model\n  end\n  finops[\"FinOps — showback · forecasts · reviews\"]:::gov\n  teams --> budget\n  budget --> cache\n  cache --> router\n  router --> small\n  router --> frontier\n  budget --> meter\n  meter --> finops\n  classDef src fill:#eef3f4,stroke:#1f6f78,color:#0f3438;\n  classDef enforce fill:#1f6f78,stroke:#0f3438,color:#ffffff,font-weight:bold;\n  classDef lever fill:#dce9fb,stroke:#2d6cdf,color:#13315c;\n  classDef meter fill:#2d6cdf,stroke:#13315c,color:#ffffff;\n  classDef model fill:#0f3438,stroke:#000000,color:#ffffff;\n  classDef gov fill:#6a4fb0,stroke:#3d2a70,color:#ffffff;\n  style gw fill:#1f6f78,fill-opacity:0.08,stroke:#1f6f78,stroke-width:3px,color:#0f3438;\n  style providers fill:#eef3f4,fill-opacity:0.5,stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#3a4a66;",
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["cache", "edge:budget-->cache"], "effect": "draw" },
+        { "atBeat": 1, "reveal": ["router", "edge:cache-->router"], "effect": "draw" },
+        { "atBeat": 2, "reveal": ["providers", "small", "frontier", "edge:router-->small", "edge:router-->frontier"], "effect": "draw" }
+      ],
+      "caption": "Cache, batch, and right-size before paying frontier prices"
+    },
+    {
+      "id": "governance",
+      "kind": "diagram",
+      "durationSec": 16,
+      "narration": "The last pillar makes it stick. Meter every call and attribute it to a team, feature, or workflow. Feed that into FinOps: showback so spenders own their bills, forecasting on unit economics, and cross-functional reviews. The core lesson — alerting is not enforcement.",
+      "beats": [
+        { "text": "Close the loop: <b>attribute and govern</b>.", "style": "h2" },
+        { "text": "Meter every call → <b>showback</b>, forecasts, reviews.", "style": "body" },
+        { "text": "Alerting is not enforcement.", "style": "note" }
+      ],
+      "mermaid": "flowchart LR\n  teams[\"Teams · Features · Agents\"]:::src\n  subgraph gw[\"LLM Gateway — Control Plane\"]\n    direction TB\n    budget{{\"Budget & quota enforcement\"}}:::enforce\n    cache[(\"Prompt + semantic cache\")]:::lever\n    router[\"Model router (right-size)\"]:::lever\n    meter[\"Token metering & attribution\"]:::meter\n  end\n  subgraph providers[\"Model Providers\"]\n    small[\"Small / cheap model\"]:::model\n    frontier[\"Frontier model\"]:::model\n  end\n  finops[\"FinOps — showback · forecasts · reviews\"]:::gov\n  teams --> budget\n  budget --> cache\n  cache --> router\n  router --> small\n  router --> frontier\n  budget --> meter\n  meter --> finops\n  classDef src fill:#eef3f4,stroke:#1f6f78,color:#0f3438;\n  classDef enforce fill:#1f6f78,stroke:#0f3438,color:#ffffff,font-weight:bold;\n  classDef lever fill:#dce9fb,stroke:#2d6cdf,color:#13315c;\n  classDef meter fill:#2d6cdf,stroke:#13315c,color:#ffffff;\n  classDef model fill:#0f3438,stroke:#000000,color:#ffffff;\n  classDef gov fill:#6a4fb0,stroke:#3d2a70,color:#ffffff;\n  style gw fill:#1f6f78,fill-opacity:0.08,stroke:#1f6f78,stroke-width:3px,color:#0f3438;\n  style providers fill:#eef3f4,fill-opacity:0.5,stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#3a4a66;",
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["meter", "edge:budget-->meter"], "effect": "draw" },
+        { "atBeat": 1, "reveal": ["finops", "edge:meter-->finops"], "effect": "draw" }
+      ],
+      "caption": "Token attribution feeds showback, forecasting, and reviews"
+    },
+    {
+      "id": "recap",
+      "kind": "content",
+      "durationSec": 12,
+      "narration": "So: tokens are the unit of account, output and re-billed context drive the cost, and agents multiply it until something stops them. Meter every call, route all traffic through a gateway that enforces budgets, turn on caching and batch, right-size models, and govern it as FinOps. Build the system that declines the next call — not just the dashboard that reports the last one.",
+      "beats": [
+        { "text": "Tokens are the unit. Output + re-billed context + agents drive cost.", "style": "h2" },
+        { "text": "Meter every call · gateway that <b>enforces</b> · cache + batch · right-size.", "style": "body" },
+        { "text": "Govern it as <b>FinOps</b>: budgets, showback, forecasts.", "style": "body" },
+        { "text": "Build the stop button — not just the dashboard.", "style": "note" }
+      ]
+    }
+  ]
+}
