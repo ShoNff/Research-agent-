@@ -15,7 +15,7 @@ export const LIBRARY = [
     ],
     "created": "2026-06-08",
     "updated": "2026-06-08",
-    "version": 3,
+    "version": 4,
     "sources": [
       {
         "url": "https://learn.microsoft.com/en-us/entra/fundamentals/whatis",
@@ -55,6 +55,11 @@ export const LIBRARY = [
         "version": 3,
         "date": "2026-06-08",
         "note": "Removed the standalone color/shape legend scene; the deck now opens straight into the tenant build (18 scenes)."
+      },
+      {
+        "version": 4,
+        "date": "2026-06-08",
+        "note": "Fix Mermaid render crash (clusterNode) — removed subgraph-to-subgraph invisible links between the three subscription boxes; they stay grouped inside the tenant subgraph without them."
       }
     ],
     "artifacts": [
