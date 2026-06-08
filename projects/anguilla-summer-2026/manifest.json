@@ -25,12 +25,16 @@
   ],
   "created": "2026-06-08",
   "updated": "2026-06-08",
-  "published_at": "2026-06-08T01:30:53.169206+00:00",
+  "published_at": "2026-06-08T01:48:40.313379+00:00",
   "version": 1,
   "artifacts": [
     {
       "type": "report",
       "path": "report.md"
+    },
+    {
+      "type": "deck",
+      "path": "deck.html"
     }
   ],
   "sources": [
@@ -124,7 +128,7 @@
     {
       "version": 1,
       "date": "2026-06-08",
-      "note": "Initial research: 4-day Anguilla trip guide (Jun 26–30, 2026) from a Zemi Beach House base, sequenced to the island's weekly music/dining rhythm."
+      "note": "Initial research: 4-day Anguilla trip guide (Jun 26–30, 2026) from a Zemi Beach House base, with a navigable HTML itinerary deck."
     }
   ]
 }

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anguilla Summer 2026 — June 26–30</title>
+  <style>
+    :root{
+      --sea:#0a7e8c; --sea-deep:#075563; --sand:#f4e9d7; --sun:#f5a623;
+      --coral:#ef6f5b; --ink:#0c2a30; --panel:rgba(255,255,255,.94);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;overflow:hidden;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      color:#eafcff;
+      background:radial-gradient(130% 130% at 50% 0%, #16b2c0 0%, var(--sea) 42%, var(--sea-deep) 100%);}
+    #deck{height:100vh;width:100vw;display:flex;flex-direction:column}
+    #stage{position:relative;flex:1 1 auto;min-height:0}
+    .scene{position:absolute;inset:4vh 5vw;display:none;flex-direction:column;justify-content:center;
+      animation:fade .5s ease both}
+    .scene.on{display:flex}
+    @keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+    .kicker{letter-spacing:.18em;text-transform:uppercase;font-size:.8rem;font-weight:700;
+      color:var(--sun);margin-bottom:.6rem}
+    h1{font-size:clamp(2.2rem,6vw,4.4rem);margin:.2rem 0;line-height:1.02}
+    h2{font-size:clamp(1.6rem,3.6vw,2.6rem);margin:0 0 1rem}
+    .sub{font-size:clamp(1rem,2vw,1.35rem);opacity:.92;max-width:48ch}
+    .grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin-top:.4rem}
+    .card{background:var(--panel);color:var(--ink);border-radius:16px;padding:1.1rem 1.2rem;
+      box-shadow:0 12px 30px rgba(0,0,0,.22)}
+    .card h3{margin:.1rem 0 .5rem;font-size:1.15rem;display:flex;align-items:center;gap:.5rem}
+    .card .when{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.06em;
+      text-transform:uppercase;color:#fff;background:var(--coral);border-radius:999px;
+      padding:.2rem .6rem;margin-bottom:.55rem}
+    .card.sea .when{background:var(--sea)}
+    .card.sun .when{background:var(--sun);color:#3a2600}
+    ul{margin:.3rem 0 0;padding-left:1.1rem}
+    li{margin:.3rem 0;font-size:.97rem;line-height:1.35}
+    .pill{display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);
+      border-radius:999px;padding:.35rem .8rem;margin:.25rem .35rem .25rem 0;font-size:.92rem}
+    .note{font-size:.95rem;opacity:.9;margin-top:1rem;border-left:3px solid var(--sun);padding-left:.8rem}
+    .twocol{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    @media(max-width:760px){.twocol{grid-template-columns:1fr}}
+    /* chrome */
+    #bar{display:flex;align-items:center;gap:1rem;padding:.7rem 1.4rem;
+      background:rgba(0,0,0,.18);backdrop-filter:blur(6px)}
+    #bar .title{font-weight:700;font-size:.95rem;opacity:.95}
+    #bar .spacer{flex:1}
+    .dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.35);cursor:pointer;
+      border:none;padding:0;transition:.2s}
+    .dot.on{background:var(--sun);transform:scale(1.35)}
+    .nav{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);color:#fff;
+      border-radius:10px;width:40px;height:34px;font-size:1.1rem;cursor:pointer}
+    .nav:hover{background:rgba(255,255,255,.28)}
+    #count{font-variant-numeric:tabular-nums;font-size:.85rem;opacity:.85;min-width:42px;text-align:center}
+    .hint{position:absolute;bottom:1.2vh;right:5vw;font-size:.8rem;opacity:.6}
+  </style>
+</head>
+<body>
+<div id="deck">
+  <div id="bar">
+    <span class="title">🏝️ Anguilla Summer 2026 · June 26–30</span>
+    <span class="spacer"></span>
+    <span id="dots"></span>
+    <button class="nav" onclick="go(-1)" aria-label="Previous">‹</button>
+    <span id="count"></span>
+    <button class="nav" onclick="go(1)" aria-label="Next">›</button>
+  </div>
+
+  <div id="stage">
+    <!-- 1 · Title -->
+    <section class="scene">
+      <div class="kicker">Trip Guide · Zemi Beach House</div>
+      <h1>Anguilla<br>Summer 2026</h1>
+      <p class="sub">Four days on the island — Friday June 26 to Tuesday June 30 — sequenced to the island's weekly rhythm of music, food, and beaches. Based at Zemi Beach House, Shoal Bay East, with a car.</p>
+      <div style="margin-top:1.2rem">
+        <span class="pill">🎶 Live music</span>
+        <span class="pill">🍤 Food</span>
+        <span class="pill">🏖️ Beaches</span>
+        <span class="pill">🗺️ Attractions</span>
+        <span class="pill">🚗 Self-drive</span>
+      </div>
+    </section>
+
+    <!-- 2 · At a glance -->
+    <section class="scene">
+      <div class="kicker">The plan at a glance</div>
+      <h2>Timed to the day of the week</h2>
+      <div class="grid">
+        <div class="card"><span class="when">Fri 26</span><h3>🍖 Arrive</h3>Settle in, first swim, <b>Dune Preserve Friday BBQ</b> + live music.</div>
+        <div class="card sea"><span class="when">Sat 27</span><h3>⛵ Boat day</h3>Sandy Island / Prickly Pear, then <b>Elvis' DJ night</b>.</div>
+        <div class="card sun"><span class="when">Sun 28</span><h3>🦞 Sunday</h3><b>Scilly Cay</b> lunch + the famous <b>Sunday at the Dune</b>.</div>
+        <div class="card"><span class="when">Mon 29</span><h3>🏛️ Culture & spa</h3>East-end history, beaches, Zemi spa <i>(Dune closed)</i>.</div>
+      </div>
+      <div class="note"><b>The one rule:</b> the Dune Preserve is <b>closed Mondays</b> — so the music nights land Fri/Sat/Sun and Monday goes slow & cultural.</div>
+    </section>
+
+    <!-- 3 · Friday -->
+    <section class="scene">
+      <div class="kicker">Day 1 · Friday June 26</div>
+      <h2>Arrive & ease in</h2>
+      <div class="twocol">
+        <div class="card"><h3>☀️ Daytime</h3><ul>
+          <li>Land, grab the car, sort the <b>$25 temporary driving permit</b> at the rental desk</li>
+          <li>Check in at Zemi; first swim on <b>Shoal Bay East</b> right out front</li>
+          <li>Sunset drink at the Zemi Beach Club or Rhum Room</li></ul></div>
+        <div class="card sun"><h3>🌙 Evening</h3><ul>
+          <li><b>Dune Preserve Friday BBQ</b> (7:30–9:30pm) on Rendezvous Bay — live music, the perfect arrival night</li>
+          <li>Prefer polished? <b>Blanchards</b> on Meads Bay</li></ul></div>
+      </div>
+    </section>
+
+    <!-- 4 · Saturday -->
+    <section class="scene">
+      <div class="kicker">Day 2 · Saturday June 27</div>
+      <h2>Boat & beach-bar night</h2>
+      <div class="twocol">
+        <div class="card sea"><h3>⛵ Daytime</h3><ul>
+          <li>Half-day charter to <b>Sandy Island</b> or <b>Prickly Pear</b> — snorkel + grilled beach lunch</li>
+          <li>Book Tradition Sailing (or Gotcha / Junior's) ahead</li>
+          <li>Late afternoon: pool, Rhum Room, or a spa slot at Zemi</li></ul></div>
+        <div class="card sun"><h3>🌙 Evening</h3><ul>
+          <li><b>Elvis' Beach Bar</b>, Sandy Ground — <b>DJ Kue's Saturday night</b></li>
+          <li>Dinner nearby: <b>Veya</b> or <b>Dolce Vita</b></li></ul></div>
+      </div>
+    </section>
+
+    <!-- 5 · Sunday -->
+    <section class="scene">
+      <div class="kicker">Day 3 · Sunday June 28</div>
+      <h2>The quintessential Anguilla Sunday</h2>
+      <div class="twocol">
+        <div class="card"><h3>🦞 Midday</h3><ul>
+          <li><b>Scilly Cay</b> — drive to Island Harbour (~10 min from Zemi), <b>wave for the free ferry</b></li>
+          <li>Grilled crayfish + rum punch + live music on a private island (open Sun, ~11–3:30)</li></ul></div>
+        <div class="card sun"><h3>🎶 Afternoon</h3><ul>
+          <li><b>Sunday at the Dune</b> — live music ~1:00–6:30pm on Rendezvous Bay</li>
+          <li>Or a <b>Sunday beach BBQ</b> at Da'Vida or Elvis'</li>
+          <li>Pick one scene and settle in</li></ul></div>
+      </div>
+    </section>
+
+    <!-- 6 · Monday -->
+    <section class="scene">
+      <div class="kicker">Day 4 · Monday June 29 · Dune closed</div>
+      <h2>East-end culture & a slow luxe day</h2>
+      <div class="grid">
+        <div class="card sea"><h3>🏖️ Morning</h3>Shoal Bay East from the resort, or a snorkel at <b>Little Bay</b>.</div>
+        <div class="card"><h3>🏛️ Midday</h3><b>Heritage Collection Museum</b> → <b>Big Spring petroglyphs</b> at Island Harbour — both minutes from Zemi.</div>
+        <div class="card sun"><h3>💆 Afternoon</h3><b>Zemi Thai House spa</b> — hammam + treatment in a 300-yr-old Thai house.</div>
+        <div class="card"><h3>🍽️ Dinner</h3><b>Hibernia</b> (East End) or <b>Stone</b> on property — close to home for the last night.</div>
+      </div>
+      <div class="note">Departure <b>Tue June 30</b>: early swim, breakfast, one last Shoal Bay walk before the airport.</div>
+    </section>
+
+    <!-- 7 · Beaches -->
+    <section class="scene">
+      <div class="kicker">Must-see beaches</div>
+      <h2>Six to prioritize</h2>
+      <div class="grid">
+        <div class="card"><h3>🌟 Shoal Bay East</h3>At your doorstep. Bright, shallow, near seaweed-free, clear 50 yds out.</div>
+        <div class="card sea"><h3>🎶 Rendezvous Bay</h3>Long & calm, St-Martin views, the island's best beach bars & music.</div>
+        <div class="card sun"><h3>🍽️ Meads Bay</h3>2+ miles of sand; home to Blanchards & top restaurants.</div>
+        <div class="card"><h3>🤿 Little Bay</h3>Tiny limestone cove, some of the best easy snorkeling.</div>
+        <div class="card sea"><h3>🏝️ Sandy Island</h3>Postcard islet off Sandy Ground; turquoise shallows, one beach grill.</div>
+        <div class="card sun"><h3>🛋️ Shoal Bay West</h3>Quieter; home to the sleek Savi Beach Club.</div>
+      </div>
+    </section>
+
+    <!-- 8 · Food -->
+    <section class="scene">
+      <div class="kicker">Where to eat</div>
+      <h2>Beach shacks to fine dining</h2>
+      <div class="twocol">
+        <div class="card sun"><h3>🥂 Fine dining</h3><ul>
+          <li><b>Blanchards</b> — Meads Bay legend</li>
+          <li><b>Veya</b> — "cuisine of the sun", ~$95 tasting menu</li>
+          <li><b>Hibernia</b> — Franco-Asian + gallery, East End</li>
+          <li><b>Stone</b> — Zemi's on-site option</li></ul></div>
+        <div class="card sea"><h3>🍤 Local & beach bars</h3><ul>
+          <li><b>Tasty's</b> (South Hill) · <b>Smokey's at the Cove</b></li>
+          <li><b>Elvis'</b> (Sandy Ground) · <b>Scilly Cay</b> (Sun)</li>
+          <li><b>Dolce Vita</b> Italian · <b>Savi Beach Club</b></li></ul></div>
+      </div>
+      <div class="note">Late June is shoulder season — <b>book the big names ahead</b>; some run reduced days.</div>
+    </section>
+
+    <!-- 9 · Music -->
+    <section class="scene">
+      <div class="kicker">Live music & nightlife</div>
+      <h2>The weekly rhythm</h2>
+      <div class="grid">
+        <div class="card sun"><h3>🎸 Dune Preserve</h3>Bankie Banx's driftwood bar, Rendezvous Bay. Live <b>Fri/Sat</b> + <b>Sun afternoon</b>, Friday BBQ. <b>Closed Mondays.</b></div>
+        <div class="card sea"><h3>🎧 Elvis' Beach Bar</h3>Boat-hull bar at Sandy Ground. <b>DJ Kue on Saturdays</b>; Sunday beach BBQ.</div>
+        <div class="card"><h3>🔥 Sunday BBQs</h3>Da'Vida (Crocus Bay) & Elvis' — the classic island Sunday.</div>
+      </div>
+      <div class="note">Artist line-ups aren't published this far out — the <b>day-of-week pattern</b> is the reliable backbone. Reconfirm a week ahead.</div>
+    </section>
+
+    <!-- 10 · Logistics -->
+    <section class="scene">
+      <div class="kicker">Good to know</div>
+      <h2>Driving & practicalities</h2>
+      <div class="grid">
+        <div class="card"><h3>🚗 Drive on the left</h3>British territory. Flat, low-traffic, 30 mph limit — most adjust in a day.</div>
+        <div class="card sun"><h3>🪪 Temp permit</h3>~<b>US$25</b>, arranged by the rental desk. Bring your home license + a card.</div>
+        <div class="card sea"><h3>🛣️ Roads</h3>Main roads paved; beach tracks sandy/rutted — higher clearance helps, go slow at night.</div>
+        <div class="card"><h3>🗓️ Season</h3>No major festival these dates (Moonsplash = March, Carnival = late July) — relaxed & uncrowded.</div>
+      </div>
+    </section>
+  </div>
+  <div class="hint">← / → or click the dots</div>
+</div>
+
+<script>
+  const scenes=[...document.querySelectorAll('.scene')];
+  const dots=document.getElementById('dots');
+  const count=document.getElementById('count');
+  let i=0;
+  scenes.forEach((_,n)=>{const b=document.createElement('button');b.className='dot';
+    b.onclick=()=>show(n);dots.appendChild(b);});
+  const dotEls=[...dots.children];
+  function show(n){i=Math.max(0,Math.min(scenes.length-1,n));
+    scenes.forEach((s,k)=>s.classList.toggle('on',k===i));
+    dotEls.forEach((d,k)=>d.classList.toggle('on',k===i));
+    count.textContent=(i+1)+' / '+scenes.length;}
+  function go(d){show(i+d);}
+  window.go=go;
+  addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' ')go(1);
+    if(e.key==='ArrowLeft')go(-1);
+    if(e.key==='Home')show(0);
+    if(e.key==='End')show(scenes.length-1);});
+  show(0);
+</script>
+</body>
+</html>
