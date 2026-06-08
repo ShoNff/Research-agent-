@@ -544,6 +544,26 @@ body {
   margin-bottom: 16px;
 }
 
+/* Images embedded in report prose (Markdown ![alt](url)) */
+.prose img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+.prose figure.figure {
+  overflow: hidden;
+  margin: 1.4em 0;
+}
+.prose figure.figure img {
+  border-radius: 0;
+}
+.prose figcaption {
+  font-size: 0.85em;
+  color: var(--text-dim);
+  padding: 8px 12px;
+}
+
 .sourcelist,
 .changelist {
   list-style: none;
