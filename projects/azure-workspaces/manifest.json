@@ -1,0 +1,67 @@
+{
+  "slug": "azure-workspaces",
+  "title": "Azure Workspaces",
+  "topic": "How an Azure engagement boundary is built: Tenant -> Subscription -> Resource Groups -> Workspace, and how agents operate inside it",
+  "summary": "Walks the Azure hierarchy (Entra tenant, subscription, resource groups, regions) and builds the Workspace as a data boundary around an engagement, with agents operating safely inside it.",
+  "tags": [
+    "azure",
+    "cloud",
+    "governance",
+    "identity",
+    "infrastructure"
+  ],
+  "key_claims": [
+    "The Azure chain is Tenant -> Subscription -> Resource Group -> Workspace boundary.",
+    "A Microsoft Entra ID tenant is the organization identity boundary.",
+    "A subscription is a billing and access container; a tenant can hold many.",
+    "Resource groups are lifecycle buckets of resources, each pinned to a real region/data center.",
+    "A Workspace is a data boundary around the resource groups of one engagement and can grow over time.",
+    "A single KPMG engagement number ties the whole boundary to governance.",
+    "Agents operate only inside the Workspace boundary, feeding good changes to a golden instance."
+  ],
+  "created": "2026-06-08",
+  "updated": "2026-06-08",
+  "published_at": "2026-06-08T01:18:35.316041+00:00",
+  "version": 1,
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "report.md"
+    },
+    {
+      "type": "deck",
+      "path": "deck.html"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://learn.microsoft.com/en-us/entra/fundamentals/whatis",
+      "title": "What is Microsoft Entra ID",
+      "domain": "learn.microsoft.com",
+      "reliability_tier": "established",
+      "confidence_score": 0.95
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/overview",
+      "title": "Azure Resource Manager overview",
+      "domain": "learn.microsoft.com",
+      "reliability_tier": "established",
+      "confidence_score": 0.95
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-setup-guide/organize-resources",
+      "title": "Organize your Azure resources",
+      "domain": "learn.microsoft.com",
+      "reliability_tier": "established",
+      "confidence_score": 0.95
+    }
+  ],
+  "related": [],
+  "changelog": [
+    {
+      "version": 1,
+      "date": "2026-06-08",
+      "note": "Retrofit the existing Azure Workspaces deck into a project (report.md + manifest); sources are the canonical Microsoft Learn references for the Azure hierarchy."
+    }
+  ]
+}

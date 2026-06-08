@@ -1,0 +1,28 @@
+{
+  "projects": [
+    {
+      "slug": "azure-workspaces",
+      "title": "Azure Workspaces",
+      "topic": "How an Azure engagement boundary is built: Tenant -> Subscription -> Resource Groups -> Workspace, and how agents operate inside it",
+      "summary": "Walks the Azure hierarchy (Entra tenant, subscription, resource groups, regions) and builds the Workspace as a data boundary around an engagement, with agents operating safely inside it.",
+      "tags": [
+        "azure",
+        "cloud",
+        "governance",
+        "identity",
+        "infrastructure"
+      ],
+      "key_claims": [
+        "The Azure chain is Tenant -> Subscription -> Resource Group -> Workspace boundary.",
+        "A Microsoft Entra ID tenant is the organization identity boundary.",
+        "A subscription is a billing and access container; a tenant can hold many.",
+        "Resource groups are lifecycle buckets of resources, each pinned to a real region/data center.",
+        "A Workspace is a data boundary around the resource groups of one engagement and can grow over time.",
+        "A single KPMG engagement number ties the whole boundary to governance.",
+        "Agents operate only inside the Workspace boundary, feeding good changes to a golden instance."
+      ],
+      "updated": "2026-06-08",
+      "version": 1
+    }
+  ]
+}

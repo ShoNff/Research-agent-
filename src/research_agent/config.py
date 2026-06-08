@@ -21,7 +21,9 @@ class ModelConfig:
 @dataclass
 class Config:
     formats: list[str] = field(default_factory=lambda: ["markdown"])
-    output_dir: Path = field(default_factory=lambda: Path("./output"))
+    # The projects root. Each run creates a project folder under it
+    # (projects/<slug>/) that holds the manifest and all generated artifacts.
+    output_dir: Path = field(default_factory=lambda: Path("./projects"))
     writing_style: str = "concise"
     visual_emphasis: str = "high"
     max_qa_revisions: int = 2
@@ -70,8 +72,7 @@ def load_config(
 
     config.output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Default log_dir to output_dir/logs/ if not set
-    if config.log_dir is None:
-        config.log_dir = config.output_dir / "logs"
+    # log_dir is resolved per-run in run_research() to <project_dir>/logs once
+    # the project slug is known. Leave it as the explicit override, or None.
 
     return config
