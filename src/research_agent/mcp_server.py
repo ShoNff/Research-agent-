@@ -31,7 +31,7 @@ from claude_agent_sdk import create_sdk_mcp_server, tool
             },
             "output_dir": {
                 "type": "string",
-                "description": "Output directory path. Default: ./output",
+                "description": "Projects root directory; the run lands in projects/<slug>/. Default: ./projects",
             },
         },
         "required": ["topic"],
@@ -44,7 +44,7 @@ async def research_tool(args: dict[str, Any]) -> dict[str, Any]:
 
     formats = args.get("format", "markdown")
     format_list = [f.strip() for f in formats.split(",")]
-    output_dir = args.get("output_dir", "./output")
+    output_dir = args.get("output_dir", "./projects")
     style = args.get("style", "concise")
 
     config = load_config(
@@ -55,7 +55,10 @@ async def research_tool(args: dict[str, Any]) -> dict[str, Any]:
         },
     )
 
+    from research_agent.projects import slugify
+
     result = await run_research(args["topic"], config, verbose=False)
+    project_dir = Path(output_dir) / slugify(args["topic"])
 
     if result:
         return {"content": [{"type": "text", "text": result}]}
@@ -64,7 +67,7 @@ async def research_tool(args: dict[str, Any]) -> dict[str, Any]:
             "content": [
                 {
                     "type": "text",
-                    "text": f"Research completed. Output files are in {output_dir}/",
+                    "text": f"Research completed. Project published to {project_dir}/",
                 }
             ]
         }

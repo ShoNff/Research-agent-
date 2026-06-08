@@ -19,8 +19,8 @@ import click
 )
 @click.option(
     "--output-dir", "-o",
-    default="./output",
-    help="Output directory. Default: ./output",
+    default="./projects",
+    help="Projects root directory. Each run creates projects/<slug>/. Default: ./projects",
 )
 @click.option(
     "--style", "-s",
@@ -108,14 +108,17 @@ def main(
     config = load_config(cli_overrides=overrides)
 
     if dry_run:
+        from research_agent.projects import slugify
+
         click.echo("Research Agent — Dry Run")
         click.echo(f"  Topic:            {topic}")
         click.echo(f"  Formats:          {', '.join(config.formats)}")
         click.echo(f"  Style:            {config.writing_style}")
         click.echo(f"  Visual emphasis:  {visual_emphasis}")
-        click.echo(f"  Output dir:       {config.output_dir}")
+        click.echo(f"  Projects root:    {config.output_dir}")
+        click.echo(f"  Project folder:   {config.output_dir / slugify(topic)}")
         click.echo(f"  Log level:        {config.log_level}")
-        click.echo(f"  Log dir:          {config.log_dir}")
+        click.echo(f"  Log dir:          {config.log_dir or '<project>/logs'}")
         click.echo(f"  Max budget:       ${config.max_budget_usd:.2f}")
         click.echo(f"  Models:")
         click.echo(f"    Orchestrator:   {config.models.orchestrator}")
@@ -140,7 +143,7 @@ def main(
         click.echo("\n" + "=" * 60)
         click.echo(result)
     else:
-        click.echo("\nResearch completed. Check output directory for files.")
+        click.echo(f"\nResearch completed. Check the published project under {config.output_dir}/")
 
     # Show log file locations
     if config.log_level != "off" and config.log_dir:

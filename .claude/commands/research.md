@@ -7,4 +7,4 @@ Usage: /research <topic>
 Steps:
 1. Run: `research-agent "$ARGUMENTS" --format markdown --style concise -v`
 2. If the command is not found, install first: `pip install -e .`
-3. Report the results and the path to output files
+3. The run publishes a project to `projects/<slug>/` (with `manifest.json`). Report the results and the project path. Commit the project folder so it appears in the web library.

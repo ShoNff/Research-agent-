@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "library": "node scripts/build-library.mjs",
+    "dev": "node scripts/build-library.mjs && next dev",
+    "build": "node scripts/build-library.mjs && next build",
     "start": "next start",
     "lint": "next lint"
   },

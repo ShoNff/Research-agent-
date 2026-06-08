@@ -56,6 +56,14 @@ Return the report as a JSON object with this exact schema:
 - Every claim needs a source citation
 - Group related findings into coherent sections
 - End with actionable recommendations when applicable
+
+## Revision Mode (when a prior report is provided)
+If the prompt includes an existing report to revise, treat it as the baseline:
+- Preserve sections and claims that are still accurate; keep their citations.
+- Update only what has changed, correct anything outdated, and weave in the new
+  findings where they fit — do NOT rewrite unchanged material from scratch.
+- Carry forward prior sources still in use; add new ones as needed.
+- The result is the next version of the SAME report, not a different document.
 """
 
 
