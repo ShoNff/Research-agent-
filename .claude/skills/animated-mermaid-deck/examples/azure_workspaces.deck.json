@@ -1,10 +1,18 @@
 {
   "title": "Azure Workspaces",
   "subtitle": "How a KPMG engagement boundary is built, where the data lives, and how agents work inside it.",
-  "targetDurationSec": 180,
+  "targetDurationSec": 230,
   "defaultAdvance": "auto",
-  "audio": { "enabled": true, "voiceHint": "en", "rate": 1.0 },
-  "theme": { "primary": "#29417a", "secondary": "#4682b4", "accent": "#daa520" },
+  "audio": {
+    "enabled": true,
+    "voiceHint": "en",
+    "rate": 1.0
+  },
+  "theme": {
+    "primary": "#29417a",
+    "secondary": "#4682b4",
+    "accent": "#daa520"
+  },
   "scenes": [
     {
       "id": "intro",
@@ -12,10 +20,67 @@
       "durationSec": 6,
       "narration": "Azure Workspaces. How a KPMG engagement boundary is built, where the data lives, and how agents work inside it. About three minutes.",
       "beats": [
-        { "text": "Azure <b>Workspaces</b>", "style": "h1", "anim": "fade-up" },
-        { "text": "How a KPMG engagement boundary is built — and how agents work inside it.", "style": "body", "anim": "fade" },
-        { "text": "~3 minutes", "style": "note", "anim": "fade" }
+        {
+          "text": "Azure <b>Workspaces</b>",
+          "style": "h1",
+          "anim": "fade-up"
+        },
+        {
+          "text": "How a KPMG engagement boundary is built — and how agents work inside it.",
+          "style": "body",
+          "anim": "fade"
+        },
+        {
+          "text": "~3 minutes",
+          "style": "note",
+          "anim": "fade"
+        }
       ]
+    },
+    {
+      "id": "legend",
+      "kind": "diagram",
+      "durationSec": 12,
+      "narration": "A quick key before we start. Gold marks the engagement and its gold-copy assets. Light boxes are Azure resources. Steel stadiums are agents — they act. Navy cylinders are data stores. The hexagon is the client portal — the doorway in. A thick gold border marks an identity boundary; a thick navy border is the data wall.",
+      "beats": [
+        {
+          "text": "A quick <b>key</b>.",
+          "style": "h2"
+        },
+        {
+          "text": "Colors and shapes mean the same thing on every slide.",
+          "style": "body"
+        },
+        {
+          "text": "Gold border = <b>identity boundary</b>. Navy border = <b>data wall</b>.",
+          "style": "note"
+        }
+      ],
+      "mermaid": "flowchart LR\n  l1[\"Engagement / gold copy\"]:::eng\n  l2[\"Azure resource\"]:::res\n  l3([\"Agent (acts)\"]):::agent\n  l4[(\"Data store\")]:::store\n  l5{{\"Client portal (doorway)\"}}:::portal\n  l1 ~~~ l2\n  l2 ~~~ l3\n  l3 ~~~ l4\n  l4 ~~~ l5\n  subgraph idb[\"Identity boundary (tenant)\"]\n    li[\"a resource\"]:::res\n  end\n  subgraph datab[\"Data wall (workspace)\"]\n    ld[\"a resource\"]:::res\n  end\n  l5 ~~~ li\n  li ~~~ ld\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef portal fill:#bcd2f0,stroke:#29417a,color:#16233f,font-weight:bold;\n  style idb fill:#daa520,fill-opacity:0.06,stroke:#daa520,stroke-width:4px,color:#daa520;\n  style datab fill:#29417a,fill-opacity:0.10,stroke:#29417a,stroke-width:4px,color:#cfe0ff;",
+      "buildSteps": [
+        {
+          "atBeat": 0,
+          "reveal": [
+            "l1",
+            "l2",
+            "l3",
+            "l4",
+            "l5"
+          ],
+          "effect": "appear"
+        },
+        {
+          "atBeat": 2,
+          "reveal": [
+            "idb",
+            "li",
+            "datab",
+            "ld"
+          ],
+          "effect": "appear"
+        }
+      ],
+      "caption": "Color + shape key — consistent across the deck"
     },
     {
       "id": "tenant",
@@ -23,31 +88,78 @@
       "durationSec": 10,
       "narration": "It starts with a Tenant. A Microsoft Entra ID tenant is your organization's identity boundary — one directory of users, groups, and trust.",
       "beats": [
-        { "text": "It starts with a <b>Tenant</b>.", "style": "h2" },
-        { "text": "A Microsoft Entra ID tenant is your organization's identity boundary.", "style": "body" },
-        { "text": "One directory of users, groups, and trust.", "style": "note" }
+        {
+          "text": "It starts with a <b>Tenant</b>.",
+          "style": "h2"
+        },
+        {
+          "text": "A Microsoft Entra ID tenant is your organization's identity boundary.",
+          "style": "body"
+        },
+        {
+          "text": "One directory of users, groups, and trust.",
+          "style": "note"
+        }
       ],
-      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;",
+      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"KPMG.com Tenant (Entra ID)\"]\n    subgraph sub_gac[\"GAC Subscription\"]\n      gacx[\"(separate engagement)\"]:::client\n    end\n    subgraph digitalgw[\"Digital Gateway Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[(\"SQL Database\")]:::store\n          stor[(\"Storage Account\")]:::store\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents([\"Agents\"]):::agent\n          cfg[\"App Configuration\"]:::res\n          inspect([\"Inspect changes\"]):::agent\n          evaluate([\"Evaluate: good?\"]):::agent\n          backlog[(\"Backlog / Master List\")]:::store\n          golden[(\"Golden Instance\")]:::store\n        end\n      end\n    end\n    subgraph sub_de[\"Germany Subscription\"]\n      dex[\"(separate engagement)\"]:::client\n    end\n  end\n  eng --> workspace\n  sub_gac ~~~ digitalgw\n  digitalgw ~~~ sub_de\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  style tenant fill:#daa520,fill-opacity:0.06,stroke:#daa520,stroke-width:4px,color:#daa520;\n  style workspace fill:#29417a,fill-opacity:0.10,stroke:#29417a,stroke-width:4px,color:#cfe0ff;\n  style digitalgw stroke:#4682b4,stroke-width:3px,color:#cfe0ff;\n  style sub_gac stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;\n  style sub_de stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;",
       "buildSteps": [
-        { "atBeat": 0, "reveal": ["tenant"], "effect": "appear" }
+        {
+          "atBeat": 0,
+          "reveal": [
+            "tenant"
+          ],
+          "effect": "pulse"
+        }
       ],
       "caption": "Microsoft Entra ID tenant = your identity boundary"
     },
     {
       "id": "subscription",
       "kind": "diagram",
-      "durationSec": 11,
-      "narration": "Inside the tenant: a Subscription. It is a billing and access container — where Azure resources are paid for and governed. A tenant can hold many subscriptions.",
+      "durationSec": 13,
+      "narration": "Inside the tenant, a subscription is a billing and access container. This tenant holds three: GAC, Germany, and Digital Gateway. Everything in this walkthrough is built inside the Digital Gateway subscription — the other two sit alongside it, governed the same way.",
       "beats": [
-        { "text": "Inside the tenant: a <b>Subscription</b>.", "style": "h2" },
-        { "text": "A billing + access container where resources are paid for and governed.", "style": "body" },
-        { "text": "A tenant can hold many subscriptions.", "style": "note" }
+        {
+          "text": "Inside the tenant: <b>Subscriptions</b>.",
+          "style": "h2"
+        },
+        {
+          "text": "Three of them — <b>GAC</b>, <b>Germany</b>, and <b>Digital Gateway</b>.",
+          "style": "body"
+        },
+        {
+          "text": "We build inside <b>Digital Gateway</b>. The rest sit alongside it.",
+          "style": "note"
+        }
       ],
-      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;",
+      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"KPMG.com Tenant (Entra ID)\"]\n    subgraph sub_gac[\"GAC Subscription\"]\n      gacx[\"(separate engagement)\"]:::client\n    end\n    subgraph digitalgw[\"Digital Gateway Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[(\"SQL Database\")]:::store\n          stor[(\"Storage Account\")]:::store\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents([\"Agents\"]):::agent\n          cfg[\"App Configuration\"]:::res\n          inspect([\"Inspect changes\"]):::agent\n          evaluate([\"Evaluate: good?\"]):::agent\n          backlog[(\"Backlog / Master List\")]:::store\n          golden[(\"Golden Instance\")]:::store\n        end\n      end\n    end\n    subgraph sub_de[\"Germany Subscription\"]\n      dex[\"(separate engagement)\"]:::client\n    end\n  end\n  eng --> workspace\n  sub_gac ~~~ digitalgw\n  digitalgw ~~~ sub_de\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  style tenant fill:#daa520,fill-opacity:0.06,stroke:#daa520,stroke-width:4px,color:#daa520;\n  style workspace fill:#29417a,fill-opacity:0.10,stroke:#29417a,stroke-width:4px,color:#cfe0ff;\n  style digitalgw stroke:#4682b4,stroke-width:3px,color:#cfe0ff;\n  style sub_gac stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;\n  style sub_de stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;",
       "buildSteps": [
-        { "atBeat": 0, "reveal": ["sub"], "effect": "appear" }
+        {
+          "atBeat": 0,
+          "reveal": [
+            "digitalgw"
+          ],
+          "effect": "appear"
+        },
+        {
+          "atBeat": 1,
+          "reveal": [
+            "sub_gac",
+            "sub_de",
+            "gacx",
+            "dex"
+          ],
+          "effect": "appear"
+        },
+        {
+          "atBeat": 2,
+          "reveal": [
+            "digitalgw"
+          ],
+          "effect": "pulse"
+        }
       ],
-      "caption": "Subscription = billing + access container"
+      "caption": "One tenant, three subscriptions — we build in Digital Gateway"
     },
     {
       "id": "resourcegroup",
@@ -55,13 +167,29 @@
       "durationSec": 12,
       "narration": "Subscriptions hold Resource Groups. A resource group is a lifecycle bucket — things created, managed, and deleted together. Tagged, permissioned, and named by convention.",
       "beats": [
-        { "text": "Subscriptions hold <b>Resource Groups</b>.", "style": "h2" },
-        { "text": "A lifecycle bucket — things created, managed, and deleted together.", "style": "body" },
-        { "text": "Tagged, permissioned, and named by convention.", "style": "note" }
+        {
+          "text": "Subscriptions hold <b>Resource Groups</b>.",
+          "style": "h2"
+        },
+        {
+          "text": "A lifecycle bucket — things created, managed, and deleted together.",
+          "style": "body"
+        },
+        {
+          "text": "Tagged, permissioned, and named by convention.",
+          "style": "note"
+        }
       ],
-      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;",
+      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"KPMG.com Tenant (Entra ID)\"]\n    subgraph sub_gac[\"GAC Subscription\"]\n      gacx[\"(separate engagement)\"]:::client\n    end\n    subgraph digitalgw[\"Digital Gateway Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[(\"SQL Database\")]:::store\n          stor[(\"Storage Account\")]:::store\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents([\"Agents\"]):::agent\n          cfg[\"App Configuration\"]:::res\n          inspect([\"Inspect changes\"]):::agent\n          evaluate([\"Evaluate: good?\"]):::agent\n          backlog[(\"Backlog / Master List\")]:::store\n          golden[(\"Golden Instance\")]:::store\n        end\n      end\n    end\n    subgraph sub_de[\"Germany Subscription\"]\n      dex[\"(separate engagement)\"]:::client\n    end\n  end\n  eng --> workspace\n  sub_gac ~~~ digitalgw\n  digitalgw ~~~ sub_de\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  style tenant fill:#daa520,fill-opacity:0.06,stroke:#daa520,stroke-width:4px,color:#daa520;\n  style workspace fill:#29417a,fill-opacity:0.10,stroke:#29417a,stroke-width:4px,color:#cfe0ff;\n  style digitalgw stroke:#4682b4,stroke-width:3px,color:#cfe0ff;\n  style sub_gac stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;\n  style sub_de stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;",
       "buildSteps": [
-        { "atBeat": 0, "reveal": ["rg1", "rg2"], "effect": "appear" }
+        {
+          "atBeat": 0,
+          "reveal": [
+            "rg1",
+            "rg2"
+          ],
+          "effect": "appear"
+        }
       ],
       "caption": "Resource group = a lifecycle bucket of resources"
     },
@@ -71,14 +199,37 @@
       "durationSec": 14,
       "narration": "A resource group has a home. It lives in a region — like East US — in a real Microsoft data center in Virginia. Physical buildings, real servers, a real place on the map.",
       "beats": [
-        { "text": "A resource group has a <b>home</b>.", "style": "h2" },
-        { "text": "It lives in a <b>region</b> — like <b>East US</b> — in a real Microsoft <b>data center</b> in Virginia.", "style": "body" },
-        { "text": "Physical buildings, real servers, a real place on the map.", "style": "note" }
+        {
+          "text": "A resource group has a <b>home</b>.",
+          "style": "h2"
+        },
+        {
+          "text": "It lives in a <b>region</b> — like <b>East US</b> — in a real Microsoft <b>data center</b> in Virginia.",
+          "style": "body"
+        },
+        {
+          "text": "Physical buildings, real servers, a real place on the map.",
+          "style": "note"
+        }
       ],
       "mermaid": "flowchart LR\n  geo[\"Geography: United States\"]:::eng\n  subgraph dc[\"Microsoft Data Center — East US (Virginia)\"]\n    rgloc[\"Resource Group (Location: East US)\"]:::res\n  end\n  geo --> dc\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;",
       "buildSteps": [
-        { "atBeat": 0, "reveal": ["geo"], "effect": "appear" },
-        { "atBeat": 1, "reveal": ["dc", "rgloc", "edge:geo-->dc"], "effect": "draw" }
+        {
+          "atBeat": 0,
+          "reveal": [
+            "geo"
+          ],
+          "effect": "appear"
+        },
+        {
+          "atBeat": 1,
+          "reveal": [
+            "dc",
+            "rgloc",
+            "edge:geo-->dc"
+          ],
+          "effect": "draw"
+        }
       ],
       "caption": "Every resource group has a location — a real region and data center"
     },
@@ -88,16 +239,56 @@
       "durationSec": 16,
       "narration": "What goes inside a resource group? Virtual Machines, SQL Databases, Containers, Storage, App Services, Virtual Networks, Key Vaults, Functions — and more. Each one is a resource.",
       "beats": [
-        { "text": "What goes <b>inside</b> a resource group?", "style": "h2" },
-        { "text": "<b>Virtual Machines, SQL Databases, Containers, Storage</b>...", "style": "body" },
-        { "text": "...<b>App Services, Virtual Networks, Key Vaults, Functions</b> — and more.", "style": "body" },
-        { "text": "Each one is a <i>resource</i>.", "style": "note" }
+        {
+          "text": "What goes <b>inside</b> a resource group?",
+          "style": "h2"
+        },
+        {
+          "text": "<b>Virtual Machines, SQL Databases, Containers, Storage</b>...",
+          "style": "body"
+        },
+        {
+          "text": "...<b>App Services, Virtual Networks, Key Vaults, Functions</b> — and more.",
+          "style": "body"
+        },
+        {
+          "text": "Each one is a <i>resource</i>.",
+          "style": "note"
+        }
       ],
       "mermaid": "flowchart TB\n  rg([\"Resource Group\"]):::eng\n  rg --> vm[\"Virtual Machine\"]:::res\n  rg --> sql[\"SQL Database\"]:::res\n  rg --> cont[\"Container (AKS / Container App)\"]:::res\n  rg --> stor2[\"Storage Account\"]:::res\n  vm ~~~ appsvc[\"App Service / Web App\"]:::res\n  sql ~~~ vnet[\"Virtual Network\"]:::res\n  cont ~~~ kv[\"Key Vault\"]:::res\n  stor2 ~~~ fn[\"Function App\"]:::res\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;",
       "buildSteps": [
-        { "atBeat": 0, "reveal": ["rg"], "effect": "appear" },
-        { "atBeat": 1, "reveal": ["vm", "sql", "cont", "stor2", "edge:rg-->vm", "edge:rg-->sql", "edge:rg-->cont", "edge:rg-->stor2"], "effect": "appear" },
-        { "atBeat": 2, "reveal": ["appsvc", "vnet", "kv", "fn"], "effect": "appear" }
+        {
+          "atBeat": 0,
+          "reveal": [
+            "rg"
+          ],
+          "effect": "appear"
+        },
+        {
+          "atBeat": 1,
+          "reveal": [
+            "vm",
+            "sql",
+            "cont",
+            "stor2",
+            "edge:rg-->vm",
+            "edge:rg-->sql",
+            "edge:rg-->cont",
+            "edge:rg-->stor2"
+          ],
+          "effect": "appear"
+        },
+        {
+          "atBeat": 2,
+          "reveal": [
+            "appsvc",
+            "vnet",
+            "kv",
+            "fn"
+          ],
+          "effect": "appear"
+        }
       ],
       "caption": "Common resources: VM, SQL DB, container, storage, app service, VNet, Key Vault, function"
     },
@@ -107,12 +298,26 @@
       "durationSec": 10,
       "narration": "For our engagement: an App Service, its SQL Database, and a Storage Account.",
       "beats": [
-        { "text": "Resources live in resource groups.", "style": "h2" },
-        { "text": "For our engagement: an <b>App Service</b>, its <b>SQL Database</b>, and a <b>Storage Account</b>.", "style": "body" }
+        {
+          "text": "Resources live in resource groups.",
+          "style": "h2"
+        },
+        {
+          "text": "For our engagement: an <b>App Service</b>, its <b>SQL Database</b>, and a <b>Storage Account</b>.",
+          "style": "body"
+        }
       ],
-      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;",
+      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"KPMG.com Tenant (Entra ID)\"]\n    subgraph sub_gac[\"GAC Subscription\"]\n      gacx[\"(separate engagement)\"]:::client\n    end\n    subgraph digitalgw[\"Digital Gateway Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[(\"SQL Database\")]:::store\n          stor[(\"Storage Account\")]:::store\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents([\"Agents\"]):::agent\n          cfg[\"App Configuration\"]:::res\n          inspect([\"Inspect changes\"]):::agent\n          evaluate([\"Evaluate: good?\"]):::agent\n          backlog[(\"Backlog / Master List\")]:::store\n          golden[(\"Golden Instance\")]:::store\n        end\n      end\n    end\n    subgraph sub_de[\"Germany Subscription\"]\n      dex[\"(separate engagement)\"]:::client\n    end\n  end\n  eng --> workspace\n  sub_gac ~~~ digitalgw\n  digitalgw ~~~ sub_de\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  style tenant fill:#daa520,fill-opacity:0.06,stroke:#daa520,stroke-width:4px,color:#daa520;\n  style workspace fill:#29417a,fill-opacity:0.10,stroke:#29417a,stroke-width:4px,color:#cfe0ff;\n  style digitalgw stroke:#4682b4,stroke-width:3px,color:#cfe0ff;\n  style sub_gac stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;\n  style sub_de stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;",
       "buildSteps": [
-        { "atBeat": 0, "reveal": ["app", "db", "stor"], "effect": "appear" }
+        {
+          "atBeat": 0,
+          "reveal": [
+            "app",
+            "db",
+            "stor"
+          ],
+          "effect": "appear"
+        }
       ],
       "caption": "An app, its database, its storage — each a resource in a resource group"
     },
@@ -122,13 +327,28 @@
       "durationSec": 14,
       "narration": "Group resource groups into a Workspace. The Workspace is a data boundary — a wall around everything in the engagement, drawn at the start.",
       "beats": [
-        { "text": "Group resource groups into a <b>Workspace</b>.", "style": "h2" },
-        { "text": "The Workspace is a <b>data boundary</b> — a wall around everything in the engagement.", "style": "body" },
-        { "text": "Drawn at the <b>start</b> of the engagement.", "style": "note" }
+        {
+          "text": "Group resource groups into a <b>Workspace</b>.",
+          "style": "h2"
+        },
+        {
+          "text": "The Workspace is a <b>data boundary</b> — a wall around everything in the engagement.",
+          "style": "body"
+        },
+        {
+          "text": "Drawn at the <b>start</b> of the engagement.",
+          "style": "note"
+        }
       ],
-      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;",
+      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"KPMG.com Tenant (Entra ID)\"]\n    subgraph sub_gac[\"GAC Subscription\"]\n      gacx[\"(separate engagement)\"]:::client\n    end\n    subgraph digitalgw[\"Digital Gateway Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[(\"SQL Database\")]:::store\n          stor[(\"Storage Account\")]:::store\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents([\"Agents\"]):::agent\n          cfg[\"App Configuration\"]:::res\n          inspect([\"Inspect changes\"]):::agent\n          evaluate([\"Evaluate: good?\"]):::agent\n          backlog[(\"Backlog / Master List\")]:::store\n          golden[(\"Golden Instance\")]:::store\n        end\n      end\n    end\n    subgraph sub_de[\"Germany Subscription\"]\n      dex[\"(separate engagement)\"]:::client\n    end\n  end\n  eng --> workspace\n  sub_gac ~~~ digitalgw\n  digitalgw ~~~ sub_de\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  style tenant fill:#daa520,fill-opacity:0.06,stroke:#daa520,stroke-width:4px,color:#daa520;\n  style workspace fill:#29417a,fill-opacity:0.10,stroke:#29417a,stroke-width:4px,color:#cfe0ff;\n  style digitalgw stroke:#4682b4,stroke-width:3px,color:#cfe0ff;\n  style sub_gac stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;\n  style sub_de stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;",
       "buildSteps": [
-        { "atBeat": 0, "reveal": ["workspace"], "effect": "pulse" }
+        {
+          "atBeat": 0,
+          "reveal": [
+            "workspace"
+          ],
+          "effect": "pulse"
+        }
       ],
       "caption": "Workspace = a data boundary around a set of resource groups"
     },
@@ -138,16 +358,99 @@
       "durationSec": 11,
       "narration": "Boundaries can grow. Mid-engagement, add a new resource group — the Workspace extends to include it. Same boundary, more scope.",
       "beats": [
-        { "text": "Boundaries can <b>grow</b>.", "style": "h2" },
-        { "text": "Mid-engagement, add a resource group — the Workspace extends to include it.", "style": "body" },
-        { "text": "Same boundary, more scope.", "style": "note" }
+        {
+          "text": "Boundaries can <b>grow</b>.",
+          "style": "h2"
+        },
+        {
+          "text": "Mid-engagement, add a resource group — the Workspace extends to include it.",
+          "style": "body"
+        },
+        {
+          "text": "Same boundary, more scope.",
+          "style": "note"
+        }
       ],
-      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;",
+      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"KPMG.com Tenant (Entra ID)\"]\n    subgraph sub_gac[\"GAC Subscription\"]\n      gacx[\"(separate engagement)\"]:::client\n    end\n    subgraph digitalgw[\"Digital Gateway Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[(\"SQL Database\")]:::store\n          stor[(\"Storage Account\")]:::store\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents([\"Agents\"]):::agent\n          cfg[\"App Configuration\"]:::res\n          inspect([\"Inspect changes\"]):::agent\n          evaluate([\"Evaluate: good?\"]):::agent\n          backlog[(\"Backlog / Master List\")]:::store\n          golden[(\"Golden Instance\")]:::store\n        end\n      end\n    end\n    subgraph sub_de[\"Germany Subscription\"]\n      dex[\"(separate engagement)\"]:::client\n    end\n  end\n  eng --> workspace\n  sub_gac ~~~ digitalgw\n  digitalgw ~~~ sub_de\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  style tenant fill:#daa520,fill-opacity:0.06,stroke:#daa520,stroke-width:4px,color:#daa520;\n  style workspace fill:#29417a,fill-opacity:0.10,stroke:#29417a,stroke-width:4px,color:#cfe0ff;\n  style digitalgw stroke:#4682b4,stroke-width:3px,color:#cfe0ff;\n  style sub_gac stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;\n  style sub_de stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;",
       "buildSteps": [
-        { "atBeat": 0, "reveal": ["rg3", "app2"], "effect": "appear" },
-        { "atBeat": 1, "reveal": ["workspace"], "effect": "pulse" }
+        {
+          "atBeat": 0,
+          "reveal": [
+            "rg3",
+            "app2"
+          ],
+          "effect": "appear"
+        },
+        {
+          "atBeat": 1,
+          "reveal": [
+            "workspace"
+          ],
+          "effect": "pulse"
+        }
       ],
       "caption": "The boundary extends as the engagement grows"
+    },
+    {
+      "id": "shelves",
+      "kind": "diagram",
+      "durationSec": 15,
+      "narration": "Outside the workspace sit the shelves. A shelf holds reusable, pre-approved assets — gold copies. There's a Velocity shelf and a US Specific shelf. When an engagement needs an asset, a gold copy is lifted off the shelf and placed inside the workspace boundary. The shelf stays outside; only a copy crosses the wall.",
+      "beats": [
+        {
+          "text": "Outside the workspace: <b>Shelves</b>.",
+          "style": "h2"
+        },
+        {
+          "text": "Shelves hold reusable, pre-approved <b>gold copies</b>.",
+          "style": "body"
+        },
+        {
+          "text": "A <b>Velocity</b> shelf and a <b>US Specific</b> shelf.",
+          "style": "body"
+        },
+        {
+          "text": "A gold copy is lifted off the shelf — <b>into</b> the workspace.",
+          "style": "note"
+        }
+      ],
+      "mermaid": "flowchart LR\n  subgraph shelves[\"Shelves (outside the workspace)\"]\n    direction TB\n    subgraph velocity[\"Velocity Shelf\"]\n      vasset[(\"Gold copy — accelerator\")]:::gold\n    end\n    subgraph usspec[\"US Specific Shelf\"]\n      uasset[(\"Gold copy — US package\")]:::gold\n    end\n  end\n  subgraph ws[\"Workspace — DATA BOUNDARY\"]\n    placed[(\"Placed copy\")]:::store\n  end\n  vasset -->|\"lift copy in\"| placed\n  uasset -->|\"lift copy in\"| placed\n  classDef gold fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  style shelves fill:#fbf1d6,fill-opacity:0.10,stroke:#daa520,stroke-width:2px,stroke-dasharray:6 4,color:#7a5c00;\n  style velocity stroke:#daa520,stroke-width:2px,color:#7a5c00;\n  style usspec stroke:#daa520,stroke-width:2px,color:#7a5c00;\n  style ws fill:#29417a,fill-opacity:0.10,stroke:#29417a,stroke-width:4px,color:#cfe0ff;",
+      "buildSteps": [
+        {
+          "atBeat": 0,
+          "reveal": [
+            "shelves"
+          ],
+          "effect": "appear"
+        },
+        {
+          "atBeat": 1,
+          "reveal": [
+            "ws",
+            "placed"
+          ],
+          "effect": "appear"
+        },
+        {
+          "atBeat": 2,
+          "reveal": [
+            "velocity",
+            "vasset",
+            "usspec",
+            "uasset"
+          ],
+          "effect": "appear"
+        },
+        {
+          "atBeat": 3,
+          "reveal": [
+            "edge:vasset-->placed",
+            "edge:uasset-->placed"
+          ],
+          "effect": "draw"
+        }
+      ],
+      "caption": "Shelves stage gold copies outside; a copy is lifted into the workspace"
     },
     {
       "id": "engagement",
@@ -155,33 +458,141 @@
       "durationSec": 12,
       "narration": "Everything maps to a KPMG Engagement Number. Tags, naming, and the Workspace boundary all carry the engagement ID. One number for governance, billing, and audit.",
       "beats": [
-        { "text": "Everything maps to a <b>KPMG Engagement Number</b>.", "style": "h2" },
-        { "text": "Tags, naming, and the boundary all carry the engagement ID.", "style": "body" },
-        { "text": "One number for governance, billing, and audit.", "style": "note" }
+        {
+          "text": "Everything maps to a <b>KPMG Engagement Number</b>.",
+          "style": "h2"
+        },
+        {
+          "text": "Tags, naming, and the boundary all carry the engagement ID.",
+          "style": "body"
+        },
+        {
+          "text": "One number for governance, billing, and audit.",
+          "style": "note"
+        }
       ],
-      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;",
+      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"KPMG.com Tenant (Entra ID)\"]\n    subgraph sub_gac[\"GAC Subscription\"]\n      gacx[\"(separate engagement)\"]:::client\n    end\n    subgraph digitalgw[\"Digital Gateway Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[(\"SQL Database\")]:::store\n          stor[(\"Storage Account\")]:::store\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents([\"Agents\"]):::agent\n          cfg[\"App Configuration\"]:::res\n          inspect([\"Inspect changes\"]):::agent\n          evaluate([\"Evaluate: good?\"]):::agent\n          backlog[(\"Backlog / Master List\")]:::store\n          golden[(\"Golden Instance\")]:::store\n        end\n      end\n    end\n    subgraph sub_de[\"Germany Subscription\"]\n      dex[\"(separate engagement)\"]:::client\n    end\n  end\n  eng --> workspace\n  sub_gac ~~~ digitalgw\n  digitalgw ~~~ sub_de\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  style tenant fill:#daa520,fill-opacity:0.06,stroke:#daa520,stroke-width:4px,color:#daa520;\n  style workspace fill:#29417a,fill-opacity:0.10,stroke:#29417a,stroke-width:4px,color:#cfe0ff;\n  style digitalgw stroke:#4682b4,stroke-width:3px,color:#cfe0ff;\n  style sub_gac stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;\n  style sub_de stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;",
       "buildSteps": [
-        { "atBeat": 0, "reveal": ["eng"], "effect": "pulse" },
-        { "atBeat": 1, "reveal": ["edge:eng-->workspace"], "effect": "draw" }
+        {
+          "atBeat": 0,
+          "reveal": [
+            "eng"
+          ],
+          "effect": "pulse"
+        },
+        {
+          "atBeat": 1,
+          "reveal": [
+            "edge:eng-->workspace"
+          ],
+          "effect": "draw"
+        }
       ],
       "caption": "KPMG engagement number ties the whole boundary to governance"
+    },
+    {
+      "id": "client-portal",
+      "kind": "diagram",
+      "durationSec": 14,
+      "narration": "How does anything get in? Through the client portal. It's the single, governed doorway between the client and a workspace. Every upload is authenticated, scoped to one engagement, and logged. Nothing reaches the workspace except through the portal.",
+      "beats": [
+        {
+          "text": "How does data get in? The <b>Client Portal</b>.",
+          "style": "h2"
+        },
+        {
+          "text": "One governed doorway: <b>authenticated</b>, <b>scoped</b>, <b>logged</b>.",
+          "style": "body"
+        },
+        {
+          "text": "Nothing enters the workspace except <b>through the portal</b>.",
+          "style": "note"
+        }
+      ],
+      "mermaid": "flowchart LR\n  client[\"Client\"]:::client\n  portal{{\"Client Portal — authenticated · scoped · logged\"}}:::portal\n  subgraph ws[\"Workspace — DATA BOUNDARY\"]\n    inbox[(\"Engagement inbox\")]:::store\n  end\n  blocked[\"Anything else\"]:::client\n  client -->|\"sign in\"| portal\n  portal -->|\"into the boundary\"| inbox\n  blocked -.->|\"no path\"| ws\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  classDef portal fill:#bcd2f0,stroke:#29417a,color:#16233f,font-weight:bold;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  style ws fill:#29417a,fill-opacity:0.10,stroke:#29417a,stroke-width:4px,color:#cfe0ff;\n  linkStyle 2 stroke:#b04a4a,stroke-width:1.5px,stroke-dasharray:4 4;",
+      "buildSteps": [
+        {
+          "atBeat": 0,
+          "reveal": [
+            "client",
+            "portal",
+            "edge:client-->portal"
+          ],
+          "effect": "draw"
+        },
+        {
+          "atBeat": 1,
+          "reveal": [
+            "ws",
+            "inbox",
+            "edge:portal-->inbox"
+          ],
+          "effect": "draw"
+        },
+        {
+          "atBeat": 2,
+          "reveal": [
+            "blocked",
+            "edge:blocked-->ws"
+          ],
+          "effect": "appear"
+        }
+      ],
+      "caption": "The client portal is the only governed way data enters a workspace"
     },
     {
       "id": "data-physical",
       "kind": "diagram",
       "durationSec": 16,
-      "narration": "Data moves in the real world. Across the country, between data centers — East US replicates to West US for resilience. Real fiber, real distance, real latency.",
+      "narration": "In the real world, data starts in the client's own environment. It crosses into the client portal — the controlled doorway — and only then lands inside the workspace, running in the East US data center in Virginia. Real systems, a real building, real distance.",
       "beats": [
-        { "text": "Data <b>moves in the real world</b>.", "style": "h2" },
-        { "text": "Across the country, between data centers — <b>East US</b> replicates to <b>West US</b> for resilience.", "style": "body" },
-        { "text": "Real fiber, real distance, real latency.", "style": "note" }
+        {
+          "text": "Data starts in the <b>client's world</b>.",
+          "style": "h2"
+        },
+        {
+          "text": "It enters through the <b>client portal</b> — the controlled doorway.",
+          "style": "body"
+        },
+        {
+          "text": "...and lands inside the <b>Workspace</b>, in the <b>East US</b> data center.",
+          "style": "body"
+        },
+        {
+          "text": "Real systems, a real place on the map.",
+          "style": "note"
+        }
       ],
-      "mermaid": "flowchart LR\n  users[\"Users (real world)\"]:::eng\n  subgraph eastus[\"East US — Virginia Data Center\"]\n    dcE[\"Workspace (primary)\"]:::store\n  end\n  subgraph westus[\"West US — California Data Center\"]\n    dcW[\"Geo-redundant copy\"]:::store\n  end\n  users -->|\"requests / data\"| dcE\n  dcE -->|\"replication across the country\"| dcW\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;",
+      "mermaid": "flowchart LR\n  subgraph client[\"Client Environment (on-prem / client cloud)\"]\n    csrc[(\"Client data sources\")]:::client\n  end\n  portal{{\"Client Portal\"}}:::portal\n  subgraph eastus[\"East US — Virginia Data Center\"]\n    subgraph ws[\"Workspace — DATA BOUNDARY\"]\n      land[(\"Workspace storage\")]:::store\n    end\n  end\n  csrc -->|\"export / upload\"| portal\n  portal -->|\"ingest into boundary\"| land\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  classDef portal fill:#bcd2f0,stroke:#29417a,color:#16233f,font-weight:bold;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  style ws fill:#29417a,fill-opacity:0.10,stroke:#29417a,stroke-width:4px,color:#cfe0ff;\n  style client stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;",
       "buildSteps": [
-        { "atBeat": 0, "reveal": ["users", "eastus", "dcE"], "effect": "appear" },
-        { "atBeat": 1, "reveal": ["edge:users-->dcE", "westus", "dcW", "edge:dcE-->dcW"], "effect": "draw" }
+        {
+          "atBeat": 0,
+          "reveal": [
+            "client",
+            "csrc"
+          ],
+          "effect": "appear"
+        },
+        {
+          "atBeat": 1,
+          "reveal": [
+            "portal",
+            "edge:csrc-->portal"
+          ],
+          "effect": "draw"
+        },
+        {
+          "atBeat": 2,
+          "reveal": [
+            "eastus",
+            "ws",
+            "land",
+            "edge:portal-->land"
+          ],
+          "effect": "draw"
+        }
       ],
-      "caption": "Physical data movement — replication between real data centers"
+      "caption": "Real-world data ingress — client → portal → workspace (East US)"
     },
     {
       "id": "data-virtual",
@@ -189,12 +600,25 @@
       "durationSec": 14,
       "narration": "Data also moves virtually — inside the boundary. The app writes to its database; data lands in storage. All within the wall.",
       "beats": [
-        { "text": "Data also moves <b>virtually</b> — inside the boundary.", "style": "h2" },
-        { "text": "The app writes to its <b>database</b>; data lands in <b>storage</b>. All within the wall.", "style": "body" }
+        {
+          "text": "Data also moves <b>virtually</b> — inside the boundary.",
+          "style": "h2"
+        },
+        {
+          "text": "The app writes to its <b>database</b>; data lands in <b>storage</b>. All within the wall.",
+          "style": "body"
+        }
       ],
-      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;",
+      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"KPMG.com Tenant (Entra ID)\"]\n    subgraph sub_gac[\"GAC Subscription\"]\n      gacx[\"(separate engagement)\"]:::client\n    end\n    subgraph digitalgw[\"Digital Gateway Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[(\"SQL Database\")]:::store\n          stor[(\"Storage Account\")]:::store\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents([\"Agents\"]):::agent\n          cfg[\"App Configuration\"]:::res\n          inspect([\"Inspect changes\"]):::agent\n          evaluate([\"Evaluate: good?\"]):::agent\n          backlog[(\"Backlog / Master List\")]:::store\n          golden[(\"Golden Instance\")]:::store\n        end\n      end\n    end\n    subgraph sub_de[\"Germany Subscription\"]\n      dex[\"(separate engagement)\"]:::client\n    end\n  end\n  eng --> workspace\n  sub_gac ~~~ digitalgw\n  digitalgw ~~~ sub_de\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  style tenant fill:#daa520,fill-opacity:0.06,stroke:#daa520,stroke-width:4px,color:#daa520;\n  style workspace fill:#29417a,fill-opacity:0.10,stroke:#29417a,stroke-width:4px,color:#cfe0ff;\n  style digitalgw stroke:#4682b4,stroke-width:3px,color:#cfe0ff;\n  style sub_gac stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;\n  style sub_de stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;",
       "buildSteps": [
-        { "atBeat": 1, "reveal": ["edge:app-->db", "edge:db-->stor"], "effect": "draw" }
+        {
+          "atBeat": 1,
+          "reveal": [
+            "edge:app-->db",
+            "edge:db-->stor"
+          ],
+          "effect": "draw"
+        }
       ],
       "caption": "Virtual data movement — between resources, inside the boundary"
     },
@@ -204,14 +628,38 @@
       "durationSec": 12,
       "narration": "Inside the boundary: Agents. Agents modify an app's configuration — safely, within the data boundary. They never reach outside the Workspace.",
       "beats": [
-        { "text": "Inside the boundary: <b>Agents</b>.", "style": "h2" },
-        { "text": "Agents modify an app's <b>configuration</b> — safely, within the boundary.", "style": "body" },
-        { "text": "They never reach outside the Workspace.", "style": "note" }
+        {
+          "text": "Inside the boundary: <b>Agents</b>.",
+          "style": "h2"
+        },
+        {
+          "text": "Agents modify an app's <b>configuration</b> — safely, within the boundary.",
+          "style": "body"
+        },
+        {
+          "text": "They never reach outside the Workspace.",
+          "style": "note"
+        }
       ],
-      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;",
+      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"KPMG.com Tenant (Entra ID)\"]\n    subgraph sub_gac[\"GAC Subscription\"]\n      gacx[\"(separate engagement)\"]:::client\n    end\n    subgraph digitalgw[\"Digital Gateway Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[(\"SQL Database\")]:::store\n          stor[(\"Storage Account\")]:::store\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents([\"Agents\"]):::agent\n          cfg[\"App Configuration\"]:::res\n          inspect([\"Inspect changes\"]):::agent\n          evaluate([\"Evaluate: good?\"]):::agent\n          backlog[(\"Backlog / Master List\")]:::store\n          golden[(\"Golden Instance\")]:::store\n        end\n      end\n    end\n    subgraph sub_de[\"Germany Subscription\"]\n      dex[\"(separate engagement)\"]:::client\n    end\n  end\n  eng --> workspace\n  sub_gac ~~~ digitalgw\n  digitalgw ~~~ sub_de\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  style tenant fill:#daa520,fill-opacity:0.06,stroke:#daa520,stroke-width:4px,color:#daa520;\n  style workspace fill:#29417a,fill-opacity:0.10,stroke:#29417a,stroke-width:4px,color:#cfe0ff;\n  style digitalgw stroke:#4682b4,stroke-width:3px,color:#cfe0ff;\n  style sub_gac stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;\n  style sub_de stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;",
       "buildSteps": [
-        { "atBeat": 0, "reveal": ["agentloop", "agents", "cfg"], "effect": "appear" },
-        { "atBeat": 1, "reveal": ["edge:app-->cfg", "edge:agents-->cfg"], "effect": "draw" }
+        {
+          "atBeat": 0,
+          "reveal": [
+            "agentloop",
+            "agents",
+            "cfg"
+          ],
+          "effect": "appear"
+        },
+        {
+          "atBeat": 1,
+          "reveal": [
+            "edge:app-->cfg",
+            "edge:agents-->cfg"
+          ],
+          "effect": "draw"
+        }
       ],
       "caption": "Agents change app configuration — only inside the boundary"
     },
@@ -221,14 +669,37 @@
       "durationSec": 12,
       "narration": "Agents inspect changes. Periodically they review what changed and evaluate whether it's good — good versus noise.",
       "beats": [
-        { "text": "Agents <b>inspect</b> changes.", "style": "h2" },
-        { "text": "Periodically they review what changed and <b>evaluate</b> whether it's good.", "style": "body" },
-        { "text": "Good vs. noise.", "style": "note" }
+        {
+          "text": "Agents <b>inspect</b> changes.",
+          "style": "h2"
+        },
+        {
+          "text": "Periodically they review what changed and <b>evaluate</b> whether it's good.",
+          "style": "body"
+        },
+        {
+          "text": "Good vs. noise.",
+          "style": "note"
+        }
       ],
-      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;",
+      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"KPMG.com Tenant (Entra ID)\"]\n    subgraph sub_gac[\"GAC Subscription\"]\n      gacx[\"(separate engagement)\"]:::client\n    end\n    subgraph digitalgw[\"Digital Gateway Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[(\"SQL Database\")]:::store\n          stor[(\"Storage Account\")]:::store\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents([\"Agents\"]):::agent\n          cfg[\"App Configuration\"]:::res\n          inspect([\"Inspect changes\"]):::agent\n          evaluate([\"Evaluate: good?\"]):::agent\n          backlog[(\"Backlog / Master List\")]:::store\n          golden[(\"Golden Instance\")]:::store\n        end\n      end\n    end\n    subgraph sub_de[\"Germany Subscription\"]\n      dex[\"(separate engagement)\"]:::client\n    end\n  end\n  eng --> workspace\n  sub_gac ~~~ digitalgw\n  digitalgw ~~~ sub_de\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  style tenant fill:#daa520,fill-opacity:0.06,stroke:#daa520,stroke-width:4px,color:#daa520;\n  style workspace fill:#29417a,fill-opacity:0.10,stroke:#29417a,stroke-width:4px,color:#cfe0ff;\n  style digitalgw stroke:#4682b4,stroke-width:3px,color:#cfe0ff;\n  style sub_gac stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;\n  style sub_de stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;",
       "buildSteps": [
-        { "atBeat": 0, "reveal": ["inspect"], "effect": "appear" },
-        { "atBeat": 1, "reveal": ["evaluate", "edge:cfg-->inspect", "edge:inspect-->evaluate"], "effect": "draw" }
+        {
+          "atBeat": 0,
+          "reveal": [
+            "inspect"
+          ],
+          "effect": "appear"
+        },
+        {
+          "atBeat": 1,
+          "reveal": [
+            "evaluate",
+            "edge:cfg-->inspect",
+            "edge:inspect-->evaluate"
+          ],
+          "effect": "draw"
+        }
       ],
       "caption": "Agents periodically inspect and evaluate changes"
     },
@@ -238,28 +709,73 @@
       "durationSec": 13,
       "narration": "Good changes go to the Backlog. Approved changes are added to a master list for the app's golden instance. The loop repeats — continuous improvement inside the boundary.",
       "beats": [
-        { "text": "Good changes go to the <b>Backlog</b>.", "style": "h2" },
-        { "text": "Approved changes feed a master list for the app's <b>golden instance</b>.", "style": "body" },
-        { "text": "The loop repeats — continuous improvement inside the boundary.", "style": "note" }
+        {
+          "text": "Good changes go to the <b>Backlog</b>.",
+          "style": "h2"
+        },
+        {
+          "text": "Approved changes feed a master list for the app's <b>golden instance</b>.",
+          "style": "body"
+        },
+        {
+          "text": "The loop repeats — continuous improvement inside the boundary.",
+          "style": "note"
+        }
       ],
-      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;",
+      "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"KPMG.com Tenant (Entra ID)\"]\n    subgraph sub_gac[\"GAC Subscription\"]\n      gacx[\"(separate engagement)\"]:::client\n    end\n    subgraph digitalgw[\"Digital Gateway Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[(\"SQL Database\")]:::store\n          stor[(\"Storage Account\")]:::store\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents([\"Agents\"]):::agent\n          cfg[\"App Configuration\"]:::res\n          inspect([\"Inspect changes\"]):::agent\n          evaluate([\"Evaluate: good?\"]):::agent\n          backlog[(\"Backlog / Master List\")]:::store\n          golden[(\"Golden Instance\")]:::store\n        end\n      end\n    end\n    subgraph sub_de[\"Germany Subscription\"]\n      dex[\"(separate engagement)\"]:::client\n    end\n  end\n  eng --> workspace\n  sub_gac ~~~ digitalgw\n  digitalgw ~~~ sub_de\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  style tenant fill:#daa520,fill-opacity:0.06,stroke:#daa520,stroke-width:4px,color:#daa520;\n  style workspace fill:#29417a,fill-opacity:0.10,stroke:#29417a,stroke-width:4px,color:#cfe0ff;\n  style digitalgw stroke:#4682b4,stroke-width:3px,color:#cfe0ff;\n  style sub_gac stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;\n  style sub_de stroke:#5b6b8a,stroke-width:1.5px,stroke-dasharray:5 4,color:#9db0cf;",
       "buildSteps": [
-        { "atBeat": 0, "reveal": ["backlog", "edge:evaluate-->backlog"], "effect": "draw" },
-        { "atBeat": 1, "reveal": ["golden", "edge:backlog-->golden"], "effect": "draw" },
-        { "atBeat": 2, "reveal": ["edge:golden-->agents"], "effect": "draw" }
+        {
+          "atBeat": 0,
+          "reveal": [
+            "backlog",
+            "edge:evaluate-->backlog"
+          ],
+          "effect": "draw"
+        },
+        {
+          "atBeat": 1,
+          "reveal": [
+            "golden",
+            "edge:backlog-->golden"
+          ],
+          "effect": "draw"
+        },
+        {
+          "atBeat": 2,
+          "reveal": [
+            "edge:golden-->agents"
+          ],
+          "effect": "draw"
+        }
       ],
       "caption": "Good changes feed the golden instance — a continuous loop"
     },
     {
       "id": "recap",
       "kind": "content",
-      "durationSec": 8,
-      "narration": "Tenant, to subscription, to resource groups in a real region, to the Workspace boundary. Tied to a KPMG engagement number. Data moves — physically and virtually — and agents improve the golden instance, inside the wall. That's an Azure Workspace.",
+      "durationSec": 10,
+      "narration": "Tenant, to subscriptions, to resource groups in a real region, to the Workspace boundary. Tied to a KPMG engagement number. Assets arrive from shelves and through the client portal. Data moves — physically and virtually — and agents improve the golden instance, inside the wall. That's an Azure Workspace.",
       "beats": [
-        { "text": "Tenant → Subscription → Resource Groups → <b>Workspace boundary</b>", "style": "h2" },
-        { "text": "Tied to a KPMG engagement number. Data moves — physically and virtually.", "style": "body" },
-        { "text": "Agents improve the golden instance — inside the wall.", "style": "body" },
-        { "text": "That's an Azure Workspace.", "style": "note" }
+        {
+          "text": "Tenant → Subscriptions → Resource Groups → <b>Workspace boundary</b>",
+          "style": "h2"
+        },
+        {
+          "text": "Tied to a KPMG engagement number. Data moves — physically and virtually.",
+          "style": "body"
+        },
+        {
+          "text": "Assets arrive from <b>shelves</b> and through the <b>client portal</b>.",
+          "style": "body"
+        },
+        {
+          "text": "Agents improve the golden instance — inside the wall.",
+          "style": "body"
+        },
+        {
+          "text": "That's an Azure Workspace.",
+          "style": "note"
+        }
       ]
     }
   ]

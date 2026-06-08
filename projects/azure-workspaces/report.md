@@ -10,9 +10,9 @@ Azure organizes everything in a hierarchy: a **Microsoft Entra ID tenant** (the 
 
 ## The Azure Hierarchy
 
-It starts with a **Tenant**. A [Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/fundamentals/whatis) tenant is your organization's identity boundary — one directory of users and one root of trust for everything beneath it.
+It starts with a **Tenant** — for this engagement, the **KPMG.com** tenant. A [Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/fundamentals/whatis) tenant is your organization's identity boundary — one directory of users and one root of trust for everything beneath it.
 
-Inside the tenant sits a **Subscription**: a billing and access container where resources are paid for and governed. A single tenant can hold many subscriptions.
+Inside the tenant sit **Subscriptions**: billing and access containers where resources are paid for and governed. A single tenant can hold many. In our example the KPMG.com tenant holds three — **GAC**, **Germany**, and **Digital Gateway** — and the engagement is built inside the **Digital Gateway** subscription, with the other two governed the same way alongside it.
 
 Subscriptions hold **Resource Groups** — lifecycle buckets. Things created together, managed together, and torn down together live in the same resource group, and it's the natural unit for tagging and access control. (See [Azure Resource Manager](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/overview) and [Organize your Azure resources](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-setup-guide/organize-resources).)
 
@@ -30,9 +30,17 @@ Group a set of resource groups together and you get a **Workspace** — a **data
 
 Everything inside the boundary maps to a single **KPMG engagement number**. Tags carry that number across every resource group and resource, so one identifier ties the whole boundary to governance, billing, and audit.
 
+## Shelves: Staging Gold Copies
+
+Reusable, pre-approved assets live **outside** the workspace on **shelves**. There's a **Velocity** shelf and a **US Specific** shelf, and the *gold copies* sitting on them are the trusted master versions of things. When an engagement needs an asset, a gold copy is lifted off the shelf and placed **inside** the workspace boundary — the shelf stays outside, and only a copy crosses the wall.
+
+## The Client Portal: How Data Gets In
+
+The **client portal** is the single, governed doorway between a client and a workspace. Every upload is authenticated, scoped to one engagement, and logged; nothing reaches the workspace except through the portal.
+
 ## Data Movement
 
-- **Physical** — data moves across the country over real fiber, replicating between real data centers.
+- **Physical** — in the real world, data starts in the **client's own environment**, crosses into the **client portal**, and only then lands inside the workspace running in the **East US** data center (real buildings in Virginia).
 - **Virtual** — data also moves *inside* the boundary: the app writes to its database; data lands in storage. All of it stays within the wall.
 
 ## Agents Inside the Boundary
