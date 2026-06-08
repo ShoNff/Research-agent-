@@ -15,7 +15,7 @@ export const LIBRARY = [
     ],
     "created": "2026-06-08",
     "updated": "2026-06-08",
-    "version": 4,
+    "version": 5,
     "sources": [
       {
         "url": "https://learn.microsoft.com/en-us/entra/fundamentals/whatis",
@@ -60,6 +60,11 @@ export const LIBRARY = [
         "version": 4,
         "date": "2026-06-08",
         "note": "Fix Mermaid render crash (clusterNode) — removed subgraph-to-subgraph invisible links between the three subscription boxes; they stay grouped inside the tenant subgraph without them."
+      },
+      {
+        "version": 5,
+        "date": "2026-06-08",
+        "note": "Recolored the Workspace data-boundary border to purple and matched the engagement-number node to the same purple, so the engagement and the boundary it governs read as a pair. Region/resource-group anchor nodes keep the gold accent."
       }
     ],
     "artifacts": [
