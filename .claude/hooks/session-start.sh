@@ -45,3 +45,4 @@ if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
 fi
 
 echo "[session-start] done"
+echo "Makes sense."
