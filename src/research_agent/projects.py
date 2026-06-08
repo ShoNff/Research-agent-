@@ -130,6 +130,10 @@ def build_manifest(
         "topic": data.get("topic", ""),
         "summary": data.get("summary", ""),
         "tags": data.get("tags", []),
+        # Short, standalone claims (the report's key takeaways). Persisted here so
+        # the shared-memory index — which is derived from manifests — can recall
+        # what we already concluded without re-reading the full report.
+        "key_claims": data.get("key_claims", []),
         "created": created,
         "updated": today,
         "published_at": now,

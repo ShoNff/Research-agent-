@@ -32,7 +32,7 @@ Each run writes `projects/<slug>/` (a `manifest.json` plus artifacts). That fold
                        └─────────────┘
 ```
 
-**Flow:** Decompose topic → Search (per question) → Write report → QA review → Revise if needed → Generate visuals → Render output formats → **Publish project** (`projects/<slug>/manifest.json`)
+**Flow:** **Recall** prior work (shared memory) → Decompose topic → Search (per question) → Write report → QA review → Revise if needed → Generate visuals → Render output formats → **Publish project** (`projects/<slug>/manifest.json`, also syncs memory)
 
 ## Prerequisites
 
@@ -195,6 +195,7 @@ src/research_agent/
 ├── mcp_server.py        # MCP server for Claude Code integration
 ├── config.py            # Configuration loading
 ├── projects.py          # Project library: slugify, manifest build/read/write
+├── memory.py            # Shared-memory keyword index (recall across projects)
 ├── models/
 │   ├── source.py        # SourceMetadata, ReliabilityTier, Finding
 │   └── report.py        # ReportDraft, ReportSection, QAReview
@@ -211,7 +212,8 @@ src/research_agent/
 │   ├── doc_gen.py       # Word document generation (python-docx)
 │   ├── slides_gen.py    # PowerPoint generation (python-pptx)
 │   ├── html_email.py    # HTML email generation (Jinja2)
-│   └── publish.py       # publish_project — the mandatory final step
+│   ├── publish.py       # publish_project — the mandatory final step
+│   └── memory_tools.py  # search_memory — recall prior work
 └── templates/
     ├── email_base.html  # Jinja2 email template
     └── slide_layouts.py # PowerPoint layout constants
@@ -219,9 +221,16 @@ src/research_agent/
 projects/                # Published projects (source of truth) — see projects/README.md
 └── <slug>/manifest.json # + report.md, decks, diagrams per run
 
+memory/                  # Shared-memory index derived from projects/ — see memory/README.md
+└── index.json           # keyword recall across all projects
+
 web/                     # Next.js research-library front end — see web/README.md
 └── scripts/build-library.mjs  # builds the library from projects/ (no npm deps)
 ```
+
+Topics are organized by **tags + shared memory**, not nested folders — a project
+can carry many tags, the web app filters by them, and the agent recalls related
+work via `memory/`. See [`memory/README.md`](memory/README.md).
 
 ## Research Library (web app)
 

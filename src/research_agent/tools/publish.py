@@ -15,6 +15,7 @@ from typing import Any
 
 from claude_agent_sdk import tool
 
+from research_agent.memory import MemoryStore
 from research_agent.projects import build_manifest, read_manifest, write_manifest
 
 
@@ -57,6 +58,17 @@ async def publish_project(args: dict[str, Any]) -> dict[str, Any]:
     except OSError as exc:
         return _error(f"Failed to write manifest: {exc}")
 
+    # Keep shared memory in sync. memory/ is a sibling of projects/ at the repo
+    # root, so it sits two levels up from projects/<slug>/. Best-effort: a memory
+    # hiccup must never fail an otherwise-successful publish.
+    memory_synced = False
+    try:
+        memory_dir = project_dir.resolve().parent.parent / "memory"
+        MemoryStore(memory_dir).upsert_project(manifest)
+        memory_synced = True
+    except (OSError, ValueError):
+        pass
+
     action = "updated" if existing else "created"
     return {
         "content": [
@@ -70,6 +82,7 @@ async def publish_project(args: dict[str, Any]) -> dict[str, Any]:
                         "version": manifest["version"],
                         "manifest_path": str(path),
                         "artifacts": manifest["artifacts"],
+                        "memory_synced": memory_synced,
                     }
                 ),
             }

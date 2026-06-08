@@ -43,6 +43,7 @@ cd web && npm install && npm run dev
 | `src/research_agent/cli.py` | CLI entry point using Click. Parses args, loads config, calls `run_research()`. |
 | `src/research_agent/config.py` | Configuration dataclass. Loads from `.env` + CLI overrides. `output_dir` is the projects root. |
 | `src/research_agent/projects.py` | Project library helpers: `slugify`, manifest build/read/write, artifact discovery. |
+| `src/research_agent/memory.py` | Shared-memory keyword index (`MemoryStore`): upsert/search/rebuild over manifests. |
 | `src/research_agent/tracing.py` | Structured logging: JSONL trace + human-readable summary log. See "Logging & Tracing" below. |
 | `src/research_agent/mcp_server.py` | Wraps the research pipeline as an MCP tool for Claude Code. |
 | `src/research_agent/prompts/*.py` | System prompts for each agent. These control agent behavior — edit carefully. |
@@ -50,6 +51,7 @@ cd web && npm install && npm run dev
 | `src/research_agent/models/*.py` | Pydantic models for source metadata, findings, reports, QA reviews. |
 | `src/research_agent/templates/` | Jinja2 email template + PowerPoint layout constants. |
 | `projects/<slug>/` | Published projects — the source of truth. See `projects/README.md`. |
+| `memory/index.json` | Shared-memory index derived from manifests. See `memory/README.md`. |
 | `web/` | Next.js research-library front end. Auto-built from `projects/`. See `web/README.md`. |
 
 ## Architecture
@@ -63,16 +65,21 @@ The orchestrator is the primary `query()` agent. It delegates to 4 subagents via
 
 Subagents **cannot** spawn other subagents (SDK constraint). The orchestrator passes all context explicitly in the Agent tool's prompt string since subagents have no access to parent conversation history.
 
-Three MCP tool servers are created in-process (`main.py:_build_mcp_servers()`):
+Four MCP tool servers are created in-process (`main.py:_build_mcp_servers()`):
 - `search` server: `tavily_search`, `evaluate_source`
 - `output` server: `generate_diagram`, `render_docx`, `render_pptx`, `render_email`, `generate_slide`
 - `publish` server: `publish_project` (the mandatory final step)
+- `memory` server: `search_memory` (recall prior work before researching)
 
-The orchestrator workflow runs in phases (`prompts/orchestrator.py`): decompose → research → write → QA → revise → visuals → output → **publish**. Every run's `cwd` is its own `projects/<slug>/` folder, so all artifacts land there. The last phase publishes the manifest.
+The orchestrator workflow runs in phases (`prompts/orchestrator.py`): **recall** → decompose → research → write → QA → revise → visuals → output → **publish**. Every run's `cwd` is its own `projects/<slug>/` folder, so all artifacts land there. Phase 0 recalls prior projects from shared memory; the last phase publishes the manifest.
 
 ### The project library + web app
 - `projects/<slug>/manifest.json` is written by `publish_project` and is the contract every consumer reads.
 - `web/scripts/build-library.mjs` rebuilds the web library from `projects/` before each `dev`/`build`: copies servable artifacts into `web/public/library/<slug>/`, renders `report.md` to HTML, and emits `web/lib/library.generated.ts`. No manual curation.
+
+### Shared memory + how topics are organized
+- Projects are stored **flat** (`projects/<slug>/`) and organized by **tags** (many-to-many faceting) plus the **memory index** — not by nested topic folders (a folder tree forces one rigid taxonomy and breaks the deterministic slug→path that living reports depend on).
+- `memory/index.json` is a keyword index derived from manifests (`research_agent.memory.MemoryStore`). The publish step upserts each run; `python -m research_agent.memory rebuild` regenerates it from `projects/`. See `memory/README.md`.
 
 ## Logging & Tracing
 

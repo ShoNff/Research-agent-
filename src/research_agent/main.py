@@ -27,6 +27,7 @@ from research_agent.prompts.writer import build_writer_prompt
 from research_agent.tools.diagram_gen import generate_diagram
 from research_agent.tools.doc_gen import render_docx
 from research_agent.tools.html_email import render_email
+from research_agent.tools.memory_tools import search_memory
 from research_agent.tools.publish import publish_project
 from research_agent.tools.slides_gen import generate_slide, render_pptx
 from research_agent.tools.source_eval import evaluate_source
@@ -59,10 +60,17 @@ def _build_mcp_servers():
         tools=[publish_project],
     )
 
+    memory_server = create_sdk_mcp_server(
+        name="memory",
+        version="1.0.0",
+        tools=[search_memory],
+    )
+
     return {
         "search": search_server,
         "output": output_server,
         "publish": publish_server,
+        "memory": memory_server,
     }
 
 
@@ -124,7 +132,9 @@ def _build_agent_definitions(config: Config) -> dict[str, AgentDefinition]:
     }
 
 
-def _build_user_prompt(topic: str, config: Config, project_dir: Path, slug: str) -> str:
+def _build_user_prompt(
+    topic: str, config: Config, project_dir: Path, slug: str, memory_dir: Path
+) -> str:
     """Build the orchestrator's user prompt."""
     return ORCHESTRATOR_USER_PROMPT_TEMPLATE.format(
         topic=topic,
@@ -133,6 +143,7 @@ def _build_user_prompt(topic: str, config: Config, project_dir: Path, slug: str)
         max_revisions=config.max_qa_revisions,
         output_dir=str(project_dir.resolve()),
         slug=slug,
+        memory_dir=str(memory_dir.resolve()),
     )
 
 
@@ -153,6 +164,11 @@ async def run_research(
     slug = slugify(topic)
     project_dir = (config.output_dir / slug).resolve()
     project_dir.mkdir(parents=True, exist_ok=True)
+
+    # Shared memory lives at <repo root>/memory, a sibling of the projects root.
+    # The agent searches it before researching and the publish step syncs it.
+    memory_dir = config.output_dir.resolve().parent / "memory"
+    memory_dir.mkdir(parents=True, exist_ok=True)
 
     # Resolve the log dir now that we know the project folder, and write it back
     # so the CLI can report log locations after the run.
@@ -181,6 +197,7 @@ async def run_research(
             "mcp__search__*",
             "mcp__output__*",
             "mcp__publish__*",
+            "mcp__memory__*",
         ],
         permission_mode="bypassPermissions",
         model=config.models.orchestrator,
@@ -188,7 +205,7 @@ async def run_research(
         cwd=str(project_dir),
     )
 
-    prompt = _build_user_prompt(topic, config, project_dir, slug)
+    prompt = _build_user_prompt(topic, config, project_dir, slug, memory_dir)
     result_text = None
 
     try:
