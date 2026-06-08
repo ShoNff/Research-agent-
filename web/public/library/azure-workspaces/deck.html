@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en" style="--primary:#29417a;--secondary:#4682b4;--accent:#daa520;--text:#1c2533;--bg:#0d1626;">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Azure Workspaces</title>
+  <style>
+/* Animated Mermaid Deck — styles
+ * Theme custom properties (--primary, --secondary, --accent, --text, --bg)
+ * are injected inline on <html> by the builder so a deck can re-theme itself.
+ */
+
+:root {
+  --primary: #29417a;
+  --secondary: #4682b4;
+  --accent: #daa520;
+  --text: #1c2533;
+  --bg: #0d1626;
+  --panel: rgba(255, 255, 255, 0.96);
+  --beat-stagger: 700ms;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: radial-gradient(120% 120% at 50% 0%, #16233f 0%, var(--bg) 60%, #060b15 100%);
+  color: #eaf0fa;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden;
+}
+
+/* ---- Layout ---------------------------------------------------------- */
+
+#deck {
+  position: relative;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+}
+
+#stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 3vh 4vw 1vh;
+}
+
+.scene {
+  position: absolute;
+  inset: 3vh 4vw 1vh;
+  display: none;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.scene.is-active { display: flex; }
+
+/* Title scenes center everything; content/diagram scenes split text + diagram. */
+.scene[data-kind="title"] {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.scene[data-kind="content"],
+.scene[data-kind="diagram"] {
+  display: none;
+}
+.scene[data-kind="content"].is-active,
+.scene[data-kind="diagram"].is-active {
+  display: grid;
+  grid-template-columns: minmax(280px, 38%) 1fr;
+  align-items: center;
+  gap: 2vw;
+}
+/* When a scene has no diagram, let the text use the whole stage. */
+.scene.no-diagram.is-active { grid-template-columns: 1fr; text-align: center; justify-items: center; }
+
+.scene-text { display: flex; flex-direction: column; gap: 0.9rem; }
+
+.scene-diagram {
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.scene-diagram svg { width: 100%; max-width: 100%; max-height: 80vh; height: auto; }
+
+/* ---- Text beats ------------------------------------------------------ */
+
+.beat {
+  opacity: 0;
+  will-change: opacity, transform;
+}
+.beat[data-anim="fade-up"] { transform: translateY(14px); transition: opacity .55s ease, transform .55s ease; }
+.beat[data-anim="fade"]    { transition: opacity .6s ease; }
+.beat.is-in { opacity: 1; transform: none; }
+
+/* Typewriter: clip the inner span's width with a steps() animation + caret. */
+.beat[data-anim="typewriter"] { opacity: 1; }
+.beat[data-anim="typewriter"] .tw {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 0;
+  border-right: 2px solid var(--accent);
+  vertical-align: bottom;
+}
+.beat[data-anim="typewriter"].is-in .tw {
+  animation: tw-type var(--tw-dur, 1.6s) steps(var(--tw-steps, 30)) forwards,
+             tw-caret 700ms step-end infinite;
+}
+@keyframes tw-type { to { width: 100%; } }
+@keyframes tw-caret { 50% { border-color: transparent; } }
+
+.beat--h1 { font-size: clamp(2rem, 5.2vw, 4rem); font-weight: 800; line-height: 1.05; color: #ffffff; letter-spacing: -0.02em; }
+.beat--h2 { font-size: clamp(1.5rem, 3.4vw, 2.6rem); font-weight: 700; line-height: 1.12; color: #ffffff; }
+.beat--body { font-size: clamp(1.05rem, 1.9vw, 1.5rem); font-weight: 400; line-height: 1.4; color: #d6e0f0; }
+.beat--note { font-size: clamp(0.85rem, 1.3vw, 1.05rem); font-weight: 400; color: #93a6c4; }
+.beat b, .beat strong { color: var(--accent); font-weight: 800; }
+
+.scene-caption {
+  position: absolute;
+  bottom: 0.4rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #7e90ad;
+}
+
+/* ---- Mermaid element reveal (set by JS) ------------------------------ */
+/* The engine sets inline opacity/transform on targeted SVG groups for the
+ * initial hidden state, then adds .revealed. We keep transitions in CSS so
+ * reduced-motion can zero them. */
+/* Only opacity is animated on SVG groups — CSS `transform` would override the
+ * SVG `transform` attribute that positions each node and collapse them to 0,0. */
+.mm-hidden { opacity: 0; }
+.mm-anim   { transition: opacity .5s ease; }
+.mm-anim.revealed { opacity: 1 !important; }
+
+@keyframes mm-pulse {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+.mm-pulse { transform-box: fill-box; transform-origin: center; animation: mm-pulse 900ms ease-in-out 2; }
+
+/* ---- Controls -------------------------------------------------------- */
+
+#progress {
+  position: relative;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  flex: 0 0 auto;
+}
+#progress-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 0%;
+  background: linear-gradient(90deg, var(--secondary), var(--accent));
+}
+#progress-ticks { position: absolute; inset: 0; }
+#progress-ticks .tick { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.25); }
+
+#controls {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1.2rem;
+  background: rgba(8, 14, 26, 0.7);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+#controls button {
+  background: var(--primary);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  padding: 0.45rem 0.7rem;
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+}
+#controls button:hover { background: var(--secondary); }
+#scene-counter { margin-left: auto; font-variant-numeric: tabular-nums; color: #aebbd2; font-size: 0.95rem; }
+#deck-title-mini { color: #8294b2; font-size: 0.9rem; margin-right: 0.4rem; }
+#reduced-hint { color: var(--accent); font-size: 0.85rem; display: none; }
+
+/* ---- Start overlay (needed to unlock audio autoplay) ---------------- */
+
+#start-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  background: radial-gradient(120% 120% at 50% 30%, rgba(22,35,63,0.96), rgba(6,11,21,0.98));
+  text-align: center;
+  padding: 2rem;
+}
+#start-overlay.hidden { display: none; }
+#start-overlay h1 { font-size: clamp(2rem, 6vw, 4.5rem); margin: 0; color: #fff; }
+#start-overlay p { color: #b9c6dd; max-width: 40ch; margin: 0; }
+#start-btn {
+  margin-top: 0.6rem;
+  background: var(--accent);
+  color: #1a1a1a;
+  border: none;
+  border-radius: 999px;
+  padding: 0.9rem 2.2rem;
+  font-size: 1.3rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+#start-btn:hover { filter: brightness(1.07); }
+
+/* ---- Reduced motion -------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .beat,
+  .beat[data-anim="fade-up"],
+  .beat[data-anim="fade"] { transition: none !important; transform: none !important; }
+  .beat[data-anim="typewriter"] .tw { animation: none !important; width: 100% !important; border-right: none; }
+  .mm-anim { transition: none !important; }
+  .mm-pulse { animation: none !important; }
+  #progress-fill { transition: none !important; }
+}
+
+  </style>
+</head>
+<body>
+  <div id="deck">
+    <div id="progress">
+      <div id="progress-fill"></div>
+      <div id="progress-ticks"></div>
+    </div>
+
+    <div id="stage"><!-- scenes injected by engine --></div>
+
+    <div id="controls">
+      <span id="deck-title-mini">Azure Workspaces</span>
+      <button id="btn-prev" title="Previous (←)">⏮</button>
+      <button id="btn-play" title="Play / Pause (Space)">▶</button>
+      <button id="btn-next" title="Next (→)">⏭</button>
+      <button id="btn-replay" title="Replay (R)">↺</button>
+      <button id="btn-mute" title="Mute / unmute narration">🔊</button>
+      <span id="reduced-hint">Reduced motion is on — use ⏮ ⏭</span>
+      <span id="scene-counter">1 / 1</span>
+    </div>
+
+    <div id="start-overlay">
+      <h1>Azure Workspaces</h1>
+      <p>How a KPMG engagement boundary is built, where the data lives, and how agents work inside it.</p>
+      <button id="start-btn">▶ Play</button>
+      <p style="font-size:.8rem;color:#7e90ad">Audio narration uses your browser's voice. Space = play/pause, ← → = navigate, R = replay.</p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>window.DECK = {"title": "Azure Workspaces", "subtitle": "How a KPMG engagement boundary is built, where the data lives, and how agents work inside it.", "targetDurationSec": 180, "defaultAdvance": "auto", "audio": {"enabled": true, "voiceHint": "en", "rate": 1.0}, "theme": {"primary": "#29417a", "secondary": "#4682b4", "accent": "#daa520"}, "scenes": [{"id": "intro", "kind": "title", "durationSec": 6, "narration": "Azure Workspaces. How a KPMG engagement boundary is built, where the data lives, and how agents work inside it. About three minutes.", "beats": [{"text": "Azure <b>Workspaces<\/b>", "style": "h1", "anim": "fade-up"}, {"text": "How a KPMG engagement boundary is built — and how agents work inside it.", "style": "body", "anim": "fade"}, {"text": "~3 minutes", "style": "note", "anim": "fade"}]}, {"id": "tenant", "kind": "diagram", "durationSec": 10, "narration": "It starts with a Tenant. A Microsoft Entra ID tenant is your organization's identity boundary — one directory of users, groups, and trust.", "beats": [{"text": "It starts with a <b>Tenant<\/b>.", "style": "h2"}, {"text": "A Microsoft Entra ID tenant is your organization's identity boundary.", "style": "body"}, {"text": "One directory of users, groups, and trust.", "style": "note"}], "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;", "buildSteps": [{"atBeat": 0, "reveal": ["tenant"], "effect": "appear"}], "caption": "Microsoft Entra ID tenant = your identity boundary"}, {"id": "subscription", "kind": "diagram", "durationSec": 11, "narration": "Inside the tenant: a Subscription. It is a billing and access container — where Azure resources are paid for and governed. A tenant can hold many subscriptions.", "beats": [{"text": "Inside the tenant: a <b>Subscription<\/b>.", "style": "h2"}, {"text": "A billing + access container where resources are paid for and governed.", "style": "body"}, {"text": "A tenant can hold many subscriptions.", "style": "note"}], "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;", "buildSteps": [{"atBeat": 0, "reveal": ["sub"], "effect": "appear"}], "caption": "Subscription = billing + access container"}, {"id": "resourcegroup", "kind": "diagram", "durationSec": 12, "narration": "Subscriptions hold Resource Groups. A resource group is a lifecycle bucket — things created, managed, and deleted together. Tagged, permissioned, and named by convention.", "beats": [{"text": "Subscriptions hold <b>Resource Groups<\/b>.", "style": "h2"}, {"text": "A lifecycle bucket — things created, managed, and deleted together.", "style": "body"}, {"text": "Tagged, permissioned, and named by convention.", "style": "note"}], "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;", "buildSteps": [{"atBeat": 0, "reveal": ["rg1", "rg2"], "effect": "appear"}], "caption": "Resource group = a lifecycle bucket of resources"}, {"id": "rg-region", "kind": "diagram", "durationSec": 14, "narration": "A resource group has a home. It lives in a region — like East US — in a real Microsoft data center in Virginia. Physical buildings, real servers, a real place on the map.", "beats": [{"text": "A resource group has a <b>home<\/b>.", "style": "h2"}, {"text": "It lives in a <b>region<\/b> — like <b>East US<\/b> — in a real Microsoft <b>data center<\/b> in Virginia.", "style": "body"}, {"text": "Physical buildings, real servers, a real place on the map.", "style": "note"}], "mermaid": "flowchart LR\n  geo[\"Geography: United States\"]:::eng\n  subgraph dc[\"Microsoft Data Center — East US (Virginia)\"]\n    rgloc[\"Resource Group (Location: East US)\"]:::res\n  end\n  geo --> dc\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;", "buildSteps": [{"atBeat": 0, "reveal": ["geo"], "effect": "appear"}, {"atBeat": 1, "reveal": ["dc", "rgloc", "edge:0"], "effect": "draw"}], "caption": "Every resource group has a location — a real region and data center"}, {"id": "resource-types", "kind": "diagram", "durationSec": 16, "narration": "What goes inside a resource group? Virtual Machines, SQL Databases, Containers, Storage, App Services, Virtual Networks, Key Vaults, Functions — and more. Each one is a resource.", "beats": [{"text": "What goes <b>inside<\/b> a resource group?", "style": "h2"}, {"text": "<b>Virtual Machines, SQL Databases, Containers, Storage<\/b>...", "style": "body"}, {"text": "...<b>App Services, Virtual Networks, Key Vaults, Functions<\/b> — and more.", "style": "body"}, {"text": "Each one is a <i>resource<\/i>.", "style": "note"}], "mermaid": "flowchart TB\n  rg([\"Resource Group\"]):::eng\n  rg --> vm[\"Virtual Machine\"]:::res\n  rg --> sql[\"SQL Database\"]:::res\n  rg --> cont[\"Container (AKS / Container App)\"]:::res\n  rg --> stor2[\"Storage Account\"]:::res\n  vm ~~~ appsvc[\"App Service / Web App\"]:::res\n  sql ~~~ vnet[\"Virtual Network\"]:::res\n  cont ~~~ kv[\"Key Vault\"]:::res\n  stor2 ~~~ fn[\"Function App\"]:::res\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;", "buildSteps": [{"atBeat": 0, "reveal": ["rg"], "effect": "appear"}, {"atBeat": 1, "reveal": ["vm", "sql", "cont", "stor2", "edge:0", "edge:1", "edge:2", "edge:3"], "effect": "appear"}, {"atBeat": 2, "reveal": ["appsvc", "vnet", "kv", "fn"], "effect": "appear"}], "caption": "Common resources: VM, SQL DB, container, storage, app service, VNet, Key Vault, function"}, {"id": "resources", "kind": "diagram", "durationSec": 10, "narration": "For our engagement: an App Service, its SQL Database, and a Storage Account.", "beats": [{"text": "Resources live in resource groups.", "style": "h2"}, {"text": "For our engagement: an <b>App Service<\/b>, its <b>SQL Database<\/b>, and a <b>Storage Account<\/b>.", "style": "body"}], "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;", "buildSteps": [{"atBeat": 0, "reveal": ["app", "db", "stor"], "effect": "appear"}], "caption": "An app, its database, its storage — each a resource in a resource group"}, {"id": "workspace", "kind": "diagram", "durationSec": 14, "narration": "Group resource groups into a Workspace. The Workspace is a data boundary — a wall around everything in the engagement, drawn at the start.", "beats": [{"text": "Group resource groups into a <b>Workspace<\/b>.", "style": "h2"}, {"text": "The Workspace is a <b>data boundary<\/b> — a wall around everything in the engagement.", "style": "body"}, {"text": "Drawn at the <b>start<\/b> of the engagement.", "style": "note"}], "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;", "buildSteps": [{"atBeat": 0, "reveal": ["workspace"], "effect": "pulse"}], "caption": "Workspace = a data boundary around a set of resource groups"}, {"id": "extend", "kind": "diagram", "durationSec": 11, "narration": "Boundaries can grow. Mid-engagement, add a new resource group — the Workspace extends to include it. Same boundary, more scope.", "beats": [{"text": "Boundaries can <b>grow<\/b>.", "style": "h2"}, {"text": "Mid-engagement, add a resource group — the Workspace extends to include it.", "style": "body"}, {"text": "Same boundary, more scope.", "style": "note"}], "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;", "buildSteps": [{"atBeat": 0, "reveal": ["rg3", "app2"], "effect": "appear"}, {"atBeat": 1, "reveal": ["workspace"], "effect": "pulse"}], "caption": "The boundary extends as the engagement grows"}, {"id": "engagement", "kind": "diagram", "durationSec": 12, "narration": "Everything maps to a KPMG Engagement Number. Tags, naming, and the Workspace boundary all carry the engagement ID. One number for governance, billing, and audit.", "beats": [{"text": "Everything maps to a <b>KPMG Engagement Number<\/b>.", "style": "h2"}, {"text": "Tags, naming, and the boundary all carry the engagement ID.", "style": "body"}, {"text": "One number for governance, billing, and audit.", "style": "note"}], "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;", "buildSteps": [{"atBeat": 0, "reveal": ["eng"], "effect": "pulse"}, {"atBeat": 1, "reveal": ["edge:0"], "effect": "draw"}], "caption": "KPMG engagement number ties the whole boundary to governance"}, {"id": "data-physical", "kind": "diagram", "durationSec": 16, "narration": "Data moves in the real world. Across the country, between data centers — East US replicates to West US for resilience. Real fiber, real distance, real latency.", "beats": [{"text": "Data <b>moves in the real world<\/b>.", "style": "h2"}, {"text": "Across the country, between data centers — <b>East US<\/b> replicates to <b>West US<\/b> for resilience.", "style": "body"}, {"text": "Real fiber, real distance, real latency.", "style": "note"}], "mermaid": "flowchart LR\n  users[\"Users (real world)\"]:::eng\n  subgraph eastus[\"East US — Virginia Data Center\"]\n    dcE[\"Workspace (primary)\"]:::store\n  end\n  subgraph westus[\"West US — California Data Center\"]\n    dcW[\"Geo-redundant copy\"]:::store\n  end\n  users -->|\"requests / data\"| dcE\n  dcE -->|\"replication across the country\"| dcW\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;", "buildSteps": [{"atBeat": 0, "reveal": ["users", "eastus", "dcE"], "effect": "appear"}, {"atBeat": 1, "reveal": ["edge:0", "westus", "dcW", "edge:1"], "effect": "draw"}], "caption": "Physical data movement — replication between real data centers"}, {"id": "data-virtual", "kind": "diagram", "durationSec": 14, "narration": "Data also moves virtually — inside the boundary. The app writes to its database; data lands in storage. All within the wall.", "beats": [{"text": "Data also moves <b>virtually<\/b> — inside the boundary.", "style": "h2"}, {"text": "The app writes to its <b>database<\/b>; data lands in <b>storage<\/b>. All within the wall.", "style": "body"}], "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;", "buildSteps": [{"atBeat": 1, "reveal": ["edge:1", "edge:2"], "effect": "draw"}], "caption": "Virtual data movement — between resources, inside the boundary"}, {"id": "agents-modify", "kind": "diagram", "durationSec": 12, "narration": "Inside the boundary: Agents. Agents modify an app's configuration — safely, within the data boundary. They never reach outside the Workspace.", "beats": [{"text": "Inside the boundary: <b>Agents<\/b>.", "style": "h2"}, {"text": "Agents modify an app's <b>configuration<\/b> — safely, within the boundary.", "style": "body"}, {"text": "They never reach outside the Workspace.", "style": "note"}], "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;", "buildSteps": [{"atBeat": 0, "reveal": ["agentloop", "agents", "cfg"], "effect": "appear"}, {"atBeat": 1, "reveal": ["edge:3", "edge:4"], "effect": "draw"}], "caption": "Agents change app configuration — only inside the boundary"}, {"id": "agents-inspect", "kind": "diagram", "durationSec": 12, "narration": "Agents inspect changes. Periodically they review what changed and evaluate whether it's good — good versus noise.", "beats": [{"text": "Agents <b>inspect<\/b> changes.", "style": "h2"}, {"text": "Periodically they review what changed and <b>evaluate<\/b> whether it's good.", "style": "body"}, {"text": "Good vs. noise.", "style": "note"}], "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;", "buildSteps": [{"atBeat": 0, "reveal": ["inspect"], "effect": "appear"}, {"atBeat": 1, "reveal": ["evaluate", "edge:5", "edge:6"], "effect": "draw"}], "caption": "Agents periodically inspect and evaluate changes"}, {"id": "backlog", "kind": "diagram", "durationSec": 13, "narration": "Good changes go to the Backlog. Approved changes are added to a master list for the app's golden instance. The loop repeats — continuous improvement inside the boundary.", "beats": [{"text": "Good changes go to the <b>Backlog<\/b>.", "style": "h2"}, {"text": "Approved changes feed a master list for the app's <b>golden instance<\/b>.", "style": "body"}, {"text": "The loop repeats — continuous improvement inside the boundary.", "style": "note"}], "mermaid": "flowchart TB\n  eng[\"KPMG Engagement #ENG-12345\"]:::eng\n  subgraph tenant[\"Contoso Tenant (Entra ID)\"]\n    subgraph sub[\"Azure Subscription\"]\n      subgraph workspace[\"Workspace — DATA BOUNDARY\"]\n        subgraph rg1[\"Resource Group A — East US\"]\n          app[\"App Service\"]:::res\n        end\n        subgraph rg2[\"Resource Group B — East US\"]\n          db[\"SQL Database\"]:::res\n          stor[\"Storage Account\"]:::res\n        end\n        subgraph rg3[\"Resource Group C — East US (added mid-engagement)\"]\n          app2[\"App 2\"]:::res\n        end\n        subgraph agentloop[\"Agent Loop\"]\n          agents[\"Agents\"]:::agent\n          cfg[\"App Configuration\"]:::res\n          inspect[\"Inspect changes\"]:::agent\n          evaluate[\"Evaluate: good?\"]:::agent\n          backlog[\"Backlog / Master List\"]:::store\n          golden[\"Golden Instance\"]:::store\n        end\n      end\n    end\n  end\n  eng --> workspace\n  app --> db\n  db --> stor\n  app --> cfg\n  agents --> cfg\n  cfg --> inspect\n  inspect --> evaluate\n  evaluate --> backlog\n  backlog --> golden\n  golden --> agents\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;", "buildSteps": [{"atBeat": 0, "reveal": ["backlog", "edge:7"], "effect": "draw"}, {"atBeat": 1, "reveal": ["golden", "edge:8"], "effect": "draw"}, {"atBeat": 2, "reveal": ["edge:9"], "effect": "draw"}], "caption": "Good changes feed the golden instance — a continuous loop"}, {"id": "recap", "kind": "content", "durationSec": 8, "narration": "Tenant, to subscription, to resource groups in a real region, to the Workspace boundary. Tied to a KPMG engagement number. Data moves — physically and virtually — and agents improve the golden instance, inside the wall. That's an Azure Workspace.", "beats": [{"text": "Tenant → Subscription → Resource Groups → <b>Workspace boundary<\/b>", "style": "h2"}, {"text": "Tied to a KPMG engagement number. Data moves — physically and virtually.", "style": "body"}, {"text": "Agents improve the golden instance — inside the wall.", "style": "body"}, {"text": "That's an Azure Workspace.", "style": "note"}]}]};</script>
+  <script>
+/* Animated Mermaid Deck — engine
+ *
+ * Reads window.DECK (injected by the builder), builds the scene DOM, pre-renders
+ * each scene's Mermaid to SVG, then drives a timeline that reveals text beats and
+ * diagram elements in lockstep, with optional Web Speech narration.
+ *
+ * Edge reveal tokens are pre-resolved to "edge:N" by the Python builder, so this
+ * file only deals with: node ids, subgraph/cluster ids, and "edge:N".
+ */
+(function () {
+  "use strict";
+
+  var DECK = window.DECK || { scenes: [] };
+  var SCENES = DECK.scenes || [];
+  var BEAT_STAGGER = 700;          // ms between auto-staggered beats
+  var REVEAL_STAGGER = 130;        // ms between elements within one build step
+  var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var SPEECH_OK = "speechSynthesis" in window;
+
+  var els = {};                    // cached DOM refs
+  var sceneEls = [];               // per-scene { root, beats[], diagram, svg, edges[], edgeLabels[], plan }
+  var idx = 0;
+  var playing = false;
+  var muted = false;
+  var timers = [];
+  var sceneStart = 0;              // performance.now() baseline for current scene
+  var elapsedAtPause = 0;
+  var advanceArmed = false;
+
+  // ---- Setup -----------------------------------------------------------
+
+  function $(sel) { return document.querySelector(sel); }
+
+  function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+
+  function totalDurationMs() {
+    return SCENES.reduce(function (a, s) { return a + sceneDurationMs(s); }, 0);
+  }
+
+  function sceneDurationMs(s) {
+    if (typeof s.durationSec === "number") return s.durationSec * 1000;
+    var target = (DECK.targetDurationSec || 150) * 1000;
+    return Math.round(target / Math.max(1, SCENES.length));
+  }
+
+  // For a shared diagram source used across several scenes, each scene must hide
+  // the tokens it (and later scenes) reveal, while leaving earlier scenes'
+  // reveals visible. Returns hideTokens[] per scene index.
+  function computeCumulative() {
+    var allTokens = {};   // sourceKey -> Set of every token revealed by any scene
+    SCENES.forEach(function (s) {
+      if (!s.mermaid) return;
+      var set = allTokens[s.mermaid] || (allTokens[s.mermaid] = {});
+      (s.buildSteps || []).forEach(function (st) {
+        (st.reveal || []).forEach(function (t) { set[t] = true; });
+      });
+    });
+    var prior = {};       // sourceKey -> Set of tokens revealed by earlier scenes
+    return SCENES.map(function (s) {
+      if (!s.mermaid) return [];
+      var key = s.mermaid;
+      var seen = prior[key] || (prior[key] = {});
+      var hide = Object.keys(allTokens[key]).filter(function (t) { return !seen[t]; });
+      (s.buildSteps || []).forEach(function (st) {
+        (st.reveal || []).forEach(function (t) { seen[t] = true; });
+      });
+      return hide;
+    });
+  }
+
+  function buildDOM() {
+    els.stage = $("#stage");
+    els.progressFill = $("#progress-fill");
+    els.ticks = $("#progress-ticks");
+    els.counter = $("#scene-counter");
+    els.startOverlay = $("#start-overlay");
+
+    var HIDE = computeCumulative();
+    var total = totalDurationMs();
+    var acc = 0;
+    SCENES.forEach(function (scene, i) {
+      var root = document.createElement("section");
+      root.className = "scene" + (scene.mermaid ? "" : " no-diagram");
+      root.setAttribute("data-kind", scene.kind || "content");
+      root.id = "scene-" + (scene.id || i);
+
+      var textWrap = document.createElement("div");
+      textWrap.className = "scene-text";
+      var beatEls = (scene.beats || []).map(function (beat) {
+        var b = document.createElement("div");
+        b.className = "beat beat--" + (beat.style || "body");
+        b.setAttribute("data-anim", REDUCED ? "fade" : (beat.anim || "fade-up"));
+        if ((beat.anim === "typewriter") && !REDUCED) {
+          var span = document.createElement("span");
+          span.className = "tw";
+          span.innerHTML = beat.text;
+          var n = (beat.text || "").replace(/<[^>]+>/g, "").length || 1;
+          b.style.setProperty("--tw-steps", String(n));
+          b.style.setProperty("--tw-dur", Math.min(2.4, Math.max(0.6, n * 0.05)) + "s");
+          b.appendChild(span);
+        } else {
+          b.innerHTML = beat.text;
+        }
+        textWrap.appendChild(b);
+        return b;
+      });
+      root.appendChild(textWrap);
+
+      var diagram = null;
+      if (scene.mermaid) {
+        diagram = document.createElement("div");
+        diagram.className = "scene-diagram";
+        root.appendChild(diagram);
+      }
+      if (scene.caption) {
+        var cap = document.createElement("div");
+        cap.className = "scene-caption";
+        cap.textContent = scene.caption;
+        root.appendChild(cap);
+      }
+
+      els.stage.appendChild(root);
+      sceneEls.push({ root: root, beats: beatEls, diagram: diagram, svg: null,
+                      edges: [], edgeLabels: [], hideTokens: HIDE[i],
+                      plan: buildScenePlan(scene) });
+
+      // progress tick
+      acc += sceneDurationMs(scene);
+      if (i < SCENES.length - 1) {
+        var tick = document.createElement("div");
+        tick.className = "tick";
+        tick.style.left = (100 * acc / total) + "%";
+        els.ticks.appendChild(tick);
+      }
+    });
+  }
+
+  // Precompute beat times and build-step times for a scene.
+  function buildScenePlan(scene) {
+    var beats = scene.beats || [];
+    var beatTimes = beats.map(function (b, i) {
+      return typeof b.atMs === "number" ? b.atMs : i * BEAT_STAGGER;
+    });
+    var builds = (scene.buildSteps || []).map(function (step) {
+      var at = typeof step.atMs === "number"
+        ? step.atMs
+        : (beatTimes[step.atBeat] != null ? beatTimes[step.atBeat] : 0);
+      return { at: at, reveal: step.reveal || [], effect: step.effect || "appear" };
+    });
+    var lastEvent = Math.max(0,
+      beatTimes.length ? beatTimes[beatTimes.length - 1] : 0,
+      builds.reduce(function (m, b) { return Math.max(m, b.at); }, 0));
+    return { beatTimes: beatTimes, builds: builds, lastEvent: lastEvent };
+  }
+
+  // ---- Mermaid rendering ----------------------------------------------
+
+  function initMermaid() {
+    var cfg = Object.assign({
+      startOnLoad: false,
+      securityLevel: "loose",
+      theme: "base",
+      htmlLabels: false,
+      flowchart: { htmlLabels: false, curve: "basis", nodeSpacing: 45, rankSpacing: 55, padding: 12 },
+      themeVariables: {
+        fontFamily: "inherit",
+        fontSize: "18px",
+        lineColor: "#9db0cf",
+        primaryColor: "#e8eef7",
+        primaryTextColor: "#29417a",
+        primaryBorderColor: "#4682b4",
+        clusterBkg: "rgba(255,255,255,0.04)",
+        clusterBorder: "#4682b4",
+        titleColor: "#ffffff",
+        edgeLabelBackground: "#16233f"
+      }
+    }, DECK.mermaidConfig || {});
+    window.mermaid.initialize(cfg);
+  }
+
+  function renderAll() {
+    var jobs = SCENES.map(function (scene, i) {
+      if (!scene.mermaid) return Promise.resolve();
+      var id = "mmd-" + i + "-" + Math.random().toString(36).slice(2);
+      return window.mermaid.render(id, scene.mermaid).then(function (res) {
+        var rec = sceneEls[i];
+        rec.diagram.innerHTML = res.svg;
+        rec.svg = rec.diagram.querySelector("svg");
+        if (rec.svg) {
+          rec.svg.removeAttribute("height");
+          rec.svg.style.maxWidth = "100%";
+          rec.svg.style.width = "100%";
+          rec.svg.style.maxHeight = "80vh";
+          rec.edges = collectEdges(rec.svg);
+          rec.edgeLabels = Array.prototype.slice.call(
+            rec.svg.querySelectorAll(".edgeLabels .edgeLabel, .edgeLabel"));
+        }
+      }).catch(function (err) {
+        sceneEls[i].diagram.innerHTML =
+          '<div style="color:#ff9d9d;font-size:.9rem">Diagram error: ' +
+          String(err && err.message || err) + "</div>";
+      });
+    });
+    return Promise.all(jobs);
+  }
+
+  function collectEdges(svg) {
+    var e = svg.querySelectorAll("path.flowchart-link");
+    if (!e.length) e = svg.querySelectorAll(".edgePaths path, g.edgePaths path");
+    return Array.prototype.slice.call(e);
+  }
+
+  // Resolve a reveal token to SVG elements within a scene record.
+  function resolveToken(rec, token) {
+    if (!rec.svg) return [];
+    if (token.indexOf("edge:") === 0) {
+      var n = parseInt(token.slice(5), 10);
+      var out = [];
+      if (rec.edges[n]) out.push(rec.edges[n]);
+      if (rec.edgeLabels[n]) out.push(rec.edgeLabels[n]);
+      return out;
+    }
+    // node first, then cluster/subgraph
+    var sel = 'g.node[id*="-' + token + '-"], g.node[id$="-' + token + '"], ' +
+              'g.node[id="' + token + '"], g.node#' + cssEsc(token);
+    var nodes = Array.prototype.slice.call(rec.svg.querySelectorAll(sel));
+    if (nodes.length) return nodes;
+    var csel = 'g.cluster[id="' + token + '"], g.cluster[id$="' + token + '"], ' +
+               'g.cluster[id*="-' + token + '"], g.cluster#' + cssEsc(token);
+    return Array.prototype.slice.call(rec.svg.querySelectorAll(csel));
+  }
+
+  function cssEsc(s) {
+    return (window.CSS && CSS.escape) ? CSS.escape(s) : s.replace(/[^a-zA-Z0-9_-]/g, "\\$&");
+  }
+
+  // Elements to hide at the start of this scene (its own + future reveals on the
+  // same diagram); earlier scenes' reveals are left visible.
+  function managedElements(rec) {
+    var set = new Set();
+    (rec.hideTokens || []).forEach(function (tok) {
+      resolveToken(rec, tok).forEach(function (el) { set.add(el); });
+    });
+    return set;
+  }
+
+  function isPath(el) { return el && el.tagName && el.tagName.toLowerCase() === "path"; }
+
+  function hideManaged(rec) {
+    if (!rec.svg) return;
+    managedElements(rec).forEach(function (el) {
+      el.classList.add("mm-hidden");
+      el.classList.remove("revealed", "mm-pulse");
+      el.style.transition = "";
+      el.style.strokeDashoffset = "";
+      el.style.strokeDasharray = "";
+      var shape = el.querySelector ? el.querySelector(".mm-pulse") : null;
+      if (shape) shape.classList.remove("mm-pulse");
+      if (!isPath(el)) el.classList.add("mm-anim");
+    });
+  }
+
+  function revealEls(els2, effect) {
+    els2.forEach(function (el, i) {
+      var delay = REDUCED ? 0 : i * REVEAL_STAGGER;
+      var act = function () {
+        el.classList.remove("mm-hidden");
+        if (effect === "draw" && isPath(el)) {
+          var len = 0;
+          try { len = el.getTotalLength(); } catch (e) { len = 0; }
+          el.style.opacity = "1";
+          if (len && !REDUCED) {
+            el.style.strokeDasharray = len;
+            el.style.strokeDashoffset = len;
+            el.getBoundingClientRect();           // reflow
+            el.style.transition = "stroke-dashoffset .7s ease";
+            el.style.strokeDashoffset = "0";
+          } else {
+            el.style.strokeDashoffset = "0";
+          }
+        } else {
+          el.classList.add("mm-anim", "revealed");
+        }
+        if (effect === "pulse" && !REDUCED) {
+          // Pulse the shape child, not the <g>: scaling the group's CSS transform
+          // would clobber its SVG positioning transform.
+          var shape = isPath(el) ? el : (el.querySelector("rect, polygon, circle, ellipse") || el);
+          shape.classList.add("mm-pulse");
+        }
+      };
+      if (delay) timers.push(setTimeout(act, delay)); else act();
+    });
+  }
+
+  function revealToken(rec, tok, effect) { revealEls(resolveToken(rec, tok), effect); }
+
+  // ---- Playback --------------------------------------------------------
+
+  function showBeat(rec, i) { if (rec.beats[i]) rec.beats[i].classList.add("is-in"); }
+  function hideBeats(rec) { rec.beats.forEach(function (b) { b.classList.remove("is-in"); }); }
+
+  function activate(i) {
+    sceneEls.forEach(function (r, j) { r.root.classList.toggle("is-active", j === i); });
+    updateCounter();
+  }
+
+  // Reveal everything up to `fromMs` instantly, schedule the rest. If `autoAdvance`
+  // and not the last scene, arm advancing to the next scene.
+  function runScene(i, fromMs, autoAdvance) {
+    clearTimers();
+    var rec = sceneEls[i];
+    var scene = SCENES[i];
+    var plan = rec.plan;
+    if (REDUCED) { fromMs = Infinity; autoAdvance = false; }  // reveal instantly, no autoplay
+
+    hideBeats(rec);
+    hideManaged(rec);
+
+    plan.beatTimes.forEach(function (t, bi) {
+      if (t <= fromMs) showBeat(rec, bi);
+      else timers.push(setTimeout(function () { showBeat(rec, bi); }, t - fromMs));
+    });
+
+    plan.builds.forEach(function (b) {
+      var fire = function () { b.reveal.forEach(function (tok) { revealToken(rec, tok, b.effect); }); };
+      if (b.at <= fromMs) fire();
+      else timers.push(setTimeout(fire, b.at - fromMs));
+    });
+
+    sceneStart = performance.now() - fromMs;
+    elapsedAtPause = fromMs;
+
+    if (fromMs === 0 && !muted && SPEECH_OK && !REDUCED && scene.kind !== undefined) speak(scene);
+
+    if (autoAdvance && i < SCENES.length - 1) armAdvance(i, fromMs, scene);
+  }
+
+  function voicesAvailable() {
+    return SPEECH_OK && (window.speechSynthesis.getVoices() || []).length > 0;
+  }
+
+  function armAdvance(i, fromMs, scene) {
+    advanceArmed = true;
+    var fallback = Math.max(sceneDurationMs(scene), scene && sceneEls[i].plan.lastEvent + 1200);
+    var useSpeech = !muted && voicesAvailable() && !REDUCED && narrationText(scene);
+    if (useSpeech) {
+      // onend (set in speak()) advances; keep a generous safety timer too.
+      timers.push(setTimeout(function () { doAdvance(i); }, fallback + 9000));
+    } else {
+      timers.push(setTimeout(function () { doAdvance(i); }, Math.max(1200, fallback - fromMs)));
+    }
+  }
+
+  function doAdvance(i) {
+    if (!advanceArmed || i !== idx || !playing) return;
+    advanceArmed = false;
+    go(idx + 1);
+  }
+
+  function go(i) {
+    if (i < 0 || i >= SCENES.length) return;
+    if (SPEECH_OK) window.speechSynthesis.cancel();
+    idx = i;
+    activate(i);
+    if (playing) runScene(i, 0, true);
+    else runScene(i, Infinity, false);   // paused: land fully revealed
+    if (i === SCENES.length - 1 && playing) {
+      // last scene: let it play out, then stop
+    }
+  }
+
+  function play() {
+    if (els.startOverlay) els.startOverlay.classList.add("hidden");
+    if (playing) return;
+    playing = true;
+    setPlayIcon();
+    runScene(idx, elapsedAtPause, true);
+  }
+
+  function pause() {
+    if (!playing) return;
+    playing = false;
+    advanceArmed = false;
+    elapsedAtPause = performance.now() - sceneStart;
+    clearTimers();
+    if (SPEECH_OK) window.speechSynthesis.cancel();
+    setPlayIcon();
+  }
+
+  function toggle() { playing ? pause() : play(); }
+
+  function next() { pause(); go(Math.min(SCENES.length - 1, idx + 1)); }
+  function prev() { pause(); go(Math.max(0, idx - 1)); }
+
+  function replay() {
+    if (SPEECH_OK) window.speechSynthesis.cancel();
+    idx = 0; elapsedAtPause = 0; playing = true;
+    activate(0); setPlayIcon();
+    if (els.startOverlay) els.startOverlay.classList.add("hidden");
+    runScene(0, 0, true);
+  }
+
+  // ---- Narration -------------------------------------------------------
+
+  function narrationText(scene) {
+    if (scene.narration) return scene.narration;
+    return (scene.beats || []).map(function (b) {
+      return (b.text || "").replace(/<[^>]+>/g, "");
+    }).join(". ");
+  }
+
+  function speak(scene) {
+    var text = narrationText(scene);
+    if (!text) return;
+    window.speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    var hint = (DECK.audio && DECK.audio.voiceHint) || "en";
+    var v = (window.speechSynthesis.getVoices() || []).filter(function (vc) {
+      return vc.lang && vc.lang.toLowerCase().indexOf(hint.toLowerCase()) === 0;
+    })[0];
+    if (v) u.voice = v;
+    u.rate = (DECK.audio && DECK.audio.rate) || 1;
+    var mySceneStart = sceneStart;
+    u.onend = function () {
+      // Only let speech drive advancing when real voices exist; otherwise the
+      // timer in armAdvance handles it (some browsers fire onend instantly).
+      if (voicesAvailable() && playing && idx === SCENES.indexOf(scene) && mySceneStart === sceneStart) {
+        timers.push(setTimeout(function () { doAdvance(idx); }, 400));
+      }
+    };
+    window.speechSynthesis.speak(u);
+  }
+
+  // ---- UI glue ---------------------------------------------------------
+
+  function updateCounter() {
+    if (els.counter) els.counter.textContent = (idx + 1) + " / " + SCENES.length;
+    if (els.progressFill) {
+      els.progressFill.style.transition = REDUCED ? "none" : "width .4s linear";
+      els.progressFill.style.width = (100 * (idx + 1) / SCENES.length) + "%";
+    }
+  }
+
+  function setPlayIcon() {
+    var b = $("#btn-play");
+    if (b) b.textContent = playing ? "⏸" : "▶";
+  }
+
+  function setMuteIcon() {
+    var b = $("#btn-mute");
+    if (b) b.textContent = muted ? "🔇" : "🔊";
+  }
+
+  function wireControls() {
+    $("#btn-prev").addEventListener("click", prev);
+    $("#btn-play").addEventListener("click", toggle);
+    $("#btn-next").addEventListener("click", next);
+    $("#btn-replay").addEventListener("click", replay);
+    var mute = $("#btn-mute");
+    if (mute) mute.addEventListener("click", function () {
+      muted = !muted; setMuteIcon();
+      if (muted && SPEECH_OK) window.speechSynthesis.cancel();
+    });
+    var start = $("#start-btn");
+    if (start) start.addEventListener("click", function () { idx = 0; activate(0); play(); });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.code === "Space") { e.preventDefault(); toggle(); }
+      else if (e.code === "ArrowRight") next();
+      else if (e.code === "ArrowLeft") prev();
+      else if (e.key === "r" || e.key === "R") replay();
+    });
+
+    if (REDUCED) {
+      var hint = $("#reduced-hint");
+      if (hint) hint.style.display = "inline";
+    }
+  }
+
+  // ---- Boot ------------------------------------------------------------
+
+  function boot() {
+    buildDOM();
+    wireControls();
+    setMuteIcon();
+    activate(0);
+    initMermaid();
+    renderAll().then(function () {
+      // hide all managed elements up front so nothing flashes before its scene
+      sceneEls.forEach(hideManaged);
+      activate(0);
+      // First scene shown fully (under the start overlay) so the title is visible.
+      runScene(0, Infinity, false);
+      // Voices load asynchronously in some browsers.
+      if (SPEECH_OK) window.speechSynthesis.getVoices();
+    });
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+})();
+
+  </script>
+</body>
+</html>
