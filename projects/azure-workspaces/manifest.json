@@ -2,7 +2,7 @@
   "slug": "azure-workspaces",
   "title": "Azure Workspaces",
   "topic": "How an Azure engagement boundary is built: Tenant -> Subscription -> Resource Groups -> Workspace, and how agents operate inside it",
-  "summary": "Walks the Azure hierarchy (Entra tenant, subscription, resource groups, regions) and builds the Workspace as a data boundary around an engagement, with agents operating safely inside it.",
+  "summary": "Walks the Azure hierarchy (Entra tenant, multiple subscriptions, resource groups, regions) and builds the Workspace as a data boundary around an engagement, shows how data enters from the client through the portal and how gold copies move in from shelves, with agents operating safely inside it.",
   "tags": [
     "azure",
     "cloud",
@@ -13,16 +13,18 @@
   "key_claims": [
     "The Azure chain is Tenant -> Subscription -> Resource Group -> Workspace boundary.",
     "A Microsoft Entra ID tenant is the organization identity boundary.",
-    "A subscription is a billing and access container; a tenant can hold many.",
+    "A subscription is a billing and access container; a tenant can hold many (e.g. GAC, Germany, Digital Gateway), and an engagement is built inside one of them.",
     "Resource groups are lifecycle buckets of resources, each pinned to a real region/data center.",
     "A Workspace is a data boundary around the resource groups of one engagement and can grow over time.",
     "A single KPMG engagement number ties the whole boundary to governance.",
+    "Data enters a workspace only through the client portal — a single governed doorway from the client's environment into the East US workspace.",
+    "Reusable gold-copy assets sit on shelves (e.g. Velocity, US Specific) outside the workspace and are copied into it.",
     "Agents operate only inside the Workspace boundary, feeding good changes to a golden instance."
   ],
   "created": "2026-06-08",
   "updated": "2026-06-08",
   "published_at": "2026-06-08T01:18:35.316041+00:00",
-  "version": 1,
+  "version": 2,
   "artifacts": [
     {
       "type": "report",
@@ -62,6 +64,11 @@
       "version": 1,
       "date": "2026-06-08",
       "note": "Retrofit the existing Azure Workspaces deck into a project (report.md + manifest); sources are the canonical Microsoft Learn references for the Azure hierarchy."
+    },
+    {
+      "version": 2,
+      "date": "2026-06-08",
+      "note": "Deck revision: renamed the tenant to KPMG.com (Entra ID) with a distinct gold identity border; show three subscriptions (GAC, Germany, Digital Gateway) with the engagement built in Digital Gateway; reframed the physical-data slide as client environment -> client portal -> East US workspace; added new scenes for shelves (Velocity, US Specific) staging gold copies and for the client portal; added a color/shape legend and light style polish. Report + key claims updated to match."
     }
   ]
 }
