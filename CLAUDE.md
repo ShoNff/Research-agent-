@@ -15,6 +15,19 @@ A multi-agent research system using the Claude Agent SDK. Five specialized agent
 
 See `projects/README.md` for the manifest contract and `web/README.md` for how it reaches the app.
 
+## Learning From Conversations
+
+Preferences and conventions the user expresses in a session ("deck sound off by default", "I
+like shorter reports", "always also export a docx") are captured back into the repo by the
+`conversation-retrospective` skill — run it with `/retrospective` at the end of a session. It
+distills the durable learnings, routes each to its **source of truth** (an agent prompt in
+`src/research_agent/prompts/`, a default in `config.py`, a skill internal, harness settings via
+the `update-config` skill, or this doc), **proposes a changeset for approval**, then applies the
+approved edits and appends them to the append-only `LEARNINGS.md` ledger. The skill's routing
+table (`.claude/skills/conversation-retrospective/SKILL.md`) is the map from "kind of preference"
+to "file to change"; `LEARNINGS.md` is the auditable record of what was learned and where it
+landed. This is how the engine gets smarter without the user repeating themselves.
+
 ## Running
 
 ```bash
