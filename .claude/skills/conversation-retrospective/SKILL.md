@@ -135,12 +135,19 @@ For each approved item:
 
 Then offer to commit the changes on the current development branch.
 
-**Always — even on a no-op run** — append one row to `RETROSPECTIVE-LOG.md` (repo root) recording
-the time, what triggered the run (`push` / `pull-request` / `manual`), the outcome (e.g. "no-op —
-nothing new" or "2 learnings applied: …"), and the commit. This is the committed, GitHub-visible
-activity trail; commit it alongside any other changes. (The git-ignored
-`.claude/logs/retrospective-hook.log` is a separate ephemeral firing log — do not rely on it for
-the durable record.)
+When a run **applies changes** (learnings, a new skill, config edits), append one row to
+`RETROSPECTIVE-LOG.md` (repo root) — time, trigger (`push` / `pull-request` / `manual`), outcome
+(e.g. "2 learnings applied: …"), and commit — and commit it alongside those changes. This is the
+committed, GitHub-visible activity trail. (The git-ignored `.claude/logs/retrospective-hook.log`
+is a separate ephemeral firing log — do not rely on it for the durable record.)
+
+**Loop guard (critical for the push trigger).** On a **no-op run** — nothing new since the
+watermark, which is the common case when the trigger was your own administrative/bookkeeping push
+— update `.claude/retrospective-state.json` **only**, and **stop without committing or pushing
+anything**. Creating a commit and pushing it would re-fire the push hook and loop indefinitely.
+Do not append a `RETROSPECTIVE-LOG.md` row for a no-op (the ephemeral firing log already shows the
+hook fired). Only ever commit/push from this skill when there is a real, approved learning to
+record.
 
 ## LEARNINGS.md entry template
 

@@ -26,3 +26,8 @@ bottom.
 - **Learning:** The user wants to see and audit the engine's activity from GitHub or a clone — not just inside the remote sandbox. Git-ignored, sandbox-only artifacts are effectively invisible to them, so observability/records should default to committed-and-visible.
 - **Applied to:** `RETROSPECTIVE-LOG.md` (new committed activity trail), `.claude/skills/conversation-retrospective/SKILL.md`, `CLAUDE.md`
 - **Rationale:** User asked "where is the log?", then "I don't see a Claude log folder," and chose to add a committed, visible activity log (kept the ephemeral one too).
+
+## 2026-06-08 — Retrospective must not commit/push on no-op runs (loop guard)
+- **Learning:** The push-triggered auto-retrospective will loop forever if it commits and pushes on every run, because each push re-fires the hook. No-op runs must update the watermark only and stop.
+- **Applied to:** `.claude/skills/conversation-retrospective/SKILL.md` (loop guard in "Apply and record")
+- **Rationale:** Observed live — successive bookkeeping pushes each re-triggered the hook during this session.
