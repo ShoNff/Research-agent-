@@ -38,10 +38,11 @@ export default function LoginPage() {
     <main className="login-wrap">
       <div className="login-card">
         <div className="brand">
-          <div className="mark">🔬</div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="mark" src="/icon.svg" alt="" width={44} height={44} />
           <div className="titles">
-            <h1>Research Agent</h1>
-            <p>Private POC launcher</p>
+            <h1>Research Library</h1>
+            <p>Private research launcher</p>
           </div>
         </div>
 

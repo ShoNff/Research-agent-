@@ -26,6 +26,10 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // Run on all paths except Next internals, the login API, and common assets.
-  matcher: ["/((?!api/login|_next/static|_next/image|favicon.ico).*)"],
+  // Run on all paths except Next internals, the login API, and public assets.
+  // Icons + the web manifest must stay ungated so the OS can fetch them when
+  // the site is saved to a phone home screen (no auth cookie is sent then).
+  matcher: [
+    "/((?!api/login|_next/static|_next/image|favicon.ico|icon.svg|apple-icon.png|manifest.webmanifest|icon-192.png|icon-512.png).*)",
+  ],
 };

@@ -227,7 +227,8 @@
           rec.svg.removeAttribute("height");
           rec.svg.style.maxWidth = "100%";
           rec.svg.style.width = "100%";
-          rec.svg.style.maxHeight = "80vh";
+          // max-height is governed by CSS (.scene-diagram svg) so the mobile
+          // media query can shrink it; an inline value would override that.
           rec.edges = collectEdges(rec.svg);
           rec.edgeLabels = Array.prototype.slice.call(
             rec.svg.querySelectorAll(".edgeLabels .edgeLabel, .edgeLabel"));
@@ -331,6 +332,69 @@
 
   function revealToken(rec, tok, effect) { revealEls(resolveToken(rec, tok), effect); }
 
+  // On phones the diagram is rendered larger than the viewport (so labels stay
+  // legible) and its container scrolls. After a build step reveals elements,
+  // pan that container so the newly-revealed elements are centred in view —
+  // otherwise the highlighted part of a wide diagram can be off-screen.
+  function isNarrow() {
+    return !!(window.matchMedia && window.matchMedia("(max-width: 760px)").matches);
+  }
+
+  // Size a scene's diagram for the current viewport. On desktop the SVG fits
+  // the column width. On phones, shrinking a wide diagram to the screen width
+  // makes its labels unreadable, so we render it at a legible scale (≈0.6px per
+  // design unit) — small diagrams still just fit the width, dense/wide ones grow
+  // past the screen and become horizontally pannable. Capped so nothing becomes
+  // absurdly large, and never taller than the available height. Must run while
+  // the scene is visible (an inactive scene has zero width).
+  function sizeDiagram(rec) {
+    var svg = rec && rec.svg;
+    if (!svg) return;
+    if (!isNarrow()) {
+      svg.style.width = "100%";
+      svg.style.height = "";
+      svg.style.maxWidth = "100%";
+      return;
+    }
+    var vb = svg.viewBox && svg.viewBox.baseVal;
+    if (!vb || !vb.width || !vb.height) return;
+    var cont = rec.diagram;
+    var cw = cont.clientWidth || (window.innerWidth - 40);
+    if (!cw) return;
+    var aspect = vb.width / vb.height;
+    var TARGET = 0.6;                              // rendered px per design unit
+    var w = Math.max(cw, vb.width * TARGET);
+    w = Math.min(w, cw * 3);                       // don't over-zoom huge diagrams
+    var maxH = window.innerHeight * 0.6;           // keep within the visible height
+    if (w / aspect > maxH) w = maxH * aspect;
+    w = Math.max(cw, w);                           // never narrower than the screen
+    svg.style.width = Math.round(w) + "px";
+    svg.style.height = "auto";
+    svg.style.maxWidth = "none";
+  }
+
+  function focusDiagram(rec, list) {
+    if (!isNarrow() || !rec.diagram || !list || !list.length) return;
+    var cont = rec.diagram;
+    if (cont.scrollWidth <= cont.clientWidth + 1 &&
+        cont.scrollHeight <= cont.clientHeight + 1) return;
+    var cr = cont.getBoundingClientRect();
+    var minL = Infinity, minT = Infinity, maxR = -Infinity, maxB = -Infinity;
+    list.forEach(function (el) {
+      if (!el || !el.getBoundingClientRect) return;
+      var r = el.getBoundingClientRect();
+      if (!r.width && !r.height) return;
+      minL = Math.min(minL, r.left); minT = Math.min(minT, r.top);
+      maxR = Math.max(maxR, r.right); maxB = Math.max(maxB, r.bottom);
+    });
+    if (minL === Infinity) return;
+    var left = cont.scrollLeft + ((minL + maxR) / 2 - cr.left) - cr.width / 2;
+    var top = cont.scrollTop + ((minT + maxB) / 2 - cr.top) - cr.height / 2;
+    left = Math.max(0, left); top = Math.max(0, top);
+    try { cont.scrollTo({ left: left, top: top, behavior: REDUCED ? "auto" : "smooth" }); }
+    catch (e) { cont.scrollLeft = left; cont.scrollTop = top; }
+  }
+
   // ---- Playback --------------------------------------------------------
 
   function showBeat(rec, i) { if (rec.beats[i]) rec.beats[i].classList.add("is-in"); }
@@ -352,6 +416,7 @@
 
     hideBeats(rec);
     hideManaged(rec);
+    sizeDiagram(rec);   // the scene is now visible, so its width is measurable
 
     plan.beatTimes.forEach(function (t, bi) {
       if (t <= fromMs) showBeat(rec, bi);
@@ -359,7 +424,15 @@
     });
 
     plan.builds.forEach(function (b) {
-      var fire = function () { b.reveal.forEach(function (tok) { revealToken(rec, tok, b.effect); }); };
+      var fire = function () {
+        var targets = [];
+        b.reveal.forEach(function (tok) {
+          var found = resolveToken(rec, tok);
+          revealEls(found, b.effect);
+          targets = targets.concat(found);
+        });
+        focusDiagram(rec, targets);
+      };
       if (b.at <= fromMs) fire();
       else timers.push(setTimeout(fire, b.at - fromMs));
     });
@@ -551,6 +624,13 @@
       var hint = $("#reduced-hint");
       if (hint) hint.style.display = "inline";
     }
+
+    // Re-fit the visible diagram when the viewport changes (rotation, resize).
+    var resizeT;
+    window.addEventListener("resize", function () {
+      clearTimeout(resizeT);
+      resizeT = setTimeout(function () { sizeDiagram(sceneEls[idx]); }, 150);
+    });
   }
 
   // ---- Boot ------------------------------------------------------------

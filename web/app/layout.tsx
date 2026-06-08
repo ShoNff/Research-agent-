@@ -1,9 +1,25 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
+// Icons + manifest are emitted automatically from the app/ file conventions
+// (icon.svg, apple-icon.png, favicon.ico, manifest.ts) — no need to list them
+// here, which would duplicate the <link> tags.
 export const metadata: Metadata = {
-  title: "Research Agent — Launcher",
-  description: "Password-gated launcher for research agent POCs.",
+  title: "Research Library",
+  description: "Every topic researched, published automatically.",
+  applicationName: "Research Library",
+  appleWebApp: {
+    capable: true,
+    title: "Research",
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0a0f1f",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover", // honour env(safe-area-inset-*) on notched phones
 };
 
 export default function RootLayout({
