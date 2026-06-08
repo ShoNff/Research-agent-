@@ -51,6 +51,34 @@
       ],
       "updated": "2026-06-08",
       "version": 1
+    },
+    {
+      "slug": "enterprise-llm-token-economics",
+      "title": "Enterprise LLM Token Economics (Tokenomics)",
+      "topic": "Enterprise LLM token economics (tokenomics): the basic concept, recent news stories of runaway-cost failures, and state-of-the-art practices for managing token spend across an organization",
+      "summary": "Explains how LLMs are billed by the token (input vs. output, the re-billed context window), surveys 2025-2026 news of runaway token costs (agent loops burning tens of thousands of dollars, annual AI budgets gone in a quarter), and lays out the state-of-the-art FinOps-for-AI playbook: token-level attribution, pre-execution budget enforcement, an LLM gateway with caching/routing, and governance.",
+      "tags": [
+        "ai",
+        "llm",
+        "finops",
+        "cost-management",
+        "governance",
+        "agents",
+        "tokenomics"
+      ],
+      "key_claims": [
+        "LLMs are billed by the token (~4 chars each); input and output are priced separately and output typically costs 2-4x more than input.",
+        "The context window is re-sent and re-billed on every call, so long system prompts and growing history compound cost.",
+        "Agentic workflows use an estimated 5-30x the tokens of a single chat query, and pilot per-query economics do not predict production bills.",
+        "Vendor-reported failure cases include a 4-agent loop running ~11 days for ~$47,000 and enterprises exhausting an annual AI budget within a quarter.",
+        "The core lesson of the failures: alerting is not enforcement -- you need pre-execution budget caps, not just dashboards.",
+        "The maturing response is FinOps for AI: token-level cost attribution to teams/features/workflows for unit economics.",
+        "An LLM gateway is the control plane -- centralizing budget enforcement, prompt/semantic caching, model routing, and metering.",
+        "Engineering levers stack: prompt caching (~90% off cached input), batch APIs (~50% off), and model routing (reported 40-70% savings).",
+        "Governance closes the loop with enforced per-team budgets, showback/chargeback, and forecasting on unit economics."
+      ],
+      "updated": "2026-06-08",
+      "version": 1
     }
   ]
 }
