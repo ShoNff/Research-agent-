@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"systemMessage\":\"\\ud83d\\udca1 Before this session is gone: run /retrospective to capture any preferences or conventions from this conversation into the repo (conversation-retrospective skill).\"}'"
+          }
+        ]
+      }
+    ]
+  }
+}
