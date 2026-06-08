@@ -239,9 +239,39 @@ html, body {
 }
 #start-btn:hover { filter: brightness(1.07); }
 
-/* ---- Mobile / narrow screens ---------------------------------------- */
-@media (max-width: 600px) {
-  #stage { padding: 2vh 4vw 1vh; }
+/* ---- Mobile / narrow & portrait screens ----------------------------- *
+ * Phones (and any portrait viewport) can't fit the side-by-side
+ * text | diagram split, so we stack to a single column — text on top,
+ * diagram below — and keep the controls bar on-screen with touch-sized
+ * buttons. Triggers on narrow widths OR portrait orientation so it also
+ * catches large phones / small tablets held upright. */
+@media (max-width: 760px), (orientation: portrait) and (max-width: 900px) {
+  #stage { padding: 2vh 5vw 1vh; }
+  .scene { inset: 2vh 5vw 1vh; gap: 0.9rem; }
+
+  /* Stack instead of split: a 38% text column can't fit a phone. */
+  .scene[data-kind="content"].is-active,
+  .scene[data-kind="diagram"].is-active {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;             /* text, then diagram */
+    align-content: start;
+    align-items: start;
+    gap: 1rem;
+    overflow-y: auto;                          /* scroll the scene, never clip */
+    overscroll-behavior: contain;
+  }
+  .scene-text { gap: 0.7rem; }
+  .scene-diagram { height: auto; min-height: 0; align-items: flex-start; }
+  /* Cap the diagram so text above + controls below stay visible. */
+  .scene-diagram svg { max-height: 46vh; }
+
+  /* Scale type to the viewport width so headings don't dominate. */
+  .beat--h1   { font-size: clamp(1.7rem, 8.5vw, 2.8rem); }
+  .beat--h2   { font-size: clamp(1.3rem, 6vw, 2.1rem); }
+  .beat--body { font-size: clamp(1rem, 4.3vw, 1.3rem); }
+  .beat--note { font-size: clamp(0.8rem, 3.2vw, 1rem); }
+
+  /* Controls: keep every button on-screen with comfortable touch targets. */
   #controls {
     gap: 0.4rem;
     padding: 0.5rem 0.6rem calc(0.5rem + env(safe-area-inset-bottom));
@@ -251,6 +281,7 @@ html, body {
   #controls button {
     flex: 0 0 auto;
     min-width: 44px;                            /* comfortable touch targets */
+    min-height: 44px;
     padding: 0.6rem 0.7rem;
     font-size: 1.15rem;
   }
