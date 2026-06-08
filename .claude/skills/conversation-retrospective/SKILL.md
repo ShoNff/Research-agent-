@@ -135,6 +135,13 @@ For each approved item:
 
 Then offer to commit the changes on the current development branch.
 
+**Always — even on a no-op run** — append one row to `RETROSPECTIVE-LOG.md` (repo root) recording
+the time, what triggered the run (`push` / `pull-request` / `manual`), the outcome (e.g. "no-op —
+nothing new" or "2 learnings applied: …"), and the commit. This is the committed, GitHub-visible
+activity trail; commit it alongside any other changes. (The git-ignored
+`.claude/logs/retrospective-hook.log` is a separate ephemeral firing log — do not rely on it for
+the durable record.)
+
 ## LEARNINGS.md entry template
 
 Append one block per applied learning, newest at the bottom:

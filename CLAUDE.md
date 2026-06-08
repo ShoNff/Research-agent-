@@ -26,7 +26,10 @@ the `update-config` skill, or this doc), **proposes a changeset for approval**, 
 approved edits and appends them to the append-only `LEARNINGS.md` ledger. The skill's routing
 table (`.claude/skills/conversation-retrospective/SKILL.md`) is the map from "kind of preference"
 to "file to change"; `LEARNINGS.md` is the auditable record of what was learned and where it
-landed. This is how the engine gets smarter without the user repeating themselves.
+landed, and `RETROSPECTIVE-LOG.md` is the run-by-run activity trail (every run, including no-ops).
+A `PostToolUse` hook in `.claude/settings.json` auto-triggers the skill on a `git push` or
+PR create/update, working incrementally via the git-ignored `.claude/retrospective-state.json`
+watermark. This is how the engine gets smarter without the user repeating themselves.
 
 ## Running
 
