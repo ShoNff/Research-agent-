@@ -58,7 +58,8 @@ Invoke the visual-agent with a prompt containing:
   - 1 diagram per major finding (where visual representation adds value)
 
 ### Phase 7: Output Generation
-After visuals are generated:
+This project lives in the directory: {output_dir} (slug: "{slug}").
+Write ALL artifacts into that directory. After visuals are generated:
 1. ALWAYS save the markdown report to {output_dir}/report.md using the Write tool
 2. If "docx" is in the requested formats: call mcp__output__render_docx
 3. If "pptx" is in the requested formats: call mcp__output__render_pptx
@@ -73,9 +74,27 @@ For render tools, pass the report as a JSON string with this schema:
   "sources": [deduplicated list of {{"url": "...", "title": "...", "domain": "...", "reliability_tier": "...", "confidence_score": 0.0}}]
 }}
 
+### Phase 8: Publish (MANDATORY — never skip)
+A research run is only complete once the project is published. Call
+mcp__publish__publish_project EXACTLY ONCE as the final action, with:
+- project_dir: "{output_dir}"
+- manifest_json: a JSON object string with these keys:
+  {{
+    "slug": "{slug}",
+    "title": "A concise human-readable title for this project",
+    "topic": "the original research topic",
+    "summary": "a 1-2 sentence plain-language summary of what was found",
+    "tags": ["3-6 lowercase topic tags for navigation, e.g. 'web', 'compilers'"],
+    "sources": [the deduplicated source list, same schema as the report sources],
+    "changelog_note": "what this run produced or changed (e.g. 'initial research')"
+  }}
+Artifacts (report.md, decks, diagrams) are auto-discovered from the project
+directory, so you do not need to list them. Do NOT end the run until
+publish_project has returned status "success".
+
 ## Completion
-When done, summarize:
-- Topic researched
+After publishing, summarize:
+- Topic researched and the published slug
 - Number of sources found and their reliability breakdown
 - Output files generated with their paths
 - Any gaps or limitations in the research

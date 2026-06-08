@@ -15,6 +15,7 @@ from claude_agent_sdk import (
 )
 
 from research_agent.config import Config
+from research_agent.projects import read_manifest, slugify
 from research_agent.prompts.orchestrator import (
     ORCHESTRATOR_SYSTEM_PROMPT,
     ORCHESTRATOR_USER_PROMPT_TEMPLATE,
@@ -26,6 +27,7 @@ from research_agent.prompts.writer import build_writer_prompt
 from research_agent.tools.diagram_gen import generate_diagram
 from research_agent.tools.doc_gen import render_docx
 from research_agent.tools.html_email import render_email
+from research_agent.tools.publish import publish_project
 from research_agent.tools.slides_gen import generate_slide, render_pptx
 from research_agent.tools.source_eval import evaluate_source
 from research_agent.tools.web_search import tavily_search
@@ -51,7 +53,17 @@ def _build_mcp_servers():
         ],
     )
 
-    return {"search": search_server, "output": output_server}
+    publish_server = create_sdk_mcp_server(
+        name="publish",
+        version="1.0.0",
+        tools=[publish_project],
+    )
+
+    return {
+        "search": search_server,
+        "output": output_server,
+        "publish": publish_server,
+    }
 
 
 def _build_agent_definitions(config: Config) -> dict[str, AgentDefinition]:
@@ -112,14 +124,15 @@ def _build_agent_definitions(config: Config) -> dict[str, AgentDefinition]:
     }
 
 
-def _build_user_prompt(topic: str, config: Config) -> str:
+def _build_user_prompt(topic: str, config: Config, project_dir: Path, slug: str) -> str:
     """Build the orchestrator's user prompt."""
     return ORCHESTRATOR_USER_PROMPT_TEMPLATE.format(
         topic=topic,
         formats=", ".join(config.formats),
         style=config.writing_style,
         max_revisions=config.max_qa_revisions,
-        output_dir=str(config.output_dir.resolve()),
+        output_dir=str(project_dir.resolve()),
+        slug=slug,
     )
 
 
@@ -134,11 +147,23 @@ async def run_research(
     """
     from research_agent.tracing import ResearchLogger
 
+    # Every run lands in its own project folder under the projects root. The
+    # slug is deterministic, so re-running a topic targets the same folder and
+    # updates it in place rather than creating a duplicate.
+    slug = slugify(topic)
+    project_dir = (config.output_dir / slug).resolve()
+    project_dir.mkdir(parents=True, exist_ok=True)
+
+    # Resolve the log dir now that we know the project folder, and write it back
+    # so the CLI can report log locations after the run.
+    log_dir = config.log_dir or project_dir / "logs"
+    config.log_dir = log_dir
+
     mcp_servers = _build_mcp_servers()
     agents = _build_agent_definitions(config)
 
     logger = ResearchLogger(
-        log_dir=config.log_dir or config.output_dir / "logs",
+        log_dir=log_dir,
         level=config.log_level,
         topic=topic,
     )
@@ -155,14 +180,15 @@ async def run_research(
             "WebSearch",
             "mcp__search__*",
             "mcp__output__*",
+            "mcp__publish__*",
         ],
         permission_mode="bypassPermissions",
         model=config.models.orchestrator,
         max_turns=60,
-        cwd=str(config.output_dir.resolve()),
+        cwd=str(project_dir),
     )
 
-    prompt = _build_user_prompt(topic, config)
+    prompt = _build_user_prompt(topic, config, project_dir, slug)
     result_text = None
 
     try:
@@ -173,6 +199,16 @@ async def run_research(
                 result_text = getattr(message, "result", None)
     finally:
         logger.close()
+
+    # Enforce the rule: a run only counts as done if it published a manifest.
+    # Without one, nothing reaches the web app or the shared memory.
+    if read_manifest(project_dir) is None:
+        if verbose:
+            print(
+                f"\n  WARNING: run finished without publishing a project "
+                f"(no manifest.json in {project_dir}). It will not appear in "
+                f"the web app or shared memory."
+            )
 
     return result_text
 
