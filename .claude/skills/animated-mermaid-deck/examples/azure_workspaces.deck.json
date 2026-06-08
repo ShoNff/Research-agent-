@@ -38,51 +38,6 @@
       ]
     },
     {
-      "id": "legend",
-      "kind": "diagram",
-      "durationSec": 12,
-      "narration": "A quick key before we start. Gold marks the engagement and its gold-copy assets. Light boxes are Azure resources. Steel stadiums are agents — they act. Navy cylinders are data stores. The hexagon is the client portal — the doorway in. A thick gold border marks an identity boundary; a thick navy border is the data wall.",
-      "beats": [
-        {
-          "text": "A quick <b>key</b>.",
-          "style": "h2"
-        },
-        {
-          "text": "Colors and shapes mean the same thing on every slide.",
-          "style": "body"
-        },
-        {
-          "text": "Gold border = <b>identity boundary</b>. Navy border = <b>data wall</b>.",
-          "style": "note"
-        }
-      ],
-      "mermaid": "flowchart LR\n  l1[\"Engagement / gold copy\"]:::eng\n  l2[\"Azure resource\"]:::res\n  l3([\"Agent (acts)\"]):::agent\n  l4[(\"Data store\")]:::store\n  l5{{\"Client portal (doorway)\"}}:::portal\n  l1 ~~~ l2\n  l2 ~~~ l3\n  l3 ~~~ l4\n  l4 ~~~ l5\n  subgraph idb[\"Identity boundary (tenant)\"]\n    li[\"a resource\"]:::res\n  end\n  subgraph datab[\"Data wall (workspace)\"]\n    ld[\"a resource\"]:::res\n  end\n  l5 ~~~ li\n  li ~~~ ld\n  classDef eng fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef portal fill:#bcd2f0,stroke:#29417a,color:#16233f,font-weight:bold;\n  style idb fill:#daa520,fill-opacity:0.06,stroke:#daa520,stroke-width:4px,color:#daa520;\n  style datab fill:#29417a,fill-opacity:0.10,stroke:#29417a,stroke-width:4px,color:#cfe0ff;",
-      "buildSteps": [
-        {
-          "atBeat": 0,
-          "reveal": [
-            "l1",
-            "l2",
-            "l3",
-            "l4",
-            "l5"
-          ],
-          "effect": "appear"
-        },
-        {
-          "atBeat": 2,
-          "reveal": [
-            "idb",
-            "li",
-            "datab",
-            "ld"
-          ],
-          "effect": "appear"
-        }
-      ],
-      "caption": "Color + shape key — consistent across the deck"
-    },
-    {
       "id": "tenant",
       "kind": "diagram",
       "durationSec": 10,
