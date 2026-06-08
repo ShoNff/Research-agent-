@@ -1,0 +1,134 @@
+{
+  "slug": "anguilla-summer-2026",
+  "title": "Anguilla Summer 2026 — June 26–30 Trip Guide",
+  "topic": "Things to do in Anguilla over Friday June 26 – Tuesday June 30, 2026 for a traveler based at Zemi Beach House (Shoal Bay East) with a rental car: live music and nightlife, food, must-see beaches, and attractions, sequenced into a practical day-by-day itinerary.",
+  "summary": "A four-day, itinerary-ready guide to Anguilla (Jun 26–30, 2026) from a base at Zemi Beach House, timed to the island's weekly rhythm — Dune Preserve music (closed Mondays), Elvis' Saturday DJ night, Scilly Cay on Sunday — plus top beaches, restaurants, and east-end attractions, with car/driving tips.",
+  "tags": [
+    "anguilla",
+    "caribbean",
+    "travel",
+    "itinerary",
+    "beaches",
+    "dining",
+    "live-music",
+    "zemi-beach-house"
+  ],
+  "key_claims": [
+    "The trip dates fall Fri Jun 26 / Sat 27 / Sun 28 / Mon 29 / Tue 30, 2026, and Anguilla's nightlife runs on a weekly schedule — sequence the itinerary to the day of week.",
+    "Zemi Beach House sits on Shoal Bay East (East End) with five restaurants and a 300-year-old Thai spa house on property.",
+    "The Dune Preserve (Bankie Banx) on Rendezvous Bay is the island's top music venue: live music Fri/Sat and Sunday afternoons, Friday BBQ — but it is CLOSED on Mondays.",
+    "Elvis' Beach Bar (Sandy Ground) runs DJ Kue on Saturday nights and a Sunday beach BBQ.",
+    "Scilly Cay off Island Harbour is open Wed/Thu/Sun (~11–3:30) with grilled crayfish and live Sunday music — Sunday Jun 28 is the window; flag down the free ferry from the dock.",
+    "Must-see beaches: Shoal Bay East (at the resort), Rendezvous Bay, Meads Bay, Little Bay, Sandy Island, Shoal Bay West.",
+    "Top dining: Blanchards and Veya (fine dining), Hibernia, Tasty's and Smokey's (local), plus beach bars; book the big names ahead in low-season late June.",
+    "Driving is on the left; a ~US$25 temporary permit is arranged by the rental company; roads are flat, low-traffic, 30 mph limit."
+  ],
+  "created": "2026-06-08",
+  "updated": "2026-06-08",
+  "published_at": "2026-06-08T01:48:40.313379+00:00",
+  "version": 1,
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "report.md"
+    },
+    {
+      "type": "deck",
+      "path": "deck.html"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://www.zemibeach.com/",
+      "title": "Zemi Beach House — official site",
+      "domain": "zemibeach.com",
+      "reliability_tier": "established",
+      "confidence_score": 0.95
+    },
+    {
+      "url": "https://www.hilton.com/en/hotels/axazbol-zemi-beach-house/",
+      "title": "Zemi Beach House, LXR — Hilton official",
+      "domain": "hilton.com",
+      "reliability_tier": "established",
+      "confidence_score": 0.95
+    },
+    {
+      "url": "https://www.bankiebanx.net/dunepreserve",
+      "title": "Dune Preserve — Bankie Banx (official)",
+      "domain": "bankiebanx.net",
+      "reliability_tier": "established",
+      "confidence_score": 0.9
+    },
+    {
+      "url": "https://www.elvisbeachbar.com/entertainment-nightlife",
+      "title": "Entertainment Schedule — Elvis' Beach Bar (official)",
+      "domain": "elvisbeachbar.com",
+      "reliability_tier": "established",
+      "confidence_score": 0.9
+    },
+    {
+      "url": "https://scillycay.ai/",
+      "title": "Gorgeous Scilly Cay — official site",
+      "domain": "scillycay.ai",
+      "reliability_tier": "established",
+      "confidence_score": 0.9
+    },
+    {
+      "url": "https://www.anguilla-beaches.com/anguilla-events.html",
+      "title": "Anguilla Events, Music & Nightlife",
+      "domain": "anguilla-beaches.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.85
+    },
+    {
+      "url": "https://www.anguilla-beaches.com/driving-in-anguilla.html",
+      "title": "Driving in Anguilla",
+      "domain": "anguilla-beaches.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.85
+    },
+    {
+      "url": "https://www.anguilla-beaches.com/shoal-bay-anguilla-beaches.html",
+      "title": "Shoal Bay Anguilla — top-ranked beach",
+      "domain": "anguilla-beaches.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.85
+    },
+    {
+      "url": "https://www.tripadvisor.com/Attractions-g147238-Activities-Anguilla.html",
+      "title": "The 15 Best Things to Do in Anguilla (2026)",
+      "domain": "tripadvisor.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.75
+    },
+    {
+      "url": "https://www.tripadvisor.com/Restaurants-g147238-Anguilla.html",
+      "title": "The 10 Best Restaurants in Anguilla (2026)",
+      "domain": "tripadvisor.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.75
+    },
+    {
+      "url": "https://www.atastefortravel.ca/4529-unplugged-anguilla-best-beach-shacks-and-food-trucks/",
+      "title": "A Guide to the Best Restaurants in Anguilla (2026)",
+      "domain": "atastefortravel.ca",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.7
+    },
+    {
+      "url": "https://www.caribjournal.com/2026/01/19/caribbean-island-beaches-flights-anguilla/",
+      "title": "Anguilla beaches & new nonstop flights (2026)",
+      "domain": "caribjournal.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.75
+    }
+  ],
+  "related": [],
+  "changelog": [
+    {
+      "version": 1,
+      "date": "2026-06-08",
+      "note": "Initial research: 4-day Anguilla trip guide (Jun 26–30, 2026) from a Zemi Beach House base, with a navigable HTML itinerary deck."
+    }
+  ]
+}
