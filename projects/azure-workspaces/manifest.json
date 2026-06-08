@@ -24,7 +24,7 @@
   "created": "2026-06-08",
   "updated": "2026-06-08",
   "published_at": "2026-06-08T01:18:35.316041+00:00",
-  "version": 2,
+  "version": 3,
   "artifacts": [
     {
       "type": "report",
@@ -69,6 +69,11 @@
       "version": 2,
       "date": "2026-06-08",
       "note": "Deck revision: renamed the tenant to KPMG.com (Entra ID) with a distinct gold identity border; show three subscriptions (GAC, Germany, Digital Gateway) with the engagement built in Digital Gateway; reframed the physical-data slide as client environment -> client portal -> East US workspace; added new scenes for shelves (Velocity, US Specific) staging gold copies and for the client portal; added a color/shape legend and light style polish. Report + key claims updated to match."
+    },
+    {
+      "version": 3,
+      "date": "2026-06-08",
+      "note": "Removed the standalone color/shape legend scene; the deck now opens straight into the tenant build (18 scenes)."
     }
   ]
 }
