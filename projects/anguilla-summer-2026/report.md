@@ -2,6 +2,8 @@
 
 A practical, itinerary-friendly guide to four days on Anguilla — **Friday June 26 through Tuesday June 30, 2026** — for travelers based at **Zemi Beach House** on Shoal Bay East, with a rental car. Built around the island's live music, food, beaches, and attractions, and timed to the days of the week so you hit each venue when it's actually open.
 
+![Anguilla from above — the low, reef-fringed island in the northern Leeward Islands (Wikimedia Commons)](https://commons.wikimedia.org/wiki/Special:FilePath/Anguilla-aerial%20view%20western%20portion.jpg?width=1280)
+
 ## Executive Summary
 
 Anguilla is a flat, low-traffic British Caribbean island whose reputation rests on three things: **world-class beaches**, an outsized **restaurant and beach-bar scene**, and **live music** — much of it built around one man, Bankie Banx, and his Dune Preserve. You're staying at [Zemi Beach House](https://www.zemibeach.com/) on the island's quieter **East End**, on the famous Shoal Bay East, with five restaurants and a 300-year-old Thai spa house on property. With a car, the whole island is 20–30 minutes away.
@@ -35,6 +37,8 @@ Anguilla drives on the **left** (it's a British territory), but the island is fl
 - **Main roads are paved**; many scenic cut-throughs and beach access tracks are sandy or rutted. A higher-clearance vehicle helps if you want to chase the back-road beaches, and take unpaved sections slowly at night.
 - A car is the right call here: it unlocks the far-flung beach bars and restaurants (Rendezvous Bay, Sandy Ground, Meads Bay) that make Anguilla, Anguilla.
 
+**Map & key locations** (tap to open in Google Maps): [Zemi Beach House](https://www.google.com/maps/search/?api=1&query=Zemi+Beach+House+Anguilla) · [Dune Preserve (Rendezvous Bay)](https://www.google.com/maps/search/?api=1&query=Dune+Preserve+Rendezvous+Bay+Anguilla) · [Elvis' Beach Bar (Sandy Ground)](https://www.google.com/maps/search/?api=1&query=Elvis+Beach+Bar+Sandy+Ground+Anguilla) · [Scilly Cay (Island Harbour)](https://www.google.com/maps/search/?api=1&query=Scilly+Cay+Island+Harbour+Anguilla) · [Blanchards (Meads Bay)](https://www.google.com/maps/search/?api=1&query=Blanchards+Restaurant+Meads+Bay+Anguilla) · [whole-island map](https://www.openstreetmap.org/?mlat=18.26&mlon=-63.01#map=12/18.23/-63.05). The interactive deck (`deck.html`) has a live map with these pins.
+
 ## Live Music & Nightlife
 
 Anguilla's music scene is intimate — small venues, toes in the sand, the band an arm's length away — and it runs on a weekly schedule. Here's what's on during your stay.
@@ -58,6 +62,8 @@ A lively hangout built out of a repurposed boat hull, right on the sand at Sandy
 - Check the live calendar close to your trip; weekly entertainment listings are kept current at [anguilla-beaches.com/anguilla-events](https://www.anguilla-beaches.com/anguilla-events.html) and on each venue's own site ([Dune Preserve](https://www.bankiebanx.net/dunepreserve), [Elvis' Beach Bar](https://www.elvisbeachbar.com/entertainment-nightlife)).
 
 ## Must-See Beaches
+
+![Rendezvous Bay, Anguilla — long, calm, and walkable to the island's best beach bars and music (Wikimedia Commons)](https://commons.wikimedia.org/wiki/Special:FilePath/Cuisinart,%20Rendezvous%20Bay,%20Anguilla%202009.jpg?width=1280)
 
 Anguilla has 33 beaches; these are the ones to prioritize in four days.
 
@@ -93,6 +99,9 @@ Anguilla punches far above its size on food. A rough map:
 - **Little Bay** snorkeling — crystal-clear, sheltered water beneath limestone cliffs.
 
 ### Scilly Cay — a Sunday institution
+
+![Scilly Cay, off Island Harbour, Anguilla — the family-owned private island grill (Wikimedia Commons)](https://commons.wikimedia.org/wiki/Special:FilePath/Island%20Harbour-Scilly%20Cay-Anguilla.jpg?width=1280)
+
 A tiny family-owned private island off **Island Harbour**, transformed into a one-of-a-kind beachfront grill known for fresh grilled crayfish/lobster, strong rum punch, and live Sunday music. **Open Wednesdays, Thursdays, and Sundays (≈11:00am–3:30pm)** — so **Sunday June 28 is your window.** To get there, drive to the Island Harbour fishing dock and **wave toward the island**; the free ferry comes to collect you (about a 2-minute ride). Island Harbour is ~10 minutes from Zemi.
 
 ### Heritage & culture (great for the Monday)

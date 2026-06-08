@@ -23,6 +23,15 @@ function renderInline(text) {
   const keep = (html) => "\x00" + (stash.push(html) - 1) + "\x00";
 
   let s = text.replace(/`([^`]+)`/g, (_m, code) => keep("<code>" + escapeHtml(code) + "</code>"));
+  // Images BEFORE links — `![alt](url)` overlaps the link pattern `[alt](url)`,
+  // so the image rule must claim the syntax first. Inline (within prose) images
+  // render as a bare <img> to stay valid inside <p>; standalone image lines are
+  // promoted to a <figure> block by renderMarkdown below.
+  s = s.replace(
+    /!\[([^\]]*)\]\(([^)\s]+)\)/g,
+    (_m, alt, url) =>
+      keep('<img loading="lazy" src="' + escapeHtml(url) + '" alt="' + escapeHtml(alt) + '"/>')
+  );
   s = s.replace(
     /\[([^\]]+)\]\(([^)\s]+)\)/g,
     (_m, label, url) =>
@@ -50,13 +59,15 @@ export function renderMarkdown(md) {
   let i = 0;
 
   const isBlank = (l) => /^\s*$/.test(l);
+  const IMAGE_LINE = /^\s*!\[([^\]]*)\]\(([^)\s]+)\)\s*$/;
   const startsBlock = (l) =>
     /^(#{1,6})\s/.test(l) ||
     /^```/.test(l) ||
     /^>\s?/.test(l) ||
     /^\s*[-*+]\s+/.test(l) ||
     /^\s*\d+\.\s+/.test(l) ||
-    /^\s*([-*_])\1{2,}\s*$/.test(l);
+    /^\s*([-*_])\1{2,}\s*$/.test(l) ||
+    IMAGE_LINE.test(l);
 
   while (i < lines.length) {
     const line = lines[i];
@@ -86,6 +97,21 @@ export function renderMarkdown(md) {
     // Horizontal rule
     if (/^\s*([-*_])\1{2,}\s*$/.test(line)) {
       out.push("<hr/>");
+      i++;
+      continue;
+    }
+
+    // Standalone image line → figure block (caption from alt text)
+    const img = line.match(IMAGE_LINE);
+    if (img) {
+      const alt = img[1].trim();
+      const url = img[2];
+      out.push(
+        '<figure class="figure">' +
+          `<img loading="lazy" src="${escapeHtml(url)}" alt="${escapeHtml(alt)}"/>` +
+          (alt ? `<figcaption>${escapeHtml(alt)}</figcaption>` : "") +
+          "</figure>"
+      );
       i++;
       continue;
     }
