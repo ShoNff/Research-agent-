@@ -101,18 +101,28 @@ function buildProject(projectPath, manifest) {
 }
 
 function main() {
+  // If projects/ isn't reachable (e.g. a Vercel build scoped to web/ that can't
+  // see the repo root), do NOT touch the committed outputs — wiping them would
+  // break production. The committed library.generated.ts + public/library/ serve
+  // as the fallback. Only rebuild when we can actually see the source of truth.
+  if (!existsSync(PROJECTS_DIR)) {
+    console.warn(
+      `[build-library] projects/ not found at ${PROJECTS_DIR} — leaving committed ` +
+        "library outputs untouched."
+    );
+    return;
+  }
+
   // Start from a clean public/library so deleted/renamed projects don't linger.
   rmSync(PUBLIC_LIB, { recursive: true, force: true });
 
   const projects = [];
-  if (existsSync(PROJECTS_DIR)) {
-    for (const entry of readdirSync(PROJECTS_DIR)) {
-      const projectPath = join(PROJECTS_DIR, entry);
-      if (!statSync(projectPath).isDirectory()) continue;
-      const manifest = readManifest(projectPath);
-      if (!manifest) continue;
-      projects.push(buildProject(projectPath, manifest));
-    }
+  for (const entry of readdirSync(PROJECTS_DIR)) {
+    const projectPath = join(PROJECTS_DIR, entry);
+    if (!statSync(projectPath).isDirectory()) continue;
+    const manifest = readManifest(projectPath);
+    if (!manifest) continue;
+    projects.push(buildProject(projectPath, manifest));
   }
 
   // Newest first, by updated date then version.

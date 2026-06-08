@@ -14,27 +14,34 @@ function escapeHtml(s) {
 }
 
 function renderInline(text) {
-  // Split on inline code spans so their contents are never treated as markup.
-  const parts = text.split(/(`[^`]+`)/g);
-  return parts
-    .map((part) => {
-      if (part.startsWith("`") && part.endsWith("`") && part.length >= 2) {
-        return "<code>" + escapeHtml(part.slice(1, -1)) + "</code>";
-      }
-      let s = escapeHtml(part);
-      // [label](url) — url is HTML-escaped already, which is safe for the attr.
-      s = s.replace(
-        /\[([^\]]+)\]\(([^)\s]+)\)/g,
-        (_m, label, url) =>
-          `<a href="${url}" target="_blank" rel="noreferrer">${label}</a>`
-      );
-      s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-      s = s.replace(/__([^_]+)__/g, "<strong>$1</strong>");
-      s = s.replace(/(^|[^*])\*([^*\s][^*]*?)\*/g, "$1<em>$2</em>");
-      s = s.replace(/(^|[^_])_([^_\s][^_]*?)_/g, "$1<em>$2</em>");
-      return s;
-    })
-    .join("");
+  // Protect inline code and links by stashing their final HTML behind
+  // placeholders, so emphasis processing can't reach inside them — e.g. the
+  // underscores in a link's target="_blank" must not be treated as italics.
+  // The fence is a NUL char, which never appears in source text, so the restore
+  // step can't accidentally match real digits in the prose.
+  const stash = [];
+  const keep = (html) => "\x00" + (stash.push(html) - 1) + "\x00";
+
+  let s = text.replace(/`([^`]+)`/g, (_m, code) => keep("<code>" + escapeHtml(code) + "</code>"));
+  s = s.replace(
+    /\[([^\]]+)\]\(([^)\s]+)\)/g,
+    (_m, label, url) =>
+      keep(
+        '<a href="' + escapeHtml(url) + '" target="_blank" rel="noreferrer">' +
+          escapeHtml(label) +
+          "</a>"
+      )
+  );
+
+  // Escape the remaining text, then apply emphasis. Placeholders hold no * or _.
+  s = escapeHtml(s);
+  s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  s = s.replace(/__([^_]+)__/g, "<strong>$1</strong>");
+  s = s.replace(/(^|[^*])\*([^*\s][^*]*?)\*/g, "$1<em>$2</em>");
+  s = s.replace(/(^|[^_])_([^_\s][^_]*?)_/g, "$1<em>$2</em>");
+
+  // Restore the protected code/link HTML.
+  return s.replace(/\x00(\d+)\x00/g, (_m, i) => stash[Number(i)]);
 }
 
 export function renderMarkdown(md) {
