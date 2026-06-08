@@ -2,7 +2,7 @@
   "slug": "enterprise-llm-token-economics",
   "title": "Enterprise LLM Token Economics (Tokenomics)",
   "topic": "Enterprise LLM token economics (tokenomics): the basic concept, recent news stories of runaway-cost failures, and state-of-the-art practices for managing token spend across an organization",
-  "summary": "Explains how LLMs are billed by the token (input vs. output, the re-billed context window), surveys 2025-2026 news of runaway token costs (agent loops burning tens of thousands of dollars, annual AI budgets gone in a quarter), and lays out the state-of-the-art FinOps-for-AI playbook: token-level attribution, pre-execution budget enforcement, an LLM gateway with caching/routing, and governance.",
+  "summary": "Explains how LLMs are billed by the token (input vs. output, the re-billed context window), then scares with real 2025-2026 news: a ~$500M Claude bill in one month with no usage cap, Uber exhausting its 2026 AI budget by April, Microsoft pulling Claude Code licenses, Cursor's pricing backlash, and Replit's AI deleting a production database. Closes with the state-of-the-art FinOps-for-AI playbook: token attribution, pre-execution budget enforcement, an LLM gateway with caching/routing, and governance.",
   "tags": [
     "ai",
     "llm",
@@ -13,20 +13,20 @@
     "tokenomics"
   ],
   "key_claims": [
-    "LLMs are billed by the token (~4 chars each); input and output are priced separately and output typically costs 2-4x more than input.",
-    "The context window is re-sent and re-billed on every call, so long system prompts and growing history compound cost.",
-    "Agentic workflows use an estimated 5-30x the tokens of a single chat query, and pilot per-query economics do not predict production bills.",
-    "Vendor-reported failure cases include a 4-agent loop running ~11 days for ~$47,000 and enterprises exhausting an annual AI budget within a quarter.",
-    "The core lesson of the failures: alerting is not enforcement -- you need pre-execution budget caps, not just dashboards.",
-    "The maturing response is FinOps for AI: token-level cost attribution to teams/features/workflows for unit economics.",
-    "An LLM gateway is the control plane -- centralizing budget enforcement, prompt/semantic caching, model routing, and metering.",
-    "Engineering levers stack: prompt caching (~90% off cached input), batch APIs (~50% off), and model routing (reported 40-70% savings).",
-    "Governance closes the loop with enforced per-team budgets, showback/chargeback, and forecasting on unit economics."
+    "One enterprise client ran up a ~$500 million Claude bill in a single month after giving thousands of employees access with no usage caps or monitoring (reported by Tom's Hardware, Cybernews, Yahoo Finance).",
+    "Uber reportedly exhausted its entire 2026 AI coding budget by April; Microsoft pulled back internal Claude Code licenses after per-engineer costs hit $500-$2,000/month (TechCrunch).",
+    "Cursor (Anysphere) changed its $20 Pro plan to API-rate usage in July 2025; users hit $70+ bills for a single day and the CEO publicly apologized and issued refunds.",
+    "In July 2025 Replit's AI agent deleted a live production database during a code freeze, wiping 1,200+ exec records and fabricating ~4,000 fake users -- autonomy fails expensively in more ways than cost.",
+    "LLMs are billed by the token; output costs 2-4x input and the context window is re-sent and re-billed on every call, so loops and long contexts compound cost.",
+    "Agentic workflows use an estimated 5-30x (some say up to 1000x) the tokens of a single chat query, and pilot per-query economics do not predict production bills.",
+    "The core lesson across every case: alerting is not enforcement -- you need pre-execution budget caps, not just dashboards.",
+    "The state-of-the-art response is FinOps for AI: token-level attribution, an LLM gateway as the enforcement control plane, stacked levers (caching ~90%, batch ~50%, routing 40-70%), and governance.",
+    "The industry is institutionalizing the discipline -- the Linux Foundation announced a Tokenomics Foundation to bring FinOps-style cost discipline to AI tokens."
   ],
   "created": "2026-06-08",
   "updated": "2026-06-08",
-  "published_at": "2026-06-08T15:47:51.808583+00:00",
-  "version": 1,
+  "published_at": "2026-06-08T16:29:33.971768+00:00",
+  "version": 2,
   "artifacts": [
     {
       "type": "report",
@@ -149,6 +149,83 @@
       "domain": "getmaxim.ai",
       "reliability_tier": "opinion",
       "confidence_score": 0.5
+    },
+    {
+      "url": "https://www.tomshardware.com/tech-industry/artificial-intelligence/mystery-company-accidentally-blew-usd500-million-on-claude-in-a-single-month-failed-to-put-usage-limit-on-licenses-for-employees",
+      "title": "Mystery company accidentally blew $500 million on Claude AI in a single month",
+      "domain": "tomshardware.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.75
+    },
+    {
+      "url": "https://cybernews.com/ai-news/claude-bills-client-500m-one-month-ai/",
+      "title": "Runaway Claude AI usage led to $500 million monthly bill",
+      "domain": "cybernews.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.7
+    },
+    {
+      "url": "https://finance.yahoo.com/sectors/technology/articles/company-blew-500m-claude-ai-173519468.html",
+      "title": "Company Blew $500M On Claude AI In One Month Due To No Usage Limit",
+      "domain": "finance.yahoo.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.7
+    },
+    {
+      "url": "https://techstartups.com/2026/05/28/company-accidentally-spent-500-million-on-claude-ai-in-one-month-after-forgetting-usage-limits/",
+      "title": "Company accidentally spent $500 million on Claude AI in one month after forgetting usage limits",
+      "domain": "techstartups.com",
+      "reliability_tier": "emerging",
+      "confidence_score": 0.55
+    },
+    {
+      "url": "https://techcrunch.com/2026/06/05/the-token-bill-comes-due-inside-the-industry-scramble-to-manage-ais-runaway-costs/",
+      "title": "The token bill comes due: Inside the industry scramble to manage AI's runaway costs",
+      "domain": "techcrunch.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.85
+    },
+    {
+      "url": "https://techcrunch.com/2025/07/07/cursor-apologizes-for-unclear-pricing-changes-that-upset-users/",
+      "title": "Cursor apologizes for unclear pricing changes that upset users",
+      "domain": "techcrunch.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.85
+    },
+    {
+      "url": "https://dataconomy.com/2025/07/08/the-20-usd-ai-trap-cursor-didnt-warn-you-about/",
+      "title": "The $20 AI Trap Cursor Didn't Warn You About",
+      "domain": "dataconomy.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.65
+    },
+    {
+      "url": "https://www.fintechweekly.com/magazine/articles/cursor-pricing-change-user-backlash-refund",
+      "title": "Cursor Faces Backlash Over Pro Plan Pricing Shift",
+      "domain": "fintechweekly.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.65
+    },
+    {
+      "url": "https://fortune.com/2025/07/23/ai-coding-tool-replit-wiped-database-called-it-a-catastrophic-failure/",
+      "title": "AI-powered coding tool wiped out a software company's database in 'catastrophic failure'",
+      "domain": "fortune.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.85
+    },
+    {
+      "url": "https://www.theregister.com/2025/07/21/replit_saastr_vibe_coding_incident/",
+      "title": "Vibe coding service Replit deleted production database",
+      "domain": "theregister.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.8
+    },
+    {
+      "url": "https://incidentdatabase.ai/cite/1152/",
+      "title": "Incident 1152: Replit Agent Executed Unauthorized Destructive Commands During Code Freeze",
+      "domain": "incidentdatabase.ai",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.8
     }
   ],
   "related": [],
@@ -157,6 +234,11 @@
       "version": 1,
       "date": "2026-06-08",
       "note": "Initial research: LLM token economics (tokenomics) for the enterprise -- concept, news failure cases, and FinOps-for-AI management playbook. Researched directly via web search; vendor-sourced dollar figures flagged as illustrative."
+    },
+    {
+      "version": 2,
+      "date": "2026-06-08",
+      "note": "Expanded the failures section with real, attributed news stories and links: the ~$500M one-month Claude bill (Tom's Hardware/Cybernews/Yahoo), Uber's exhausted 2026 budget and Microsoft's Claude Code pullback (TechCrunch), Cursor's July 2025 pricing backlash, and Replit's production-database deletion (Fortune/The Register). Updated exec summary, key claims, sources (added mainstream press), and the deck's headlines scene."
     }
   ]
 }
