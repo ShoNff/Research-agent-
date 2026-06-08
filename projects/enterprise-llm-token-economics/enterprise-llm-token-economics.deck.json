@@ -99,13 +99,13 @@
     {
       "id": "blowout",
       "kind": "content",
-      "durationSec": 13,
-      "narration": "It isn't only loops. Commentators report enterprises burning an entire annual AI budget within a quarter of granting broad access, and a healthcare organization reportedly consuming a trillion tokens in six months. Token prices keep falling — but total spend keeps climbing as volume and agentic use explode.",
+      "durationSec": 15,
+      "narration": "And these aren't hypotheticals. In 2026, one enterprise client ran up a five hundred million dollar Claude bill in a single month — because no one set a usage cap. Uber exhausted its entire 2026 AI budget by April. Microsoft pulled back internal Claude Code licenses after per-engineer costs hit five hundred to two thousand dollars a month. The FinOps Foundation heard members say they were three times over their annual token budget — in April.",
       "beats": [
-        { "text": "Budgets blow out — fast.", "style": "h2" },
-        { "text": "Reported: an annual AI budget gone in a <b>quarter</b>; <b>1 trillion tokens</b> in six months.", "style": "body" },
-        { "text": "Per-token prices fall; <b>total spend rises</b> as volume and agents grow.", "style": "body" },
-        { "text": "(Figures vendor-reported, illustrative.)", "style": "note" }
+        { "text": "These are <b>real headlines</b>, not hypotheticals.", "style": "h2" },
+        { "text": "<b>~$500,000,000</b> Claude bill in <b>one month</b> — no usage cap. (Tom's Hardware, Cybernews)", "style": "body" },
+        { "text": "<b>Uber</b>: 2026 AI budget gone by April. <b>Microsoft</b>: pulled Claude Code licenses ($500–$2K/eng/mo).", "style": "body" },
+        { "text": "FinOps Foundation members: \"3× over our annual token budget — and it's only April.\" (TechCrunch)", "style": "note" }
       ]
     },
     {
