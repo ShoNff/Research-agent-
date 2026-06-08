@@ -2,7 +2,18 @@
 
 ## What This Is
 
-A multi-agent research system using the Claude Agent SDK. Five specialized agents (orchestrator, search, writer, QA, visual) collaborate to research topics and produce reports in multiple formats.
+A multi-agent research system using the Claude Agent SDK. Five specialized agents (orchestrator, search, writer, QA, visual) collaborate to research topics and produce reports in multiple formats. Each run publishes a **project** into `projects/<slug>/`, which a Next.js web app (`web/`) turns into a browsable research library.
+
+## The Core Rule
+
+**Every research run must end by publishing a project. Everything we research becomes a deliverable in the web app — automatically, with no manual step.**
+
+- The orchestrator's final mandatory phase calls `mcp__publish__publish_project`, which writes `projects/<slug>/manifest.json`.
+- `projects/` is the single source of truth. The web app library and (future) shared-memory index are *derived* from it — never hand-curated.
+- Re-running a topic updates the same `projects/<slug>/` in place (deterministic slug): it preserves `created`, bumps `version`, and appends a `changelog` entry (living reports).
+- A run that finishes without a manifest has produced nothing the system can see; `main.py` warns when that happens.
+
+See `projects/README.md` for the manifest contract and `web/README.md` for how it reaches the app.
 
 ## Running
 
@@ -14,26 +25,32 @@ pip install -e .
 ANTHROPIC_API_KEY=...
 TAVILY_API_KEY=...
 
-# Run a research task
+# Run a research task — publishes projects/<slug>/
 research-agent "your topic" --format markdown --style concise -v
 
-# Dry run (show config only)
+# Dry run (shows the resolved project folder + config)
 research-agent "your topic" --dry-run
+
+# Browse the research library locally (reads projects/)
+cd web && npm install && npm run dev
 ```
 
 ## Key Files
 
 | File | What It Does |
 |------|-------------|
-| `src/research_agent/main.py` | **Start here.** Wires all agents, MCP servers, and runs the orchestrator `query()` loop. |
+| `src/research_agent/main.py` | **Start here.** Wires all agents, MCP servers, computes the per-run project dir, and runs the orchestrator `query()` loop. |
 | `src/research_agent/cli.py` | CLI entry point using Click. Parses args, loads config, calls `run_research()`. |
-| `src/research_agent/config.py` | Configuration dataclass. Loads from `.env` + CLI overrides. |
+| `src/research_agent/config.py` | Configuration dataclass. Loads from `.env` + CLI overrides. `output_dir` is the projects root. |
+| `src/research_agent/projects.py` | Project library helpers: `slugify`, manifest build/read/write, artifact discovery. |
 | `src/research_agent/tracing.py` | Structured logging: JSONL trace + human-readable summary log. See "Logging & Tracing" below. |
 | `src/research_agent/mcp_server.py` | Wraps the research pipeline as an MCP tool for Claude Code. |
 | `src/research_agent/prompts/*.py` | System prompts for each agent. These control agent behavior — edit carefully. |
-| `src/research_agent/tools/*.py` | Custom MCP tools using `@tool` decorator + `create_sdk_mcp_server()`. |
+| `src/research_agent/tools/*.py` | Custom MCP tools using `@tool` decorator + `create_sdk_mcp_server()`. Includes `publish.py` (the mandatory publish step). |
 | `src/research_agent/models/*.py` | Pydantic models for source metadata, findings, reports, QA reviews. |
 | `src/research_agent/templates/` | Jinja2 email template + PowerPoint layout constants. |
+| `projects/<slug>/` | Published projects — the source of truth. See `projects/README.md`. |
+| `web/` | Next.js research-library front end. Auto-built from `projects/`. See `web/README.md`. |
 
 ## Architecture
 
@@ -46,13 +63,20 @@ The orchestrator is the primary `query()` agent. It delegates to 4 subagents via
 
 Subagents **cannot** spawn other subagents (SDK constraint). The orchestrator passes all context explicitly in the Agent tool's prompt string since subagents have no access to parent conversation history.
 
-Two MCP tool servers are created in-process:
+Three MCP tool servers are created in-process (`main.py:_build_mcp_servers()`):
 - `search` server: `tavily_search`, `evaluate_source`
 - `output` server: `generate_diagram`, `render_docx`, `render_pptx`, `render_email`, `generate_slide`
+- `publish` server: `publish_project` (the mandatory final step)
+
+The orchestrator workflow runs in phases (`prompts/orchestrator.py`): decompose → research → write → QA → revise → visuals → output → **publish**. Every run's `cwd` is its own `projects/<slug>/` folder, so all artifacts land there. The last phase publishes the manifest.
+
+### The project library + web app
+- `projects/<slug>/manifest.json` is written by `publish_project` and is the contract every consumer reads.
+- `web/scripts/build-library.mjs` rebuilds the web library from `projects/` before each `dev`/`build`: copies servable artifacts into `web/public/library/<slug>/`, renders `report.md` to HTML, and emits `web/lib/library.generated.ts`. No manual curation.
 
 ## Logging & Tracing
 
-Every research run produces log files in `<output_dir>/logs/` (configurable via `--log-dir`).
+Every research run produces log files in `<project_dir>/logs/` (i.e. `projects/<slug>/logs/`, configurable via `--log-dir`). The log dir is resolved per-run in `run_research()` once the slug is known.
 
 **Log levels** (`--log-level`):
 - `summary` (default): Human-readable `*_summary.log` showing agent→tool flow timeline
@@ -107,6 +131,11 @@ Tools called: tavily_search (×6), evaluate_source (×9), generate_diagram (×2)
 3. Add `mcp__output__<tool_name>` to orchestrator's allowed_tools in `main.py`
 4. Update orchestrator prompt in `prompts/orchestrator.py` Phase 7 to handle the new format
 5. Add the format name to the CLI `--format` option help text in `cli.py`
+6. If the artifact should show in the web app, make sure its extension is in `SERVABLE` in `web/scripts/build-library.mjs` and rendered by `web/app/projects/[slug]/page.tsx`
+
+### Changing the project/manifest shape or the web library
+- Manifest fields are normalized in `research_agent.projects.build_manifest`; the publish tool is `tools/publish.py`. Update `projects/README.md` (the contract) alongside any change.
+- The web app reads manifests via `web/scripts/build-library.mjs` → `web/lib/library.generated.ts` → `web/lib/library.ts` (typed loader). The library build uses **no npm dependencies** (don't add any without regenerating `web/package-lock.json`).
 
 ### Adding a new agent
 1. Write a system prompt in `src/research_agent/prompts/<agent>.py`
@@ -140,9 +169,13 @@ No test suite yet. To verify manually:
 # Syntax check
 python -c "import research_agent"
 
-# Dry run
+# Dry run (shows the resolved project folder)
 research-agent "test topic" --dry-run
 
-# Full run (requires API keys)
+# Full run (requires API keys) — should leave a projects/<slug>/manifest.json
 research-agent "What is WebAssembly?" --format markdown -v
+ls projects/what-is-webassembly/manifest.json
+
+# Verify the web library builds from projects/
+cd web && node scripts/build-library.mjs   # writes lib/library.generated.ts
 ```

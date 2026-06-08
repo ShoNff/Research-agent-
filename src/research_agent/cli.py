@@ -143,7 +143,7 @@ def main(
         click.echo("\n" + "=" * 60)
         click.echo(result)
     else:
-        click.echo("\nResearch completed. Check output directory for files.")
+        click.echo(f"\nResearch completed. Check the published project under {config.output_dir}/")
 
     # Show log file locations
     if config.log_level != "off" and config.log_dir:

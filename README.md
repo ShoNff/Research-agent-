@@ -1,6 +1,8 @@
 # Research Agent
 
-A multi-agent research system powered by the [Claude Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview). Give it a topic — it searches the web, evaluates sources, writes a report, checks quality, generates diagrams, and outputs in your preferred format.
+A multi-agent research system powered by the [Claude Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview). Give it a topic — it searches the web, evaluates sources, writes a report, checks quality, generates diagrams, and **publishes a project** that shows up automatically in a browsable web library.
+
+Each run writes `projects/<slug>/` (a `manifest.json` plus artifacts). That folder is the source of truth: the `web/` app builds a searchable research library from it with zero manual curation. Re-running a topic updates its project in place. See [`projects/README.md`](projects/README.md) and [`web/README.md`](web/README.md).
 
 ## Architecture
 
@@ -30,7 +32,7 @@ A multi-agent research system powered by the [Claude Agent SDK](https://platform
                        └─────────────┘
 ```
 
-**Flow:** Decompose topic → Search (per question) → Write report → QA review → Revise if needed → Generate visuals → Render output formats
+**Flow:** Decompose topic → Search (per question) → Write report → QA review → Revise if needed → Generate visuals → Render output formats → **Publish project** (`projects/<slug>/manifest.json`)
 
 ## Prerequisites
 
@@ -74,11 +76,13 @@ research-agent "State of AI in healthcare 2025" --style executive -v
 research-agent "topic" \
   --format markdown,docx,pptx,email \
   --style concise \
-  --output-dir ./output \
+  --output-dir ./projects \
   --visual-emphasis high \
   --max-budget 3.0 \
   -v
 ```
+
+Output lands in `projects/<slug>/` (the slug is derived from the topic). Running the same topic again updates that folder in place.
 
 **Options:**
 
@@ -86,7 +90,7 @@ research-agent "topic" \
 |------|-------------|---------|
 | `--format`, `-f` | Output formats (comma-separated): `markdown`, `docx`, `pptx`, `email` | `markdown` |
 | `--style`, `-s` | Writing style: `concise`, `detailed`, `executive` | `concise` |
-| `--output-dir`, `-o` | Where to write output files | `./output` |
+| `--output-dir`, `-o` | Projects root; each run creates `projects/<slug>/` | `./projects` |
 | `--visual-emphasis` | Diagram quantity: `low`, `medium`, `high` | `high` |
 | `--model` | Override model for all agents: `opus`, `sonnet`, `haiku` | per-agent defaults |
 | `--max-budget` | Max API spend in USD | `2.00` |
@@ -119,6 +123,8 @@ result = asyncio.run(run_research("Your topic here", config, verbose=True))
 
 ## Output Formats
 
+All artifacts are written into the run's project folder, `projects/<slug>/`:
+
 | Format | File | Description |
 |--------|------|-------------|
 | **Markdown** | `report.md` | Full report with source citations and reliability annotations |
@@ -133,12 +139,12 @@ Every run produces log files so you can see exactly what each agent did.
 ```bash
 # Default: human-readable summary log
 research-agent "topic"
-# → output/logs/20260314_103000_summary.log
+# → projects/<slug>/logs/20260314_103000_summary.log
 
 # Full trace: structured JSONL + summary
 research-agent "topic" --log-level full
-# → output/logs/20260314_103000_summary.log
-# → output/logs/20260314_103000_trace.jsonl
+# → projects/<slug>/logs/20260314_103000_summary.log
+# → projects/<slug>/logs/20260314_103000_trace.jsonl
 
 # Disable logging
 research-agent "topic" --log-level off
@@ -188,6 +194,7 @@ src/research_agent/
 ├── cli.py               # CLI entry point (click)
 ├── mcp_server.py        # MCP server for Claude Code integration
 ├── config.py            # Configuration loading
+├── projects.py          # Project library: slugify, manifest build/read/write
 ├── models/
 │   ├── source.py        # SourceMetadata, ReliabilityTier, Finding
 │   └── report.py        # ReportDraft, ReportSection, QAReview
@@ -203,11 +210,34 @@ src/research_agent/
 │   ├── diagram_gen.py   # Mermaid → PNG rendering
 │   ├── doc_gen.py       # Word document generation (python-docx)
 │   ├── slides_gen.py    # PowerPoint generation (python-pptx)
-│   └── html_email.py    # HTML email generation (Jinja2)
+│   ├── html_email.py    # HTML email generation (Jinja2)
+│   └── publish.py       # publish_project — the mandatory final step
 └── templates/
     ├── email_base.html  # Jinja2 email template
     └── slide_layouts.py # PowerPoint layout constants
+
+projects/                # Published projects (source of truth) — see projects/README.md
+└── <slug>/manifest.json # + report.md, decks, diagrams per run
+
+web/                     # Next.js research-library front end — see web/README.md
+└── scripts/build-library.mjs  # builds the library from projects/ (no npm deps)
 ```
+
+## Research Library (web app)
+
+The `web/` directory is a password-gated Next.js app that turns `projects/` into
+a searchable library — one card per project, each with a detail page rendering
+the report, deck, diagrams, sources, and version history. It's **auto-built**:
+`scripts/build-library.mjs` reads every `projects/<slug>/manifest.json` before
+each `dev`/`build`, so anything researched appears with no manual step.
+
+```bash
+cd web
+npm install
+npm run dev      # http://localhost:3000  (rebuilds the library first)
+```
+
+Deploys on Vercel with **Root Directory = `web`**. See [`web/README.md`](web/README.md).
 
 ## Configuration
 
