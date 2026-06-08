@@ -21,3 +21,8 @@ bottom.
 ---
 
 <!-- New learnings are appended below this line. -->
+
+## 2026-06-08 — Prefer durable, committed, user-visible records over ephemeral ones
+- **Learning:** The user wants to see and audit the engine's activity from GitHub or a clone — not just inside the remote sandbox. Git-ignored, sandbox-only artifacts are effectively invisible to them, so observability/records should default to committed-and-visible.
+- **Applied to:** `RETROSPECTIVE-LOG.md` (new committed activity trail), `.claude/skills/conversation-retrospective/SKILL.md`, `CLAUDE.md`
+- **Rationale:** User asked "where is the log?", then "I don't see a Claude log folder," and chose to add a committed, visible activity log (kept the ephemeral one too).
