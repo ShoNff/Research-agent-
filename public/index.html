@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Research Agent — Presentations</title>
+<style>
+  :root{
+    --primary:#29417a;
+    --secondary:#4682b4;
+    --accent:#daa520;
+    --text:#1c2433;
+    --muted:#5b6478;
+    --bg:#eef1f6;
+    --card:#ffffff;
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(70,130,180,.18), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(218,165,32,.12), transparent 55%),
+      var(--bg);
+    min-height:100vh;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:64px 24px 96px}
+  header.site{margin-bottom:40px}
+  .eyebrow{
+    display:inline-block;font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--secondary);font-weight:700;margin-bottom:14px;
+  }
+  h1{font-size:clamp(28px,4vw,44px);line-height:1.1;margin:0 0 12px;color:var(--primary)}
+  .lede{font-size:17px;color:var(--muted);max-width:620px;margin:0}
+
+  .grid{
+    margin-top:44px;
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:22px;
+  }
+
+  .tile{
+    display:flex;flex-direction:column;
+    background:var(--card);
+    border:1px solid rgba(41,65,122,.10);
+    border-radius:var(--radius);
+    overflow:hidden;
+    text-decoration:none;color:inherit;
+    box-shadow:0 1px 2px rgba(20,30,60,.05);
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .tile:hover{
+    transform:translateY(-4px);
+    box-shadow:0 18px 40px rgba(20,30,60,.16);
+    border-color:rgba(70,130,180,.45);
+  }
+  .thumb{
+    position:relative;
+    aspect-ratio:16/9;
+    background:linear-gradient(135deg,var(--primary),var(--secondary));
+    color:#fff;
+    padding:22px;
+    display:flex;flex-direction:column;justify-content:space-between;
+  }
+  .thumb::after{
+    content:"";position:absolute;inset:0;
+    background:
+      radial-gradient(420px 200px at 120% -20%, rgba(218,165,32,.45), transparent 60%),
+      repeating-linear-gradient(135deg, rgba(255,255,255,.05) 0 2px, transparent 2px 22px);
+    pointer-events:none;
+  }
+  .thumb .kind{font-size:11px;letter-spacing:.16em;text-transform:uppercase;opacity:.85;font-weight:700;position:relative;z-index:1}
+  .thumb .play{
+    align-self:flex-start;position:relative;z-index:1;
+    width:54px;height:54px;border-radius:50%;
+    background:var(--accent);color:var(--primary);
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;font-weight:900;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);
+  }
+  .body{padding:18px 20px 22px}
+  .body h2{margin:0 0 8px;font-size:19px;color:var(--primary);line-height:1.25}
+  .body p{margin:0;font-size:14px;color:var(--muted);line-height:1.5}
+  .meta{
+    margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;
+  }
+  .chip{
+    font-size:12px;font-weight:600;color:var(--secondary);
+    background:rgba(70,130,180,.10);
+    border-radius:999px;padding:4px 10px;
+  }
+
+  footer.site{margin-top:64px;color:var(--muted);font-size:13px}
+  footer.site code{background:rgba(41,65,122,.08);padding:2px 6px;border-radius:6px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="site">
+      <span class="eyebrow">Research Agent</span>
+      <h1>Presentations</h1>
+      <p class="lede">Animated, self-contained explainers built from the multi-agent research system. Pick a tile to play it in your browser.</p>
+    </header>
+
+    <main class="grid">
+      <!-- Azure Workspaces -->
+      <a class="tile" href="decks/azure-workspaces.html">
+        <div class="thumb">
+          <span class="kind">Animated Deck · ~3 min</span>
+          <span class="play" aria-hidden="true">▶</span>
+        </div>
+        <div class="body">
+          <h2>Azure Workspaces</h2>
+          <p>How a KPMG engagement boundary is built, where the data lives, and how agents work inside it.</p>
+          <div class="meta">
+            <span class="chip">16 scenes</span>
+            <span class="chip">Mermaid build-up</span>
+            <span class="chip">Narrated</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Add more tiles here: copy the block above and point href at a new deck in /decks -->
+    </main>
+
+    <footer class="site">
+      Built with the <code>animated-mermaid-deck</code> skill. Add a deck by building a
+      <code>*.deck.json</code> into <code>public/decks/</code> and copying a tile above.
+    </footer>
+  </div>
+</body>
+</html>
