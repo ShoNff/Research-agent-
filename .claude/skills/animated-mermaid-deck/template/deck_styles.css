@@ -233,8 +233,33 @@ html, body {
 #start-btn:hover { filter: brightness(1.07); }
 
 /* ---- Mobile / narrow screens ---------------------------------------- */
-@media (max-width: 600px) {
-  #stage { padding: 2vh 4vw 1vh; }
+@media (max-width: 760px) {
+  #stage { padding: 1.6vh 4vw 0.8vh; }
+
+  /* On phones the side-by-side text/diagram grid doesn't fit. Stack the text
+     above the diagram and let the scene scroll inside the stage, so tall
+     content can never grow down over the controls and hide the nav buttons. */
+  .scene { gap: 0.8rem; }
+  .scene[data-kind="content"].is-active,
+  .scene[data-kind="diagram"].is-active {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-items: stretch;
+    justify-content: flex-start;
+    gap: 1rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .scene.no-diagram.is-active { overflow-y: auto; justify-content: center; }
+  .scene-text { gap: 0.7rem; }
+
+  /* Cap the diagram so text + diagram + controls all fit on one screen; it may
+     shrink freely. (The engine no longer sets an inline max-height, so this
+     wins.) */
+  .scene-diagram { height: auto; flex: 0 1 auto; min-height: 0; }
+  .scene-diagram svg { max-height: 44vh; }
+
   #controls {
     gap: 0.4rem;
     padding: 0.5rem 0.6rem calc(0.5rem + env(safe-area-inset-bottom));
@@ -244,7 +269,8 @@ html, body {
   #controls button {
     flex: 0 0 auto;
     min-width: 44px;                            /* comfortable touch targets */
-    padding: 0.6rem 0.7rem;
+    min-height: 44px;
+    padding: 0.5rem 0.7rem;
     font-size: 1.15rem;
   }
   #scene-counter { margin-left: 0; order: 1; }  /* sits inline, no auto-push */

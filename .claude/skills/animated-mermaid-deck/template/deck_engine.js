@@ -227,7 +227,8 @@
           rec.svg.removeAttribute("height");
           rec.svg.style.maxWidth = "100%";
           rec.svg.style.width = "100%";
-          rec.svg.style.maxHeight = "80vh";
+          // max-height is governed by CSS (.scene-diagram svg) so the mobile
+          // media query can shrink it; an inline value would override that.
           rec.edges = collectEdges(rec.svg);
           rec.edgeLabels = Array.prototype.slice.call(
             rec.svg.querySelectorAll(".edgeLabels .edgeLabel, .edgeLabel"));

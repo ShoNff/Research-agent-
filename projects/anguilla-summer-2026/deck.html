@@ -14,7 +14,7 @@
       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
       color:#eafcff;
       background:radial-gradient(130% 130% at 50% 0%, #16b2c0 0%, var(--sea) 42%, var(--sea-deep) 100%);}
-    #deck{height:100vh;width:100vw;display:flex;flex-direction:column}
+    #deck{height:100vh;height:100dvh;width:100vw;display:flex;flex-direction:column}
     #stage{position:relative;flex:1 1 auto;min-height:0}
     .scene{position:absolute;inset:4vh 5vw;display:none;flex-direction:column;justify-content:center;
       gap:.6rem;overflow-y:auto;animation:fade .5s ease both}
@@ -102,6 +102,20 @@
     .nav:hover{background:rgba(255,255,255,.28)}
     #count{font-variant-numeric:tabular-nums;font-size:.85rem;opacity:.85;min-width:42px;text-align:center}
     .hint{position:absolute;bottom:1.2vh;right:5vw;font-size:.8rem;opacity:.6;z-index:3}
+
+    /* ---- Mobile: keep the nav bar usable on narrow screens --------------- */
+    /* The title + 12 dots + arrows won't fit on a phone, so the dots overflow
+       and push the ‹ › buttons off the right edge. Hide the dots, let the
+       title shrink with an ellipsis, and keep the arrows + counter visible. */
+    @media(max-width:760px){
+      #bar{gap:.5rem;padding:.6rem .8rem;
+        padding-top:calc(.6rem + env(safe-area-inset-top))}
+      #bar .title{font-size:.82rem;min-width:0;flex:0 1 auto;
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      #dots{display:none}
+      .nav{width:46px;height:40px;font-size:1.2rem}
+      .hint{display:none}
+    }
   </style>
 </head>
 <body>

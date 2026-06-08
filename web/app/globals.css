@@ -119,6 +119,8 @@ body {
   display: grid;
   place-items: center;
   font-size: 22px;
+  overflow: hidden; /* clip the icon image to the rounded tile */
+  object-fit: cover;
   background: linear-gradient(140deg, var(--primary-bright), var(--primary));
   box-shadow: inset 0 0 0 1px var(--border), 0 8px 24px rgba(0, 0, 0, 0.4);
 }
@@ -624,4 +626,54 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+/* Wide content (rare tables / long code) scrolls instead of overflowing. */
+.prose table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 640px) {
+  .shell {
+    padding: 28px 16px 64px;
+  }
+  .topbar {
+    margin-bottom: 28px;
+  }
+  .topbar .lead h1 {
+    font-size: 21px;
+  }
+
+  /* Report card: less inset so text isn't squeezed into a narrow column. */
+  .prose {
+    padding: 20px 16px;
+    border-radius: 14px;
+    line-height: 1.65;
+  }
+  .prose h1 {
+    font-size: 21px;
+  }
+  .prose h2 {
+    font-size: 18px;
+  }
+  .prose h3 {
+    font-size: 16px;
+  }
+
+  /* Full-width, comfortably tappable artifact links. */
+  .artifacts {
+    gap: 10px;
+  }
+  .artifact {
+    flex: 1 1 100%;
+    padding: 13px 16px;
+  }
+
+  .login-card {
+    padding: 32px 22px;
+  }
 }
