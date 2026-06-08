@@ -33,10 +33,31 @@ files** — analyze the conversation you just had.
 - At the **end of a session**, to capture how the user wants things done going forward.
 - When the user says "remember this", "learn from this", "make the repo smarter", "update the
   master repo so I don't have to tell you again", or runs `/retrospective`.
+- **Automatically after a push or pull request.** A `PostToolUse` hook in `.claude/settings.json`
+  detects a `git push` (or a `create_pull_request` / `update_pull_request` action) and injects a
+  reminder to run this skill. When triggered that way, work **incrementally** (see step 0): only
+  analyze what is new since the last run, and no-op quietly if nothing has changed.
 
 ## Workflow
 
 Follow these steps in order. **Never edit a file before the user approves it.**
+
+### 0. Set scope (incremental watermark)
+
+This skill keeps a watermark at `.claude/retrospective-state.json` so repeated runs — e.g. the
+automatic trigger on every PR push — only analyze new ground:
+
+```json
+{ "last_analyzed_at": "2026-06-08T12:00:00Z", "last_commit": "<sha>" }
+```
+
+- If the file is **missing**, analyze the **entire** conversation.
+- If it **exists**, only consider conversation that happened **after `last_analyzed_at`**, and in
+  all cases skip anything already recorded in `LEARNINGS.md`.
+- If nothing new is found, say so in one line and **stop** — do not re-propose old learnings.
+- At the **end** of every run (even a no-op), update `last_analyzed_at` to the current time and
+  `last_commit` to `git rev-parse HEAD`. This file is git-ignored — it is per-environment state,
+  not a shared artifact.
 
 ### 1. Extract candidate learnings
 
