@@ -20,15 +20,10 @@ export type Poc = {
 };
 
 export const POCS: Poc[] = [
-  {
-    id: "azure-workspaces",
-    title: "Azure Workspaces",
-    description: "Animated concept presentation on Azure workspaces.",
-    href: "/decks/azure-workspaces.html", // served from web/public/decks
-    status: "live",
-    emoji: "🔷",
-  },
-  // Add more POCs by appending entries here, e.g.:
+  // Standalone decks/demos that aren't research projects go here. (The Azure
+  // Workspaces deck is now a full project — projects/azure-workspaces/ — so it
+  // appears in the main research library instead of here.)
+  //
   // {
   //   id: "report",
   //   title: "Latest Report",
