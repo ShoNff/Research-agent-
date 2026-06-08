@@ -1,0 +1,96 @@
+{
+  "slug": "research-agent-architecture",
+  "title": "Research Agent Architecture",
+  "topic": "The architecture of this research agent: GitHub as the central source of truth, Anthropic-powered Claude Code agents in ephemeral sandboxes as the write path, Vercel as the runtime/presentation layer with a password auth gate, living reports, templated-repo patterns (graph DB + agentic parsing; project-management layer with source plugins like Azure DevOps), and the Vercel-to-Advisory-Digital-Gateway hosting evolution.",
+  "summary": "Documents this system as an instance of a reusable pattern — GitHub as the single source of truth, Claude Code as the only write path, and a runtime layer (Vercel today) as the read path with a password gate — then generalizes it into templated repos and a Vercel-to-Digital-Gateway hosting path with a short-term quick win.",
+  "tags": [
+    "architecture",
+    "github",
+    "claude-code",
+    "vercel",
+    "agents"
+  ],
+  "key_claims": [
+    "GitHub is the single source of truth; the web library and memory index are derived from projects/<slug>/manifest.json, never hand-curated.",
+    "Claude Code, running in ephemeral Anthropic-powered sandboxes, is the only write path to the source of truth.",
+    "The runtime layer (Vercel today) is the read path: build-library.mjs renders the repo into a Next.js library on every push, with a single-password gate as the auth layer.",
+    "Living reports: a deterministic slug means re-running a topic revises the same project folder in place, bumping version and appending a changelog.",
+    "The pattern is templatable: swap the payload for a graph database with an agentic parsing layer, or a project-management layer with source connectors like Microsoft Azure DevOps.",
+    "Hosting evolves while the core stays put: Vercel today to the Advisory Digital Gateway on Azure tomorrow; the short-term quick win is shipping on Vercel behind a real APP_PASSWORD."
+  ],
+  "created": "2026-06-08",
+  "updated": "2026-06-08",
+  "published_at": "2026-06-08T19:14:04.516841+00:00",
+  "version": 1,
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "report.md"
+    },
+    {
+      "type": "deck",
+      "path": "deck.html"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://docs.claude.com/en/docs/claude-code/overview",
+      "title": "Claude Code overview",
+      "domain": "docs.claude.com",
+      "reliability_tier": "established",
+      "confidence_score": 0.95
+    },
+    {
+      "url": "https://code.claude.com/docs/en/claude-code-on-the-web",
+      "title": "Claude Code on the web",
+      "domain": "code.claude.com",
+      "reliability_tier": "established",
+      "confidence_score": 0.95
+    },
+    {
+      "url": "https://docs.claude.com/en/api/agent-sdk/overview",
+      "title": "Claude Agent SDK overview",
+      "domain": "docs.claude.com",
+      "reliability_tier": "established",
+      "confidence_score": 0.95
+    },
+    {
+      "url": "https://vercel.com/docs/deployments/git",
+      "title": "Vercel Git deployments",
+      "domain": "vercel.com",
+      "reliability_tier": "established",
+      "confidence_score": 0.95
+    },
+    {
+      "url": "https://nextjs.org/docs/app/building-your-application/routing/middleware",
+      "title": "Next.js Middleware",
+      "domain": "nextjs.org",
+      "reliability_tier": "established",
+      "confidence_score": 0.95
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/azure/devops/",
+      "title": "Azure DevOps documentation",
+      "domain": "learn.microsoft.com",
+      "reliability_tier": "established",
+      "confidence_score": 0.95
+    },
+    {
+      "url": "https://docs.tavily.com/",
+      "title": "Tavily API documentation",
+      "domain": "docs.tavily.com",
+      "reliability_tier": "reputable",
+      "confidence_score": 0.85
+    }
+  ],
+  "related": [
+    "azure-workspaces"
+  ],
+  "changelog": [
+    {
+      "version": 1,
+      "date": "2026-06-08",
+      "note": "initial research — architecture report + animated deck"
+    }
+  ]
+}
