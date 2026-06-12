@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#0a0f1f",
+  colorScheme: "dark", // emit <meta name="color-scheme"> so mobile UAs render dark
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover", // honour env(safe-area-inset-*) on notched phones

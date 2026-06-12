@@ -1,4 +1,7 @@
 :root {
+  /* Hardcoded dark theme: tell the browser so mobile UAs don't force light
+     mode (which previously left light text on a white canvas — see html/body). */
+  color-scheme: dark;
   /* Brand palette — echoes the deck/slide theme (deep blue + gold accent). */
   --bg-0: #0a0f1f;
   --bg-1: #111a35;
@@ -25,6 +28,10 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
+  /* Opaque dark base behind the body gradient and translucent glass panels, so
+     even if the gradient doesn't paint the canvas (some mobile browsers), the
+     page never falls back to white. */
+  background-color: var(--bg-0);
 }
 
 body {
@@ -449,6 +456,10 @@ body {
   gap: 12px;
   margin-bottom: 32px;
 }
+.artifactrow {
+  display: flex;
+  gap: 8px;
+}
 .artifact {
   padding: 11px 16px;
   font-size: 14px;
@@ -462,6 +473,14 @@ body {
 .artifact:hover {
   background: var(--glass-strong);
   border-color: var(--primary-bright);
+}
+/* Download is the secondary action next to "view" — accented, tighter. */
+.artifact.download {
+  white-space: nowrap;
+  color: var(--accent-soft);
+}
+.artifact.download:hover {
+  border-color: var(--accent);
 }
 
 /* Rendered report */
@@ -664,13 +683,20 @@ body {
     font-size: 16px;
   }
 
-  /* Full-width, comfortably tappable artifact links. */
+  /* Full-width rows; the "view" link grows, "download" keeps its size — both
+     stay comfortably tappable. */
   .artifacts {
     gap: 10px;
   }
-  .artifact {
+  .artifactrow {
     flex: 1 1 100%;
+  }
+  .artifact {
+    flex: 1 1 auto;
     padding: 13px 16px;
+  }
+  .artifact.download {
+    flex: 0 0 auto;
   }
 
   .login-card {

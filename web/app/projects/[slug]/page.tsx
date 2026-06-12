@@ -59,9 +59,15 @@ export default async function ProjectPage({
       {decks.length > 0 && (
         <section className="artifacts">
           {decks.map((a) => (
-            <a key={a.url} className="artifact" href={a.url} target="_blank" rel="noreferrer">
-              {a.type === "deck" ? "🖥️" : "📄"} {a.name} ↗
-            </a>
+            <div key={a.url} className="artifactrow">
+              <a className="artifact" href={a.url} target="_blank" rel="noreferrer">
+                {a.type === "deck" ? "🖥️" : "📄"} {a.name} ↗
+              </a>
+              {/* Decks are self-contained HTML — download to run standalone offline. */}
+              <a className="artifact download" href={a.url} download={a.name}>
+                ⬇ Download
+              </a>
+            </div>
           ))}
         </section>
       )}
