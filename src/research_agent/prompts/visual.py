@@ -26,6 +26,10 @@ Choose the best type for each concept:
 - Use subgraphs to group related concepts
 - Add style classes for color-coding categories
 - Every diagram MUST have a clear, descriptive title as the first node or comment
+- Follow the brand graphics standard (`assets/brand/STYLE.md`): use the brand palette
+  (navy `#29417a`, steel `#4682b4`, accent `#e8732b`/gold `#daa520`) and readable labels.
+  These in-report diagrams stay Mermaid-rendered; presentation/leadership visuals should be
+  hand-authored SVG to that standard instead (see the animated-mermaid-deck skill).
 
 ## Process
 1. Read the report content provided in the prompt

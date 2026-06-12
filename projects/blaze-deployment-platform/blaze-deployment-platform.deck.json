@@ -18,353 +18,134 @@
       "id": "intro",
       "kind": "title",
       "durationSec": 8,
-      "narration": "Everyone is a developer. Anyone builds, or changes, an app at scale, in any tool. Blaze deploys it and owns compliance, end to end, automatically.",
       "beats": [
-        {
-          "text": "Everyone Is a <b>Developer</b>",
-          "style": "h1",
-          "anim": "fade-up"
-        },
-        {
-          "text": "Anyone builds — or <b>changes</b> — an app. At scale. <b>Automated</b>.",
-          "style": "body",
-          "anim": "fade"
-        },
-        {
-          "text": "~3 minutes",
-          "style": "note",
-          "anim": "fade"
-        }
+        { "text": "Everyone Is a <b>Developer</b>", "style": "h1", "anim": "fade-up" },
+        { "text": "Anyone builds — or <b>changes</b> — an app. At scale. <b>Automated</b>.", "style": "body", "anim": "fade" },
+        { "text": "~3 minutes", "style": "note", "anim": "fade" }
       ]
     },
     {
       "id": "scale",
       "kind": "content",
       "durationSec": 15,
-      "narration": "Start with the scale we are building for. Everyone becomes a developer. Anyone can spin up a new app, or change one that already exists, as long as they have the right access. We are talking hundreds of thousands of apps and changes. At that volume, the only path that works is one that is automated end to end.",
       "beats": [
-        {
-          "text": "Everyone becomes a <b>developer</b>.",
-          "style": "h2"
-        },
-        {
-          "text": "Spin up a <b>new app</b> — or <b>change one that already exists</b>, with the right access.",
-          "style": "body"
-        },
-        {
-          "text": "<b>Hundreds of thousands</b> of apps and changes. That's the volume.",
-          "style": "body"
-        },
-        {
-          "text": "At that scale, the path has to be <b>automated</b> — end to end.",
-          "style": "note"
-        }
+        { "text": "Everyone becomes a <b>developer</b>.", "style": "h2" },
+        { "text": "Spin up a <b>new app</b> — or <b>change one that already exists</b>, with the right access.", "style": "body" },
+        { "text": "<b>Hundreds of thousands</b> of apps and changes. That's the volume.", "style": "body" },
+        { "text": "At that scale, the path has to be <b>automated</b> — end to end.", "style": "note" }
       ]
     },
     {
       "id": "arc",
       "kind": "content",
       "durationSec": 14,
-      "narration": "Three moves make that safe and automatic. Start from a template and vibe-code in whatever tool you like. Deploy through Blaze, our enterprise Vercel. And Blaze owns one hundred percent of compliance — including the manual steps — telling you exactly where you stand.",
       "beats": [
-        {
-          "text": "Three moves make it <b>safe and automatic</b>:",
-          "style": "h2"
-        },
-        {
-          "text": "1 — Start from a <b>template</b>, vibe-code in <b>any tool</b>.",
-          "style": "body"
-        },
-        {
-          "text": "2 — Deploy through <b>Blaze</b> — our enterprise Vercel.",
-          "style": "body"
-        },
-        {
-          "text": "3 — Blaze owns <b>100% of compliance</b> and shows you where you stand.",
-          "style": "note"
-        }
+        { "text": "Three moves make it <b>safe and automatic</b>:", "style": "h2" },
+        { "text": "1 — Start from a <b>template</b>, vibe-code in <b>any tool</b>.", "style": "body" },
+        { "text": "2 — Deploy through <b>Blaze</b> — our enterprise Vercel.", "style": "body" },
+        { "text": "3 — Blaze owns <b>100% of compliance</b> and shows you where you stand.", "style": "note" }
       ]
     },
     {
-      "id": "templates",
-      "kind": "diagram",
-      "durationSec": 16,
-      "narration": "It starts with templates. We publish starter template repos on GitHub — one per stack — already wired for how we build and ship. Nobody starts from a blank page.",
+      "id": "svg-templates",
+      "kind": "svg",
+      "durationSec": 12,
+      "svgFile": "../../assets/brand/blaze-flow.svg",
       "beats": [
-        {
-          "text": "It starts with <b>templates</b>.",
-          "style": "h2"
-        },
-        {
-          "text": "We publish starter <b>template repos</b> on GitHub — one per stack.",
-          "style": "body"
-        },
-        {
-          "text": "Pre-wired for how we build and ship. <i>No blank page.</i>",
-          "style": "note"
-        }
+        { "text": "It starts with <b>templates</b>.", "style": "h2" },
+        { "text": "Starter repos on GitHub — one per stack, no blank page.", "style": "note" }
       ],
-      "mermaid": "flowchart TB\n  subgraph gh[\"GitHub — Template Repos\"]\n    templates[\"Starter templates — one per stack\"]:::truth\n  end\n  subgraph tools[\"Vibe-code in any tool\"]\n    lovable[\"Lovable\"]:::agent\n    claude[\"Claude Code\"]:::agent\n    ai[\"Cursor · any AI\"]:::agent\n  end\n  app[\"Your app — new build or a change\"]:::res\n  blaze{{\"Blaze — the Enterprise Vercel\"}}:::blaze\n  subgraph comp[\"Compliance — owned 100% by Blaze\"]\n    auto[\"Automated checks — policy · scans · gates\"]:::res\n    manual[\"Manual gates — human approvals\"]:::manual\n  end\n  ui[\"Status in the UI — where your deploy stands\"]:::client\n  subgraph envs[\"Governed target environments\"]\n    cc[\"Commercial Cloud — Dev / Prod\"]:::store\n    gac[\"GAC — Prod\"]:::store\n    dg[\"Advisory Digital Gateway — country shelf\"]:::store\n  end\n\n  templates --> lovable\n  templates --> claude\n  templates --> ai\n  lovable --> app\n  claude --> app\n  ai --> app\n  app --> blaze\n  blaze --> auto\n  auto --> manual\n  manual --> cc\n  manual --> gac\n  manual --> dg\n  blaze --> ui\n  manual --> ui\n  classDef truth fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef blaze fill:#e8732b,stroke:#a8480f,color:#ffffff,font-weight:bold;\n  classDef manual fill:#f0c14b,stroke:#a8780f,color:#1a1a1a,font-weight:bold;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  style gh fill:#daa520,fill-opacity:0.08,stroke:#daa520,stroke-width:3px,color:#7a5c00;\n  style tools fill:#4682b4,fill-opacity:0.08,stroke:#4682b4,stroke-width:3px,color:#29417a;\n  style comp fill:#e8732b,fill-opacity:0.08,stroke:#e8732b,stroke-width:3px,color:#a8480f;\n  style envs fill:#29417a,fill-opacity:0.06,stroke:#29417a,stroke-width:3px,color:#29417a;",
       "buildSteps": [
-        {
-          "atBeat": 1,
-          "reveal": [
-            "gh",
-            "templates"
-          ],
-          "effect": "pulse"
-        }
-      ],
-      "caption": "GitHub template repos are the starting point"
+        { "atBeat": 0, "reveal": ["templates"], "effect": "appear" }
+      ]
     },
     {
-      "id": "vibe-code",
-      "kind": "diagram",
-      "durationSec": 18,
-      "narration": "From there, anyone consumes a template in the tool they already like — Lovable, Claude Code, Cursor, any AI assistant. You vibe-code a brand-new app, or open an existing one and change it. Same templates, same path either way. The tool is your choice.",
-      "beats": [
-        {
-          "text": "Vibe-code in <b>any tool</b>.",
-          "style": "h2"
-        },
-        {
-          "text": "Consume a template in <b>Lovable</b>, <b>Claude Code</b>, <b>Cursor</b> — any AI.",
-          "style": "body"
-        },
-        {
-          "text": "Build <b>new</b>, or open an <b>existing app</b> and change it — same path.",
-          "style": "note"
-        }
-      ],
-      "mermaid": "flowchart TB\n  subgraph gh[\"GitHub — Template Repos\"]\n    templates[\"Starter templates — one per stack\"]:::truth\n  end\n  subgraph tools[\"Vibe-code in any tool\"]\n    lovable[\"Lovable\"]:::agent\n    claude[\"Claude Code\"]:::agent\n    ai[\"Cursor · any AI\"]:::agent\n  end\n  app[\"Your app — new build or a change\"]:::res\n  blaze{{\"Blaze — the Enterprise Vercel\"}}:::blaze\n  subgraph comp[\"Compliance — owned 100% by Blaze\"]\n    auto[\"Automated checks — policy · scans · gates\"]:::res\n    manual[\"Manual gates — human approvals\"]:::manual\n  end\n  ui[\"Status in the UI — where your deploy stands\"]:::client\n  subgraph envs[\"Governed target environments\"]\n    cc[\"Commercial Cloud — Dev / Prod\"]:::store\n    gac[\"GAC — Prod\"]:::store\n    dg[\"Advisory Digital Gateway — country shelf\"]:::store\n  end\n\n  templates --> lovable\n  templates --> claude\n  templates --> ai\n  lovable --> app\n  claude --> app\n  ai --> app\n  app --> blaze\n  blaze --> auto\n  auto --> manual\n  manual --> cc\n  manual --> gac\n  manual --> dg\n  blaze --> ui\n  manual --> ui\n  classDef truth fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef blaze fill:#e8732b,stroke:#a8480f,color:#ffffff,font-weight:bold;\n  classDef manual fill:#f0c14b,stroke:#a8780f,color:#1a1a1a,font-weight:bold;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  style gh fill:#daa520,fill-opacity:0.08,stroke:#daa520,stroke-width:3px,color:#7a5c00;\n  style tools fill:#4682b4,fill-opacity:0.08,stroke:#4682b4,stroke-width:3px,color:#29417a;\n  style comp fill:#e8732b,fill-opacity:0.08,stroke:#e8732b,stroke-width:3px,color:#a8480f;\n  style envs fill:#29417a,fill-opacity:0.06,stroke:#29417a,stroke-width:3px,color:#29417a;",
-      "buildSteps": [
-        {
-          "atBeat": 0,
-          "reveal": [
-            "tools",
-            "lovable",
-            "claude",
-            "ai"
-          ],
-          "effect": "appear"
-        },
-        {
-          "atBeat": 1,
-          "reveal": [
-            "edge:templates-->lovable",
-            "edge:templates-->claude",
-            "edge:templates-->ai"
-          ],
-          "effect": "draw"
-        }
-      ],
-      "caption": "One template, consumed in Lovable / Claude Code / any AI tool"
-    },
-    {
-      "id": "your-app",
-      "kind": "diagram",
+      "id": "svg-tools",
+      "kind": "svg",
       "durationSec": 14,
-      "narration": "What comes out is a working app — a new build or a change to an existing one. Either way, it's the artifact we need to get safely into a real environment.",
+      "svgFile": "../../assets/brand/blaze-flow.svg",
       "beats": [
-        {
-          "text": "Out comes <b>your app</b>.",
-          "style": "h2"
-        },
-        {
-          "text": "A new build <i>or</i> a change to an existing one — same artifact to ship.",
-          "style": "body"
-        }
+        { "text": "Vibe-code in <b>any tool</b>.", "style": "h2" },
+        { "text": "Lovable, Claude Code, Cursor — any AI assistant.", "style": "note" }
       ],
-      "mermaid": "flowchart TB\n  subgraph gh[\"GitHub — Template Repos\"]\n    templates[\"Starter templates — one per stack\"]:::truth\n  end\n  subgraph tools[\"Vibe-code in any tool\"]\n    lovable[\"Lovable\"]:::agent\n    claude[\"Claude Code\"]:::agent\n    ai[\"Cursor · any AI\"]:::agent\n  end\n  app[\"Your app — new build or a change\"]:::res\n  blaze{{\"Blaze — the Enterprise Vercel\"}}:::blaze\n  subgraph comp[\"Compliance — owned 100% by Blaze\"]\n    auto[\"Automated checks — policy · scans · gates\"]:::res\n    manual[\"Manual gates — human approvals\"]:::manual\n  end\n  ui[\"Status in the UI — where your deploy stands\"]:::client\n  subgraph envs[\"Governed target environments\"]\n    cc[\"Commercial Cloud — Dev / Prod\"]:::store\n    gac[\"GAC — Prod\"]:::store\n    dg[\"Advisory Digital Gateway — country shelf\"]:::store\n  end\n\n  templates --> lovable\n  templates --> claude\n  templates --> ai\n  lovable --> app\n  claude --> app\n  ai --> app\n  app --> blaze\n  blaze --> auto\n  auto --> manual\n  manual --> cc\n  manual --> gac\n  manual --> dg\n  blaze --> ui\n  manual --> ui\n  classDef truth fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef blaze fill:#e8732b,stroke:#a8480f,color:#ffffff,font-weight:bold;\n  classDef manual fill:#f0c14b,stroke:#a8780f,color:#1a1a1a,font-weight:bold;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  style gh fill:#daa520,fill-opacity:0.08,stroke:#daa520,stroke-width:3px,color:#7a5c00;\n  style tools fill:#4682b4,fill-opacity:0.08,stroke:#4682b4,stroke-width:3px,color:#29417a;\n  style comp fill:#e8732b,fill-opacity:0.08,stroke:#e8732b,stroke-width:3px,color:#a8480f;\n  style envs fill:#29417a,fill-opacity:0.06,stroke:#29417a,stroke-width:3px,color:#29417a;",
       "buildSteps": [
-        {
-          "atBeat": 0,
-          "reveal": [
-            "app",
-            "edge:lovable-->app",
-            "edge:claude-->app",
-            "edge:ai-->app"
-          ],
-          "effect": "draw"
-        }
-      ],
-      "caption": "Any tool, same output: a working app"
+        { "atBeat": 0, "reveal": ["tools"], "effect": "appear" }
+      ]
     },
     {
-      "id": "blaze",
-      "kind": "diagram",
+      "id": "svg-app",
+      "kind": "svg",
+      "durationSec": 12,
+      "svgFile": "../../assets/brand/blaze-flow.svg",
+      "beats": [
+        { "text": "Out comes <b>your app</b>.", "style": "h2" },
+        { "text": "A new build — or a change to an existing one.", "style": "note" }
+      ],
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["app"], "effect": "appear" }
+      ]
+    },
+    {
+      "id": "svg-blaze",
+      "kind": "svg",
+      "durationSec": 15,
+      "svgFile": "../../assets/brand/blaze-flow.svg",
+      "beats": [
+        { "text": "One front door: <b>Blaze</b>.", "style": "h2" },
+        { "text": "The enterprise Vercel — it deploys what you built.", "style": "note" }
+      ],
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["blaze"], "effect": "pulse" }
+      ]
+    },
+    {
+      "id": "svg-environments",
+      "kind": "svg",
       "durationSec": 16,
-      "narration": "Then everyone goes to one place: Blaze. Think of it as the enterprise version of Vercel — a single front door that takes what you built and deploys it. You don't wire up infrastructure; you hand it to Blaze.",
+      "svgFile": "../../assets/brand/blaze-flow.svg",
       "beats": [
-        {
-          "text": "One front door: <b>Blaze</b>.",
-          "style": "h2"
-        },
-        {
-          "text": "The <b>enterprise Vercel</b> — it takes your app and deploys it.",
-          "style": "body"
-        },
-        {
-          "text": "No infrastructure to wire up. You hand it to Blaze.",
-          "style": "note"
-        }
+        { "text": "Into <b>governed environments</b>.", "style": "h2" },
+        { "text": "Commercial Cloud · GAC Prod · the Advisory Digital Gateway.", "style": "note" }
       ],
-      "mermaid": "flowchart TB\n  subgraph gh[\"GitHub — Template Repos\"]\n    templates[\"Starter templates — one per stack\"]:::truth\n  end\n  subgraph tools[\"Vibe-code in any tool\"]\n    lovable[\"Lovable\"]:::agent\n    claude[\"Claude Code\"]:::agent\n    ai[\"Cursor · any AI\"]:::agent\n  end\n  app[\"Your app — new build or a change\"]:::res\n  blaze{{\"Blaze — the Enterprise Vercel\"}}:::blaze\n  subgraph comp[\"Compliance — owned 100% by Blaze\"]\n    auto[\"Automated checks — policy · scans · gates\"]:::res\n    manual[\"Manual gates — human approvals\"]:::manual\n  end\n  ui[\"Status in the UI — where your deploy stands\"]:::client\n  subgraph envs[\"Governed target environments\"]\n    cc[\"Commercial Cloud — Dev / Prod\"]:::store\n    gac[\"GAC — Prod\"]:::store\n    dg[\"Advisory Digital Gateway — country shelf\"]:::store\n  end\n\n  templates --> lovable\n  templates --> claude\n  templates --> ai\n  lovable --> app\n  claude --> app\n  ai --> app\n  app --> blaze\n  blaze --> auto\n  auto --> manual\n  manual --> cc\n  manual --> gac\n  manual --> dg\n  blaze --> ui\n  manual --> ui\n  classDef truth fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef blaze fill:#e8732b,stroke:#a8480f,color:#ffffff,font-weight:bold;\n  classDef manual fill:#f0c14b,stroke:#a8780f,color:#1a1a1a,font-weight:bold;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  style gh fill:#daa520,fill-opacity:0.08,stroke:#daa520,stroke-width:3px,color:#7a5c00;\n  style tools fill:#4682b4,fill-opacity:0.08,stroke:#4682b4,stroke-width:3px,color:#29417a;\n  style comp fill:#e8732b,fill-opacity:0.08,stroke:#e8732b,stroke-width:3px,color:#a8480f;\n  style envs fill:#29417a,fill-opacity:0.06,stroke:#29417a,stroke-width:3px,color:#29417a;",
       "buildSteps": [
-        {
-          "atBeat": 0,
-          "reveal": [
-            "blaze",
-            "edge:app-->blaze"
-          ],
-          "effect": "draw"
-        }
-      ],
-      "caption": "Blaze — the enterprise Vercel — is the single deploy path"
+        { "atBeat": 0, "reveal": ["envs"], "effect": "appear" }
+      ]
     },
     {
-      "id": "environments",
-      "kind": "diagram",
-      "durationSec": 18,
-      "narration": "Blaze deploys into our governed environments — not a free-for-all. Commercial Cloud, in dev and prod. The GAC production estate. And the Advisory Digital Gateway, our hosted application, organized by country shelf. These are the real destinations.",
+      "id": "svg-compliance",
+      "kind": "svg",
+      "durationSec": 20,
+      "svgFile": "../../assets/brand/blaze-flow.svg",
       "beats": [
-        {
-          "text": "Into <b>governed environments</b>.",
-          "style": "h2"
-        },
-        {
-          "text": "<b>Commercial Cloud</b> (Dev / Prod) · <b>GAC Prod</b>.",
-          "style": "body"
-        },
-        {
-          "text": "<b>Advisory Digital Gateway</b> — our hosted app, by country shelf.",
-          "style": "note"
-        }
+        { "text": "Blaze owns <b>100% of compliance</b>.", "style": "h2" },
+        { "text": "Automated checks <b>and</b> the manual gates — nothing reaches an environment except through here.", "style": "note" }
       ],
-      "mermaid": "flowchart TB\n  subgraph gh[\"GitHub — Template Repos\"]\n    templates[\"Starter templates — one per stack\"]:::truth\n  end\n  subgraph tools[\"Vibe-code in any tool\"]\n    lovable[\"Lovable\"]:::agent\n    claude[\"Claude Code\"]:::agent\n    ai[\"Cursor · any AI\"]:::agent\n  end\n  app[\"Your app — new build or a change\"]:::res\n  blaze{{\"Blaze — the Enterprise Vercel\"}}:::blaze\n  subgraph comp[\"Compliance — owned 100% by Blaze\"]\n    auto[\"Automated checks — policy · scans · gates\"]:::res\n    manual[\"Manual gates — human approvals\"]:::manual\n  end\n  ui[\"Status in the UI — where your deploy stands\"]:::client\n  subgraph envs[\"Governed target environments\"]\n    cc[\"Commercial Cloud — Dev / Prod\"]:::store\n    gac[\"GAC — Prod\"]:::store\n    dg[\"Advisory Digital Gateway — country shelf\"]:::store\n  end\n\n  templates --> lovable\n  templates --> claude\n  templates --> ai\n  lovable --> app\n  claude --> app\n  ai --> app\n  app --> blaze\n  blaze --> auto\n  auto --> manual\n  manual --> cc\n  manual --> gac\n  manual --> dg\n  blaze --> ui\n  manual --> ui\n  classDef truth fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef blaze fill:#e8732b,stroke:#a8480f,color:#ffffff,font-weight:bold;\n  classDef manual fill:#f0c14b,stroke:#a8780f,color:#1a1a1a,font-weight:bold;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  style gh fill:#daa520,fill-opacity:0.08,stroke:#daa520,stroke-width:3px,color:#7a5c00;\n  style tools fill:#4682b4,fill-opacity:0.08,stroke:#4682b4,stroke-width:3px,color:#29417a;\n  style comp fill:#e8732b,fill-opacity:0.08,stroke:#e8732b,stroke-width:3px,color:#a8480f;\n  style envs fill:#29417a,fill-opacity:0.06,stroke:#29417a,stroke-width:3px,color:#29417a;",
       "buildSteps": [
-        {
-          "atBeat": 0,
-          "reveal": [
-            "envs",
-            "cc",
-            "gac",
-            "dg"
-          ],
-          "effect": "appear"
-        }
-      ],
-      "caption": "Targets: Commercial Cloud, GAC Prod, Advisory Digital Gateway"
+        { "atBeat": 0, "reveal": ["compliance"], "effect": "appear" }
+      ]
     },
     {
-      "id": "compliance",
-      "kind": "diagram",
-      "durationSec": 22,
-      "narration": "Here is the heart of it. Nothing reaches an environment except through Blaze's compliance layer — and Blaze owns one hundred percent of it. The automated checks: policy, scans, gates. And critically, the manual gates too — every human approval that has to happen, Blaze tracks and orchestrates. Compliance isn't a separate team you chase. It's the path itself.",
-      "beats": [
-        {
-          "text": "Blaze owns <b>100% of compliance</b>.",
-          "style": "h2"
-        },
-        {
-          "text": "<b>Automated</b>: policy, scans, gates.",
-          "style": "body"
-        },
-        {
-          "text": "<b>Manual gates too</b> — every human approval Blaze tracks and orchestrates.",
-          "style": "body"
-        },
-        {
-          "text": "Nothing reaches an environment except <i>through</i> this path.",
-          "style": "note"
-        }
-      ],
-      "mermaid": "flowchart TB\n  subgraph gh[\"GitHub — Template Repos\"]\n    templates[\"Starter templates — one per stack\"]:::truth\n  end\n  subgraph tools[\"Vibe-code in any tool\"]\n    lovable[\"Lovable\"]:::agent\n    claude[\"Claude Code\"]:::agent\n    ai[\"Cursor · any AI\"]:::agent\n  end\n  app[\"Your app — new build or a change\"]:::res\n  blaze{{\"Blaze — the Enterprise Vercel\"}}:::blaze\n  subgraph comp[\"Compliance — owned 100% by Blaze\"]\n    auto[\"Automated checks — policy · scans · gates\"]:::res\n    manual[\"Manual gates — human approvals\"]:::manual\n  end\n  ui[\"Status in the UI — where your deploy stands\"]:::client\n  subgraph envs[\"Governed target environments\"]\n    cc[\"Commercial Cloud — Dev / Prod\"]:::store\n    gac[\"GAC — Prod\"]:::store\n    dg[\"Advisory Digital Gateway — country shelf\"]:::store\n  end\n\n  templates --> lovable\n  templates --> claude\n  templates --> ai\n  lovable --> app\n  claude --> app\n  ai --> app\n  app --> blaze\n  blaze --> auto\n  auto --> manual\n  manual --> cc\n  manual --> gac\n  manual --> dg\n  blaze --> ui\n  manual --> ui\n  classDef truth fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef blaze fill:#e8732b,stroke:#a8480f,color:#ffffff,font-weight:bold;\n  classDef manual fill:#f0c14b,stroke:#a8780f,color:#1a1a1a,font-weight:bold;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  style gh fill:#daa520,fill-opacity:0.08,stroke:#daa520,stroke-width:3px,color:#7a5c00;\n  style tools fill:#4682b4,fill-opacity:0.08,stroke:#4682b4,stroke-width:3px,color:#29417a;\n  style comp fill:#e8732b,fill-opacity:0.08,stroke:#e8732b,stroke-width:3px,color:#a8480f;\n  style envs fill:#29417a,fill-opacity:0.06,stroke:#29417a,stroke-width:3px,color:#29417a;",
-      "buildSteps": [
-        {
-          "atBeat": 0,
-          "reveal": [
-            "comp",
-            "auto",
-            "edge:blaze-->auto"
-          ],
-          "effect": "draw"
-        },
-        {
-          "atBeat": 2,
-          "reveal": [
-            "manual",
-            "edge:auto-->manual"
-          ],
-          "effect": "pulse"
-        },
-        {
-          "atBeat": 3,
-          "reveal": [
-            "edge:manual-->cc",
-            "edge:manual-->gac",
-            "edge:manual-->dg"
-          ],
-          "effect": "draw"
-        }
-      ],
-      "caption": "Every path to an environment runs through Blaze's compliance — automated and manual"
-    },
-    {
-      "id": "status-ui",
-      "kind": "diagram",
+      "id": "svg-status",
+      "kind": "svg",
       "durationSec": 16,
-      "narration": "And you're never in the dark. Blaze surfaces exactly where your deployment stands — which checks passed, which approval it's waiting on, what's next — right in the interface. The manual steps included.",
+      "svgFile": "../../assets/brand/blaze-flow.svg",
       "beats": [
-        {
-          "text": "You always know <b>where you stand</b>.",
-          "style": "h2"
-        },
-        {
-          "text": "Blaze shows it in the <b>UI</b>: checks passed, approval pending, what's next.",
-          "style": "body"
-        },
-        {
-          "text": "Including the manual steps. <i>No chasing status.</i>",
-          "style": "note"
-        }
+        { "text": "You always know <b>where you stand</b>.", "style": "h2" },
+        { "text": "Live status in the Blaze UI — manual steps included.", "style": "note" }
       ],
-      "mermaid": "flowchart TB\n  subgraph gh[\"GitHub — Template Repos\"]\n    templates[\"Starter templates — one per stack\"]:::truth\n  end\n  subgraph tools[\"Vibe-code in any tool\"]\n    lovable[\"Lovable\"]:::agent\n    claude[\"Claude Code\"]:::agent\n    ai[\"Cursor · any AI\"]:::agent\n  end\n  app[\"Your app — new build or a change\"]:::res\n  blaze{{\"Blaze — the Enterprise Vercel\"}}:::blaze\n  subgraph comp[\"Compliance — owned 100% by Blaze\"]\n    auto[\"Automated checks — policy · scans · gates\"]:::res\n    manual[\"Manual gates — human approvals\"]:::manual\n  end\n  ui[\"Status in the UI — where your deploy stands\"]:::client\n  subgraph envs[\"Governed target environments\"]\n    cc[\"Commercial Cloud — Dev / Prod\"]:::store\n    gac[\"GAC — Prod\"]:::store\n    dg[\"Advisory Digital Gateway — country shelf\"]:::store\n  end\n\n  templates --> lovable\n  templates --> claude\n  templates --> ai\n  lovable --> app\n  claude --> app\n  ai --> app\n  app --> blaze\n  blaze --> auto\n  auto --> manual\n  manual --> cc\n  manual --> gac\n  manual --> dg\n  blaze --> ui\n  manual --> ui\n  classDef truth fill:#daa520,stroke:#7a5c00,color:#1a1a1a,font-weight:bold;\n  classDef agent fill:#4682b4,stroke:#29417a,color:#ffffff;\n  classDef res fill:#e8eef7,stroke:#4682b4,color:#29417a;\n  classDef blaze fill:#e8732b,stroke:#a8480f,color:#ffffff,font-weight:bold;\n  classDef manual fill:#f0c14b,stroke:#a8780f,color:#1a1a1a,font-weight:bold;\n  classDef store fill:#29417a,stroke:#1c2d54,color:#ffffff;\n  classDef client fill:#dfe5ee,stroke:#5b6b8a,color:#29417a;\n  style gh fill:#daa520,fill-opacity:0.08,stroke:#daa520,stroke-width:3px,color:#7a5c00;\n  style tools fill:#4682b4,fill-opacity:0.08,stroke:#4682b4,stroke-width:3px,color:#29417a;\n  style comp fill:#e8732b,fill-opacity:0.08,stroke:#e8732b,stroke-width:3px,color:#a8480f;\n  style envs fill:#29417a,fill-opacity:0.06,stroke:#29417a,stroke-width:3px,color:#29417a;",
       "buildSteps": [
-        {
-          "atBeat": 0,
-          "reveal": [
-            "ui",
-            "edge:blaze-->ui",
-            "edge:manual-->ui"
-          ],
-          "effect": "draw"
-        }
-      ],
-      "caption": "Live deployment status — surfaced in the Blaze UI"
+        { "atBeat": 0, "reveal": ["status"], "effect": "appear" }
+      ]
     },
     {
       "id": "recap",
       "kind": "content",
       "durationSec": 16,
-      "narration": "To recap. Everyone is a developer, building and changing hundreds of thousands of apps in any tool, from our templates. Every one of them deploys through Blaze, our enterprise Vercel, into governed environments. And Blaze owns one hundred percent of compliance, manual steps included, automatically, telling you exactly where you stand. Anyone builds. Everything ships safely.",
       "beats": [
-        {
-          "text": "Everyone's a developer — <b>building and changing</b> apps at scale.",
-          "style": "h2"
-        },
-        {
-          "text": "From a <b>template</b>, in <b>any tool</b> → <b>deploy through Blaze</b>.",
-          "style": "body"
-        },
-        {
-          "text": "Blaze owns <b>100% of compliance</b> — manual steps included — <b>automatically</b>.",
-          "style": "body"
-        },
-        {
-          "text": "Anyone builds. Everything ships safely.",
-          "style": "note"
-        }
+        { "text": "Everyone's a developer — <b>building and changing</b> apps at scale.", "style": "h2" },
+        { "text": "From a <b>template</b>, in <b>any tool</b> → <b>deploy through Blaze</b>.", "style": "body" },
+        { "text": "Blaze owns <b>100% of compliance</b> — manual steps included — <b>automatically</b>.", "style": "body" },
+        { "text": "Anyone builds. Everything ships safely.", "style": "note" }
       ]
     }
   ]

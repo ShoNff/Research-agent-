@@ -52,7 +52,7 @@
       <path d="M1 1 L10 6 L1 11 Z" fill="#e8732b"/>
     </marker>
 
-    <!-- ===== Reusable symbol kit (stroke = currentColor) ===== -->
+    <!-- ===== Reusable symbol kit (stroke = currentColor); see symbols.svg ===== -->
     <symbol id="sym-template" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
       <path d="M6 2.5h8l4 4v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z"/>
       <path d="M14 2.5V6.5h4"/><path d="M8 12h8"/><path d="M8 15.5h8"/><path d="M8 19h5"/>
@@ -88,155 +88,141 @@
     </symbol>
   </defs>
 
+  <!-- Static canvas (always visible) -->
   <rect width="1320" height="820" fill="url(#gCanvas)"/>
 
-  <!-- ============ ZONE LABELS ============ -->
-  <g fill="#8194b8" font-size="15" font-weight="700" letter-spacing="2">
-    <text x="52" y="68">BUILD — ANYONE, ANY TOOL</text>
-    <text x="922" y="58">DEPLOY</text>
-    <text x="52" y="300">COMPLIANCE — OWNED 100% BY BLAZE</text>
-    <text x="52" y="556">RUN — GOVERNED ENVIRONMENTS</text>
-    <text x="978" y="300">STATUS</text>
+  <!-- ============ TEMPLATES ============ -->
+  <g data-reveal="templates">
+    <text x="52" y="68" fill="#8194b8" font-size="15" font-weight="700" letter-spacing="2">BUILD — ANYONE, ANY TOOL</text>
+    <g filter="url(#soft)">
+      <rect x="50" y="90" width="250" height="132" rx="16" fill="#ffffff" stroke="#d8e1f0"/>
+      <rect x="50" y="90" width="250" height="6" rx="3" fill="url(#gGold)"/>
+    </g>
+    <g transform="translate(74,120)" color="#b9881d"><use href="#sym-template" width="40" height="40"/></g>
+    <text x="126" y="140" font-size="22" font-weight="700" fill="#1c2d54">Templates</text>
+    <text x="74" y="178" font-size="15" fill="#4a5b80">Starter repos on GitHub,</text>
+    <text x="74" y="200" font-size="15" fill="#4a5b80">one per stack — no blank page.</text>
   </g>
 
-  <!-- ============ BUILD PIPELINE ============ -->
-  <!-- Templates -->
-  <g filter="url(#soft)">
-    <rect x="50" y="90" width="250" height="132" rx="16" fill="#ffffff" stroke="#d8e1f0"/>
-    <rect x="50" y="90" width="250" height="6" rx="3" fill="url(#gGold)"/>
-  </g>
-  <g transform="translate(74,120)" color="#b9881d"><use href="#sym-template" width="40" height="40"/></g>
-  <text x="126" y="140" font-size="22" font-weight="700" fill="#1c2d54">Templates</text>
-  <text x="74" y="178" font-size="15" fill="#4a5b80">Starter repos on GitHub,</text>
-  <text x="74" y="200" font-size="15" fill="#4a5b80">one per stack — no blank page.</text>
-
-  <!-- Tools -->
-  <g filter="url(#soft)">
-    <rect x="350" y="90" width="270" height="132" rx="16" fill="#ffffff" stroke="#d8e1f0"/>
-    <rect x="350" y="90" width="270" height="6" rx="3" fill="url(#gSteel)"/>
-  </g>
-  <g transform="translate(374,118)" color="#3a6fae"><use href="#sym-ai" width="38" height="38"/></g>
-  <text x="422" y="138" font-size="20" font-weight="700" fill="#1c2d54">Vibe-code in any tool</text>
-  <g font-size="14" font-weight="600">
-    <g><rect x="374" y="160" width="86" height="30" rx="15" fill="#eaf1fa" stroke="#cdddf0"/><text x="417" y="180" text-anchor="middle" fill="#2f6fae">Lovable</text></g>
-    <g><rect x="468" y="160" width="118" height="30" rx="15" fill="#eaf1fa" stroke="#cdddf0"/><text x="527" y="180" text-anchor="middle" fill="#2f6fae">Claude Code</text></g>
-    <g><rect x="374" y="196" width="80" height="30" rx="15" fill="#eaf1fa" stroke="#cdddf0"/><text x="414" y="216" text-anchor="middle" fill="#2f6fae">Cursor</text></g>
-    <g><rect x="462" y="196" width="98" height="30" rx="15" fill="#eaf1fa" stroke="#cdddf0"/><text x="511" y="216" text-anchor="middle" fill="#2f6fae">any AI</text></g>
+  <!-- ============ TOOLS ============ -->
+  <g data-reveal="tools">
+    <path d="M300 156 H346" fill="none" stroke="#6b7da6" stroke-width="2.4" marker-end="url(#arw)"/>
+    <g filter="url(#soft)">
+      <rect x="350" y="90" width="270" height="132" rx="16" fill="#ffffff" stroke="#d8e1f0"/>
+      <rect x="350" y="90" width="270" height="6" rx="3" fill="url(#gSteel)"/>
+    </g>
+    <g transform="translate(374,118)" color="#3a6fae"><use href="#sym-ai" width="38" height="38"/></g>
+    <text x="422" y="138" font-size="20" font-weight="700" fill="#1c2d54">Vibe-code in any tool</text>
+    <g font-size="14" font-weight="600">
+      <rect x="374" y="160" width="86" height="30" rx="15" fill="#eaf1fa" stroke="#cdddf0"/><text x="417" y="180" text-anchor="middle" fill="#2f6fae">Lovable</text>
+      <rect x="468" y="160" width="118" height="30" rx="15" fill="#eaf1fa" stroke="#cdddf0"/><text x="527" y="180" text-anchor="middle" fill="#2f6fae">Claude Code</text>
+      <rect x="374" y="196" width="80" height="30" rx="15" fill="#eaf1fa" stroke="#cdddf0"/><text x="414" y="216" text-anchor="middle" fill="#2f6fae">Cursor</text>
+      <rect x="462" y="196" width="98" height="30" rx="15" fill="#eaf1fa" stroke="#cdddf0"/><text x="511" y="216" text-anchor="middle" fill="#2f6fae">any AI</text>
+    </g>
   </g>
 
-  <!-- Your app -->
-  <g filter="url(#soft)">
-    <rect x="670" y="90" width="200" height="132" rx="16" fill="#ffffff" stroke="#d8e1f0"/>
-    <rect x="670" y="90" width="200" height="6" rx="3" fill="url(#gSteel)"/>
+  <!-- ============ YOUR APP ============ -->
+  <g data-reveal="app">
+    <path d="M620 156 H666" fill="none" stroke="#6b7da6" stroke-width="2.4" marker-end="url(#arw)"/>
+    <g filter="url(#soft)">
+      <rect x="670" y="90" width="200" height="132" rx="16" fill="#ffffff" stroke="#d8e1f0"/>
+      <rect x="670" y="90" width="200" height="6" rx="3" fill="url(#gSteel)"/>
+    </g>
+    <g transform="translate(694,120)" color="#3a6fae"><use href="#sym-app" width="38" height="38"/></g>
+    <text x="742" y="140" font-size="21" font-weight="700" fill="#1c2d54">Your app</text>
+    <text x="694" y="178" font-size="15" fill="#4a5b80">New build —</text>
+    <text x="694" y="200" font-size="15" fill="#4a5b80">or a change to an existing one.</text>
   </g>
-  <g transform="translate(694,120)" color="#3a6fae"><use href="#sym-app" width="38" height="38"/></g>
-  <text x="742" y="140" font-size="21" font-weight="700" fill="#1c2d54">Your app</text>
-  <text x="694" y="178" font-size="15" fill="#4a5b80">New build —</text>
-  <text x="694" y="200" font-size="15" fill="#4a5b80">or a change to an existing one.</text>
 
-  <!-- BLAZE hub -->
-  <g filter="url(#softLg)">
-    <rect x="922" y="70" width="350" height="170" rx="22" fill="url(#gBlaze)"/>
-  </g>
-  <g transform="translate(956,108)" color="#ffffff"><use href="#sym-flame" width="64" height="64"/></g>
-  <text x="1040" y="138" font-size="40" font-weight="800" fill="#ffffff" letter-spacing="1">BLAZE</text>
-  <text x="1040" y="170" font-size="17" font-weight="600" fill="#fff3e8">The Enterprise Vercel</text>
-  <text x="956" y="216" font-size="16" fill="#fff3e8">One front door — it deploys what you built.</text>
-
-  <!-- build-flow arrows -->
-  <g stroke="#6b7da6" stroke-width="2.4" fill="none" marker-end="url(#arw)">
-    <path d="M300 156 H346"/>
-    <path d="M620 156 H666"/>
-  </g>
-  <path d="M870 156 H918" stroke="#e8732b" stroke-width="3.2" fill="none" marker-end="url(#arwO)"/>
-
-  <!-- BLAZE -> Compliance -->
-  <path d="M1000 240 C 1000 280, 880 280, 880 318" stroke="#e8732b" stroke-width="3.2" fill="none" marker-end="url(#arwO)"/>
-  <!-- BLAZE -> Status -->
-  <path d="M1130 240 C 1130 280, 1130 300, 1130 318" stroke="#e8732b" stroke-width="3.2" fill="none" marker-end="url(#arwO)"/>
-
-  <!-- ============ COMPLIANCE PANEL ============ -->
-  <g filter="url(#soft)">
-    <rect x="50" y="318" width="850" height="190" rx="18" fill="#ffffff" stroke="#f0c9aa"/>
-    <rect x="50" y="318" width="850" height="44" rx="18" fill="url(#gOrangeBar)"/>
-    <rect x="50" y="344" width="850" height="18" fill="url(#gOrangeBar)"/>
-  </g>
-  <g transform="translate(70,328)" color="#ffffff"><use href="#sym-shield" width="26" height="26"/></g>
-  <text x="106" y="347" font-size="19" font-weight="700" fill="#ffffff">Nothing reaches an environment except through here</text>
-
-  <!-- Automated sub-card -->
-  <rect x="74" y="384" width="388" height="104" rx="14" fill="#f4f8fd" stroke="#d8e1f0"/>
-  <g transform="translate(94,406)" color="#3a6fae"><use href="#sym-shield" width="34" height="34"/></g>
-  <text x="140" y="420" font-size="19" font-weight="700" fill="#1c2d54">Automated checks</text>
-  <text x="140" y="446" font-size="15" fill="#4a5b80">Policy · security scans · gates</text>
-  <text x="140" y="468" font-size="15" fill="#4a5b80">run automatically on every deploy.</text>
-
-  <!-- Manual sub-card -->
-  <rect x="488" y="384" width="388" height="104" rx="14" fill="#fdf6e6" stroke="#ecd9a3"/>
-  <g transform="translate(508,406)" color="#b9881d"><use href="#sym-approval" width="34" height="34"/></g>
-  <text x="554" y="420" font-size="19" font-weight="700" fill="#1c2d54">Manual gates</text>
-  <text x="554" y="446" font-size="15" fill="#4a5b80">Human approvals — tracked and</text>
-  <text x="554" y="468" font-size="15" fill="#4a5b80">orchestrated by Blaze, not chased.</text>
-
-  <!-- Compliance -> Environments -->
-  <g stroke="#e8732b" stroke-width="3.2" fill="none" marker-end="url(#arwO)">
-    <path d="M180 508 C 180 535, 180 535, 180 568"/>
-    <path d="M455 508 C 455 535, 455 535, 455 568"/>
-    <path d="M735 508 C 735 535, 735 535, 735 568"/>
+  <!-- ============ BLAZE HUB ============ -->
+  <g data-reveal="blaze">
+    <text x="922" y="58" fill="#8194b8" font-size="15" font-weight="700" letter-spacing="2">DEPLOY</text>
+    <path d="M870 156 H918" fill="none" stroke="#e8732b" stroke-width="3.2" marker-end="url(#arwO)"/>
+    <g filter="url(#softLg)">
+      <rect x="922" y="70" width="350" height="170" rx="22" fill="url(#gBlaze)"/>
+    </g>
+    <g transform="translate(956,108)" color="#ffffff"><use href="#sym-flame" width="64" height="64"/></g>
+    <text x="1040" y="138" font-size="40" font-weight="800" fill="#ffffff" letter-spacing="1">BLAZE</text>
+    <text x="1040" y="170" font-size="17" font-weight="600" fill="#fff3e8">The Enterprise Vercel</text>
+    <text x="956" y="216" font-size="16" fill="#fff3e8">One front door — it deploys what you built.</text>
   </g>
 
   <!-- ============ ENVIRONMENTS ============ -->
-  <!-- Commercial Cloud -->
-  <g filter="url(#soft)"><rect x="50" y="570" width="260" height="150" rx="16" fill="url(#gNavy)"/></g>
-  <g transform="translate(72,594)" color="#bcd2f0"><use href="#sym-cloud" width="40" height="40"/></g>
-  <text x="124" y="618" font-size="21" font-weight="700" fill="#ffffff">Commercial Cloud</text>
-  <text x="72" y="660" font-size="15" fill="#c8d6ee">Build and ship apps in the</text>
-  <text x="72" y="682" font-size="15" fill="#c8d6ee">commercial estate.</text>
-  <g font-size="14" font-weight="700"><rect x="72" y="694" width="58" height="24" rx="12" fill="#ffffff22" stroke="#ffffff55"/><text x="101" y="711" text-anchor="middle" fill="#ffffff">Dev</text>
-    <rect x="138" y="694" width="62" height="24" rx="12" fill="#ffffff22" stroke="#ffffff55"/><text x="169" y="711" text-anchor="middle" fill="#ffffff">Prod</text></g>
-
-  <!-- GAC Prod -->
-  <g filter="url(#soft)"><rect x="330" y="570" width="240" height="150" rx="16" fill="url(#gNavy)"/></g>
-  <g transform="translate(352,594)" color="#bcd2f0"><use href="#sym-cloud" width="40" height="40"/></g>
-  <text x="404" y="618" font-size="21" font-weight="700" fill="#ffffff">GAC</text>
-  <text x="352" y="660" font-size="15" fill="#c8d6ee">The governed production</text>
-  <text x="352" y="682" font-size="15" fill="#c8d6ee">estate.</text>
-  <g font-size="14" font-weight="700"><rect x="352" y="694" width="62" height="24" rx="12" fill="#ffffff22" stroke="#ffffff55"/><text x="383" y="711" text-anchor="middle" fill="#ffffff">Prod</text></g>
-
-  <!-- Advisory Digital Gateway -->
-  <g filter="url(#soft)"><rect x="590" y="570" width="310" height="150" rx="16" fill="url(#gNavy)"/></g>
-  <g transform="translate(612,594)" color="#bcd2f0"><use href="#sym-gateway" width="40" height="40"/></g>
-  <text x="664" y="612" font-size="20" font-weight="700" fill="#ffffff">Advisory Digital</text>
-  <text x="664" y="636" font-size="20" font-weight="700" fill="#ffffff">Gateway</text>
-  <text x="612" y="676" font-size="15" fill="#c8d6ee">Our hosted application —</text>
-  <text x="612" y="698" font-size="15" fill="#c8d6ee">organized by country shelf.</text>
-
-  <!-- ============ STATUS PANEL ============ -->
-  <g filter="url(#soft)"><rect x="960" y="318" width="312" height="402" rx="18" fill="#ffffff" stroke="#d8e1f0"/></g>
-  <g transform="translate(984,340)" color="#e8732b"><use href="#sym-bell" width="30" height="30"/></g>
-  <text x="1024" y="362" font-size="20" font-weight="700" fill="#1c2d54">Live status</text>
-  <text x="984" y="392" font-size="15" fill="#4a5b80">Where your deploy stands —</text>
-  <text x="984" y="412" font-size="15" fill="#4a5b80">right in the Blaze UI.</text>
-
-  <g font-size="16">
-    <!-- passed -->
-    <circle cx="998" cy="448" r="11" fill="#e7f5ec" stroke="#3ba66a"/><path d="M993 448l3.2 3.2L1004 444" fill="none" stroke="#2e9259" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="1018" y="453" fill="#1c2d54" font-weight="600">Build checks passed</text>
-    <!-- passed -->
-    <circle cx="998" cy="488" r="11" fill="#e7f5ec" stroke="#3ba66a"/><path d="M993 488l3.2 3.2L1004 484" fill="none" stroke="#2e9259" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="1018" y="493" fill="#1c2d54" font-weight="600">Policy &amp; scans clear</text>
-    <!-- pending -->
-    <circle cx="998" cy="528" r="11" fill="#fcefce" stroke="#d9a92e"/><circle cx="998" cy="528" r="2.2" fill="#b9881d"/>
-    <text x="1018" y="533" fill="#1c2d54" font-weight="600">Manual approval — pending</text>
-    <!-- next -->
-    <circle cx="998" cy="568" r="11" fill="#eaf1fa" stroke="#3a6fae"/><path d="M995 563l5 5-5 5" fill="none" stroke="#2f6fae" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="1018" y="573" fill="#5a6b8f" font-weight="600">Deploy to Prod (queued)</text>
+  <g data-reveal="envs">
+    <text x="52" y="556" fill="#8194b8" font-size="15" font-weight="700" letter-spacing="2">RUN — GOVERNED ENVIRONMENTS</text>
+    <g filter="url(#soft)"><rect x="50" y="570" width="260" height="150" rx="16" fill="url(#gNavy)"/></g>
+    <g transform="translate(72,594)" color="#bcd2f0"><use href="#sym-cloud" width="40" height="40"/></g>
+    <text x="124" y="618" font-size="21" font-weight="700" fill="#ffffff">Commercial Cloud</text>
+    <text x="72" y="660" font-size="15" fill="#c8d6ee">Build and ship apps in the</text>
+    <text x="72" y="682" font-size="15" fill="#c8d6ee">commercial estate.</text>
+    <g font-size="14" font-weight="700">
+      <rect x="72" y="694" width="58" height="24" rx="12" fill="#ffffff22" stroke="#ffffff55"/><text x="101" y="711" text-anchor="middle" fill="#ffffff">Dev</text>
+      <rect x="138" y="694" width="62" height="24" rx="12" fill="#ffffff22" stroke="#ffffff55"/><text x="169" y="711" text-anchor="middle" fill="#ffffff">Prod</text>
+    </g>
+    <g filter="url(#soft)"><rect x="330" y="570" width="240" height="150" rx="16" fill="url(#gNavy)"/></g>
+    <g transform="translate(352,594)" color="#bcd2f0"><use href="#sym-cloud" width="40" height="40"/></g>
+    <text x="404" y="618" font-size="21" font-weight="700" fill="#ffffff">GAC</text>
+    <text x="352" y="660" font-size="15" fill="#c8d6ee">The governed production</text>
+    <text x="352" y="682" font-size="15" fill="#c8d6ee">estate.</text>
+    <g font-size="14" font-weight="700"><rect x="352" y="694" width="62" height="24" rx="12" fill="#ffffff22" stroke="#ffffff55"/><text x="383" y="711" text-anchor="middle" fill="#ffffff">Prod</text></g>
+    <g filter="url(#soft)"><rect x="590" y="570" width="310" height="150" rx="16" fill="url(#gNavy)"/></g>
+    <g transform="translate(612,594)" color="#bcd2f0"><use href="#sym-gateway" width="40" height="40"/></g>
+    <text x="664" y="612" font-size="20" font-weight="700" fill="#ffffff">Advisory Digital</text>
+    <text x="664" y="636" font-size="20" font-weight="700" fill="#ffffff">Gateway</text>
+    <text x="612" y="676" font-size="15" fill="#c8d6ee">Our hosted application —</text>
+    <text x="612" y="698" font-size="15" fill="#c8d6ee">organized by country shelf.</text>
   </g>
-  <line x1="984" y1="604" x2="1248" y2="604" stroke="#e6ecf5"/>
-  <text x="984" y="636" font-size="15" fill="#4a5b80">Including the manual steps.</text>
-  <text x="984" y="660" font-size="17" font-weight="700" fill="#e8732b">You always know where you stand.</text>
 
-  <!-- footer tagline -->
-  <text x="660" y="788" text-anchor="middle" font-size="18" font-weight="700" fill="#34518f" letter-spacing="0.5">Anyone builds — or changes — an app, at scale. Blaze deploys it and owns compliance, automatically.</text>
+  <!-- ============ COMPLIANCE ============ -->
+  <g data-reveal="compliance">
+    <text x="52" y="300" fill="#8194b8" font-size="15" font-weight="700" letter-spacing="2">COMPLIANCE — OWNED 100% BY BLAZE</text>
+    <!-- arrows: Blaze -> Compliance, Compliance -> each environment -->
+    <path d="M1000 240 C 1000 280, 880 280, 880 318" stroke="#e8732b" stroke-width="3.2" fill="none" marker-end="url(#arwO)"/>
+    <path d="M180 508 V 568" stroke="#e8732b" stroke-width="3.2" fill="none" marker-end="url(#arwO)"/>
+    <path d="M455 508 V 568" stroke="#e8732b" stroke-width="3.2" fill="none" marker-end="url(#arwO)"/>
+    <path d="M735 508 V 568" stroke="#e8732b" stroke-width="3.2" fill="none" marker-end="url(#arwO)"/>
+    <g filter="url(#soft)">
+      <rect x="50" y="318" width="850" height="190" rx="18" fill="#ffffff" stroke="#f0c9aa"/>
+      <path d="M68 318 h814 a18 18 0 0 1 18 18 v26 h-850 v-26 a18 18 0 0 1 18 -18 Z" fill="url(#gOrangeBar)"/>
+    </g>
+    <g transform="translate(70,328)" color="#ffffff"><use href="#sym-shield" width="26" height="26"/></g>
+    <text x="106" y="347" font-size="19" font-weight="700" fill="#ffffff">Nothing reaches an environment except through here</text>
+    <rect x="74" y="384" width="388" height="104" rx="14" fill="#f4f8fd" stroke="#d8e1f0"/>
+    <g transform="translate(94,406)" color="#3a6fae"><use href="#sym-shield" width="34" height="34"/></g>
+    <text x="140" y="420" font-size="19" font-weight="700" fill="#1c2d54">Automated checks</text>
+    <text x="140" y="446" font-size="15" fill="#4a5b80">Policy · security scans · gates</text>
+    <text x="140" y="468" font-size="15" fill="#4a5b80">run automatically on every deploy.</text>
+    <rect x="488" y="384" width="388" height="104" rx="14" fill="#fdf6e6" stroke="#ecd9a3"/>
+    <g transform="translate(508,406)" color="#b9881d"><use href="#sym-approval" width="34" height="34"/></g>
+    <text x="554" y="420" font-size="19" font-weight="700" fill="#1c2d54">Manual gates</text>
+    <text x="554" y="446" font-size="15" fill="#4a5b80">Human approvals — tracked and</text>
+    <text x="554" y="468" font-size="15" fill="#4a5b80">orchestrated by Blaze, not chased.</text>
+  </g>
+
+  <!-- ============ STATUS ============ -->
+  <g data-reveal="status">
+    <text x="978" y="300" fill="#8194b8" font-size="15" font-weight="700" letter-spacing="2">STATUS</text>
+    <path d="M1130 240 V 318" stroke="#e8732b" stroke-width="3.2" fill="none" marker-end="url(#arwO)"/>
+    <g filter="url(#soft)"><rect x="960" y="318" width="312" height="402" rx="18" fill="#ffffff" stroke="#d8e1f0"/></g>
+    <g transform="translate(984,340)" color="#e8732b"><use href="#sym-bell" width="30" height="30"/></g>
+    <text x="1024" y="362" font-size="20" font-weight="700" fill="#1c2d54">Live status</text>
+    <text x="984" y="392" font-size="15" fill="#4a5b80">Where your deploy stands —</text>
+    <text x="984" y="412" font-size="15" fill="#4a5b80">right in the Blaze UI.</text>
+    <g font-size="16">
+      <circle cx="998" cy="448" r="11" fill="#e7f5ec" stroke="#3ba66a"/><path d="M993 448l3.2 3.2L1004 444" fill="none" stroke="#2e9259" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="1018" y="453" fill="#1c2d54" font-weight="600">Build checks passed</text>
+      <circle cx="998" cy="488" r="11" fill="#e7f5ec" stroke="#3ba66a"/><path d="M993 488l3.2 3.2L1004 484" fill="none" stroke="#2e9259" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="1018" y="493" fill="#1c2d54" font-weight="600">Policy &amp; scans clear</text>
+      <circle cx="998" cy="528" r="11" fill="#fcefce" stroke="#d9a92e"/><circle cx="998" cy="528" r="2.2" fill="#b9881d"/>
+      <text x="1018" y="533" fill="#1c2d54" font-weight="600">Manual approval — pending</text>
+      <circle cx="998" cy="568" r="11" fill="#eaf1fa" stroke="#3a6fae"/><path d="M995 563l5 5-5 5" fill="none" stroke="#2f6fae" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="1018" y="573" fill="#5a6b8f" font-weight="600">Deploy to Prod (queued)</text>
+    </g>
+    <line x1="984" y1="604" x2="1248" y2="604" stroke="#e6ecf5"/>
+    <text x="984" y="636" font-size="15" fill="#4a5b80">Including the manual steps.</text>
+    <text x="984" y="660" font-size="17" font-weight="700" fill="#e8732b">You always know where you stand.</text>
+    <text x="660" y="788" text-anchor="middle" font-size="18" font-weight="700" fill="#34518f" letter-spacing="0.5">Anyone builds — or changes — an app, at scale. Blaze deploys it and owns compliance, automatically.</text>
+  </g>
 </svg>
+
 </div></div></div></body></html>

@@ -62,6 +62,10 @@
 
   function clearTimers() { timers.forEach(clearTimeout); timers = []; }
 
+  // A scene's "diagram source" is either Mermaid text or hand-authored SVG markup.
+  // Scenes that share the same source reveal one diagram cumulatively across scenes.
+  function sceneSource(s) { return s.mermaid || s.svg || null; }
+
   function totalDurationMs() {
     return SCENES.reduce(function (a, s) { return a + sceneDurationMs(s); }, 0);
   }
@@ -78,16 +82,17 @@
   function computeCumulative() {
     var allTokens = {};   // sourceKey -> Set of every token revealed by any scene
     SCENES.forEach(function (s) {
-      if (!s.mermaid) return;
-      var set = allTokens[s.mermaid] || (allTokens[s.mermaid] = {});
+      var key = sceneSource(s);
+      if (!key) return;
+      var set = allTokens[key] || (allTokens[key] = {});
       (s.buildSteps || []).forEach(function (st) {
         (st.reveal || []).forEach(function (t) { set[t] = true; });
       });
     });
     var prior = {};       // sourceKey -> Set of tokens revealed by earlier scenes
     return SCENES.map(function (s) {
-      if (!s.mermaid) return [];
-      var key = s.mermaid;
+      var key = sceneSource(s);
+      if (!key) return [];
       var seen = prior[key] || (prior[key] = {});
       var hide = Object.keys(allTokens[key]).filter(function (t) { return !seen[t]; });
       (s.buildSteps || []).forEach(function (st) {
@@ -109,8 +114,9 @@
     var total = totalDurationMs();
     var acc = 0;
     SCENES.forEach(function (scene, i) {
+      var src = sceneSource(scene);
       var root = document.createElement("section");
-      root.className = "scene" + (scene.mermaid ? "" : " no-diagram");
+      root.className = "scene" + (src ? "" : " no-diagram");
       root.setAttribute("data-kind", scene.kind || "content");
       root.id = "scene-" + (scene.id || i);
 
@@ -137,7 +143,7 @@
       root.appendChild(textWrap);
 
       var diagram = null;
-      if (scene.mermaid) {
+      if (src) {
         diagram = document.createElement("div");
         diagram.className = "scene-diagram";
         root.appendChild(diagram);
@@ -151,7 +157,7 @@
 
       els.stage.appendChild(root);
       sceneEls.push({ root: root, beats: beatEls, diagram: diagram, svg: null,
-                      edges: [], edgeLabels: [], hideTokens: HIDE[i],
+                      isSvg: !!scene.svg, edges: [], edgeLabels: [], hideTokens: HIDE[i],
                       plan: buildScenePlan(scene) });
 
       // progress tick
@@ -210,8 +216,26 @@
     return true;
   }
 
+  // Hand-authored SVG scenes: drop the markup straight in, grab the <svg>, and
+  // let it scale to the column. Reveal targets are matched by data-reveal tokens.
+  function mountSvgScene(rec) {
+    rec.diagram.innerHTML = rec_scene_svg(rec);
+    rec.svg = rec.diagram.querySelector("svg");
+    if (rec.svg) {
+      rec.svg.removeAttribute("height");
+      rec.svg.style.maxWidth = "100%";
+      rec.svg.style.width = "100%";
+    }
+  }
+  function rec_scene_svg(rec) { return rec._svgSrc || ""; }
+
   function renderAll() {
     var jobs = SCENES.map(function (scene, i) {
+      if (scene.svg) {
+        sceneEls[i]._svgSrc = scene.svg;
+        mountSvgScene(sceneEls[i]);
+        return Promise.resolve();
+      }
       if (!scene.mermaid) return Promise.resolve();
       if (!window.mermaid || typeof window.mermaid.render !== "function") {
         sceneEls[i].diagram.innerHTML =
@@ -251,6 +275,15 @@
   // Resolve a reveal token to SVG elements within a scene record.
   function resolveToken(rec, token) {
     if (!rec.svg) return [];
+    if (rec.isSvg) {
+      // Hand-authored SVG: tokens match `data-reveal="<token>"` (space-separated
+      // list allowed) or an element id. Returns every matching element.
+      var out = Array.prototype.slice.call(
+        rec.svg.querySelectorAll('[data-reveal~="' + cssAttr(token) + '"]'));
+      var byId = rec.svg.querySelector('#' + cssEsc(token));
+      if (byId && out.indexOf(byId) === -1) out.push(byId);
+      return out;
+    }
     if (token.indexOf("edge:") === 0) {
       var n = parseInt(token.slice(5), 10);
       var out = [];
@@ -271,6 +304,8 @@
   function cssEsc(s) {
     return (window.CSS && CSS.escape) ? CSS.escape(s) : s.replace(/[^a-zA-Z0-9_-]/g, "\\$&");
   }
+  // Escape a token for use inside an attribute-selector string ("...").
+  function cssAttr(s) { return String(s).replace(/(["\\])/g, "\\$1"); }
 
   // Elements to hide at the start of this scene (its own + future reveals on the
   // same diagram); earlier scenes' reveals are left visible.
