@@ -94,6 +94,37 @@ def _parse_edge_order(mermaid_src: str) -> dict:
     return order
 
 
+def _resolve_svg_sources(deck: dict, base_dir: Path) -> None:
+    """Expand hand-authored SVG scene sources into an inline ``svg`` string.
+
+    A scene may supply its diagram as a hand-authored SVG instead of Mermaid via:
+      - ``svg``: inline SVG markup (used as-is), or
+      - ``svgFile``: a path (relative to the deck JSON) read and inlined, or
+      - ``svgRef``: a key into the deck-level ``svgAssets`` map.
+
+    Several scenes referencing the **same** file/ref get the **same** inlined
+    string, which is what the engine keys on to reveal one master SVG cumulatively
+    across scenes (mirroring shared-Mermaid scenes). ``svgFile``/``svgRef`` keys
+    are removed after expansion; the top-level ``svgAssets`` map is dropped.
+    """
+    assets = deck.get("svgAssets") or {}
+    for scene in deck["scenes"]:
+        if "svg" in scene:
+            continue
+        ref = scene.pop("svgRef", None)
+        path = scene.pop("svgFile", None)
+        if ref is not None:
+            if ref not in assets:
+                raise ValueError(f"scene {scene.get('id')!r}: svgRef {ref!r} not in svgAssets")
+            scene["svg"] = assets[ref]
+        elif path is not None:
+            f = (base_dir / path).resolve()
+            if not f.exists():
+                raise FileNotFoundError(f"scene {scene.get('id')!r}: svgFile not found: {f}")
+            scene["svg"] = f.read_text(encoding="utf-8")
+    deck.pop("svgAssets", None)
+
+
 def _resolve_edge_aliases(deck: dict) -> list[str]:
     warnings: list[str] = []
     for scene in deck["scenes"]:
@@ -143,6 +174,7 @@ def build_deck(script_path, output_path, *, cdn: bool = False) -> str:
 
     deck = json.loads(_read(script_path))
     _validate(deck)
+    _resolve_svg_sources(deck, script_path.parent)
     for w in _resolve_edge_aliases(deck):
         print(f"warning: {w}", file=sys.stderr)
 
@@ -150,9 +182,12 @@ def build_deck(script_path, output_path, *, cdn: bool = False) -> str:
     css = _read(TEMPLATE_DIR / "deck_styles.css")
     engine = _read(TEMPLATE_DIR / "deck_engine.js")
 
+    # Mermaid.js is only needed when a scene actually uses Mermaid. A deck built
+    # entirely from hand-authored SVG scenes skips it, dropping ~3 MB from the file.
+    needs_mermaid = any(s.get("mermaid") for s in deck["scenes"])
     mermaid_file = TEMPLATE_DIR / "mermaid.min.js"
     use_cdn = cdn or not mermaid_file.exists()
-    if cdn is False and not mermaid_file.exists():
+    if needs_mermaid and cdn is False and not mermaid_file.exists():
         print(
             "warning: template/mermaid.min.js not found — falling back to CDN "
             "(output will require internet). Vendor it for a fully offline file.",
@@ -168,7 +203,9 @@ def build_deck(script_path, output_path, *, cdn: bool = False) -> str:
     html = html.replace("{{DECK_SUBTITLE}}", deck.get("subtitle", ""))
     html = html.replace("{{INLINE_CSS}}", css)
 
-    if use_cdn:
+    if not needs_mermaid:
+        html = html.replace("<script>{{MERMAID_SCRIPT}}</script>", "")
+    elif use_cdn:
         html = html.replace("<script>{{MERMAID_SCRIPT}}</script>", CDN_TAG)
     else:
         html = html.replace("{{MERMAID_SCRIPT}}", _read(mermaid_file))

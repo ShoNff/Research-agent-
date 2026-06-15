@@ -16,3 +16,4 @@ what it did. Written by the `conversation-retrospective` skill at the end of eac
 | 2026-06-08T20:05Z | manual | Added this committed activity log (RETROSPECTIVE-LOG.md) per user request for a visible trail | 346f989 |
 | 2026-06-08T20:08Z | push | 1 learning applied: prefer durable/committed/visible records over ephemeral ones (see LEARNINGS.md) | ad975a8 |
 | 2026-06-08T20:11Z | push | 1 learning applied: loop guard — no-op runs must not commit/push (see LEARNINGS.md) | _this commit_ |
+| 2026-06-12T13:25Z | manual | 1 learning applied: presentation visuals = hand-authored SVG to a brand standard; added assets/brand/ + a kind:"svg" deck scene type (see LEARNINGS.md) | _this commit_ |

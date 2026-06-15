@@ -47,7 +47,8 @@ Create a `*.deck.json` file. Top-level fields:
 | `mermaidConfig` | Optional overrides merged into `mermaid.initialize`. |
 | `scenes` | Ordered array (below). |
 
-**Scene**: `id` (unique), `kind` (`title`\|`content`\|`diagram`), `beats[]`, `mermaid?`,
+**Scene**: `id` (unique), `kind` (`title`\|`content`\|`diagram`\|`svg`), `beats[]`,
+`mermaid?` **or** a hand-authored SVG source (`svg`\|`svgFile`\|`svgRef`, see below),
 `buildSteps?`, `narration?` (spoken text; defaults to the beats' text), `durationSec?`,
 `advance?`, `caption?`.
 
@@ -70,6 +71,38 @@ A build step reveals parts of that scene's Mermaid diagram. Tokens:
 Reveals are **cumulative across scenes that share the same Mermaid source**: a scene shows
 everything earlier scenes revealed, animates only its own new tokens, and keeps not-yet-introduced
 parts hidden. So define one master diagram and reveal more of it each scene.
+
+## Hand-authored SVG scenes (the presentation-grade path)
+
+Mermaid is auto-laid-out and reads like engineering scaffolding — thin strokes, cramped
+labels. For anything shown to an audience, prefer a **hand-authored SVG** built to the brand
+graphics standard (`assets/brand/STYLE.md` + the `assets/brand/symbols.svg` icon kit). SVG
+renders crisply, stays diff-able, and needs no rasterizer.
+
+A `kind: "svg"` scene is **full-bleed** (the SVG fills the stage; beats sit as a compact title
+on top) and supplies its diagram as:
+
+- `"svg"`: inline SVG markup, **or**
+- `"svgFile"`: a path **relative to the deck JSON**, read and inlined at build time, **or**
+- `"svgRef"`: a key into a deck-level `"svgAssets": { "<key>": "<svg…>" }` map.
+
+**Progressive reveal works exactly like shared-Mermaid scenes**: point several scenes at the
+**same** SVG (same `svgFile`/`svgRef`) and each scene reveals more of it. Wrap each revealable
+chunk of the SVG in a group with a `data-reveal` token:
+
+```xml
+<g data-reveal="blaze"> … the Blaze hub, its label, its arrow … </g>
+```
+
+Then a buildStep's `reveal` lists those tokens (plain ids, no `edge:` syntax):
+`{ "atBeat": 0, "reveal": ["blaze"], "effect": "pulse" }`. Tokens match `data-reveal="…"`
+(space-separated lists allowed) or an element `id`. `effect`: `appear` (opacity), `pulse`
+(scales the group's shape), or `draw` (animates a revealed `<path>`). Anything in the SVG
+**without** a `data-reveal` token is static — always visible — so use that for the background.
+A deck built entirely from SVG scenes drops Mermaid from the output (~3 MB smaller).
+
+Worked example: `projects/blaze-deployment-platform/` (deck) + `assets/brand/blaze-flow.svg`
+(one master SVG, seven `data-reveal` zones, revealed one scene at a time).
 
 ### Layout tips (learned the hard way)
 

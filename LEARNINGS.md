@@ -31,3 +31,8 @@ bottom.
 - **Learning:** The push-triggered auto-retrospective will loop forever if it commits and pushes on every run, because each push re-fires the hook. No-op runs must update the watermark only and stop.
 - **Applied to:** `.claude/skills/conversation-retrospective/SKILL.md` (loop guard in "Apply and record")
 - **Rationale:** Observed live — successive bookkeeping pushes each re-triggered the hook during this session.
+
+## 2026-06-12 — Presentation visuals must be presentation-grade hand-authored SVG, not Mermaid "wire" diagrams
+- **Learning:** The user wants high-quality graphics for decks — a real icon/symbol kit, brand palette, readable type — not auto-laid-out Mermaid diagrams ("those wire things you can barely read the text on"). This is the standard going forward for anything shown to an audience.
+- **Applied to:** new `assets/brand/` standard (`STYLE.md`, `symbols.svg`, `blaze-flow.svg`); a new `kind: "svg"` scene type in the `animated-mermaid-deck` skill (`build_deck.py`, `template/deck_engine.js`, `template/deck_styles.css`) with progressive `data-reveal` zones; `SKILL.md`; `CLAUDE.md` (Visual & Graphics Standard); `src/research_agent/prompts/visual.py` (brand-palette nudge).
+- **Rationale:** User: "invest in some high-quality graphics standard symbols and shapes … visualizations we'll be proud of, not those wire things." Chose the full animated-SVG-scene integration.

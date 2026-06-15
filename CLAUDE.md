@@ -178,6 +178,16 @@ Edit `src/research_agent/prompts/writer.py`. The `WRITER_PROMPT_TEMPLATE` has a 
 ### Changing source reliability heuristics
 Edit `src/research_agent/tools/source_eval.py`. The `ESTABLISHED_DOMAINS`, `REPUTABLE_DOMAINS`, and `OPINION_INDICATORS` sets control domain classification. Title-based adjustments are in the `evaluate_source` function body.
 
+## Visual & Graphics Standard
+
+Presentation visuals are held to a **presentation-grade standard**, not auto-laid-out Mermaid
+"wire" diagrams (thin strokes, cramped text). The standard lives in `assets/brand/STYLE.md`
+(palette, depth, type scale, composition zones) with a reusable icon kit in
+`assets/brand/symbols.svg`. For decks and anything shown to an audience, author **hand-authored
+SVG** to that standard and drive it with the deck skill's `kind: "svg"` scenes (progressive
+`data-reveal` zones) — see `.claude/skills/animated-mermaid-deck/SKILL.md`. Mermaid stays fine
+for quick in-report diagrams (`prompts/visual.py`), but should follow the same brand palette.
+
 ## Dependencies
 
 Core: `claude-agent-sdk`, `click`, `pydantic`, `python-dotenv`

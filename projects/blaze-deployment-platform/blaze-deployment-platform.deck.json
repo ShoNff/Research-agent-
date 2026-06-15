@@ -1,0 +1,152 @@
+{
+  "title": "Everyone Is a Developer",
+  "subtitle": "Anyone builds — or changes — an app at scale, in any tool. Blaze deploys it and owns compliance, end to end, automatically.",
+  "targetDurationSec": 170,
+  "defaultAdvance": "auto",
+  "audio": {
+    "enabled": false,
+    "voiceHint": "en",
+    "rate": 1.0
+  },
+  "theme": {
+    "primary": "#29417a",
+    "secondary": "#4682b4",
+    "accent": "#e8732b"
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "kind": "title",
+      "durationSec": 8,
+      "beats": [
+        { "text": "Everyone Is a <b>Developer</b>", "style": "h1", "anim": "fade-up" },
+        { "text": "Anyone builds — or <b>changes</b> — an app. At scale. <b>Automated</b>.", "style": "body", "anim": "fade" },
+        { "text": "~3 minutes", "style": "note", "anim": "fade" }
+      ]
+    },
+    {
+      "id": "scale",
+      "kind": "content",
+      "durationSec": 15,
+      "beats": [
+        { "text": "Everyone becomes a <b>developer</b>.", "style": "h2" },
+        { "text": "Spin up a <b>new app</b> — or <b>change one that already exists</b>, with the right access.", "style": "body" },
+        { "text": "<b>Hundreds of thousands</b> of apps and changes. That's the volume.", "style": "body" },
+        { "text": "At that scale, the path has to be <b>automated</b> — end to end.", "style": "note" }
+      ]
+    },
+    {
+      "id": "arc",
+      "kind": "content",
+      "durationSec": 14,
+      "beats": [
+        { "text": "Three moves make it <b>safe and automatic</b>:", "style": "h2" },
+        { "text": "1 — Start from a <b>template</b>, vibe-code in <b>any tool</b>.", "style": "body" },
+        { "text": "2 — Deploy through <b>Blaze</b> — our enterprise Vercel.", "style": "body" },
+        { "text": "3 — Blaze owns <b>100% of compliance</b> and shows you where you stand.", "style": "note" }
+      ]
+    },
+    {
+      "id": "svg-templates",
+      "kind": "svg",
+      "durationSec": 12,
+      "svgFile": "../../assets/brand/blaze-flow.svg",
+      "beats": [
+        { "text": "It starts with <b>templates</b>.", "style": "h2" },
+        { "text": "Starter repos on GitHub — one per stack, no blank page.", "style": "note" }
+      ],
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["templates"], "effect": "appear" }
+      ]
+    },
+    {
+      "id": "svg-tools",
+      "kind": "svg",
+      "durationSec": 14,
+      "svgFile": "../../assets/brand/blaze-flow.svg",
+      "beats": [
+        { "text": "Vibe-code in <b>any tool</b>.", "style": "h2" },
+        { "text": "Lovable, Claude Code, Cursor — any AI assistant.", "style": "note" }
+      ],
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["tools"], "effect": "appear" }
+      ]
+    },
+    {
+      "id": "svg-app",
+      "kind": "svg",
+      "durationSec": 12,
+      "svgFile": "../../assets/brand/blaze-flow.svg",
+      "beats": [
+        { "text": "Out comes <b>your app</b>.", "style": "h2" },
+        { "text": "A new build — or a change to an existing one.", "style": "note" }
+      ],
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["app"], "effect": "appear" }
+      ]
+    },
+    {
+      "id": "svg-blaze",
+      "kind": "svg",
+      "durationSec": 15,
+      "svgFile": "../../assets/brand/blaze-flow.svg",
+      "beats": [
+        { "text": "One front door: <b>Blaze</b>.", "style": "h2" },
+        { "text": "The enterprise Vercel — it deploys what you built.", "style": "note" }
+      ],
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["blaze"], "effect": "pulse" }
+      ]
+    },
+    {
+      "id": "svg-environments",
+      "kind": "svg",
+      "durationSec": 16,
+      "svgFile": "../../assets/brand/blaze-flow.svg",
+      "beats": [
+        { "text": "Into <b>governed environments</b>.", "style": "h2" },
+        { "text": "Commercial Cloud · GAC Prod · the Advisory Digital Gateway.", "style": "note" }
+      ],
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["envs"], "effect": "appear" }
+      ]
+    },
+    {
+      "id": "svg-compliance",
+      "kind": "svg",
+      "durationSec": 20,
+      "svgFile": "../../assets/brand/blaze-flow.svg",
+      "beats": [
+        { "text": "Blaze owns <b>100% of compliance</b>.", "style": "h2" },
+        { "text": "Automated checks <b>and</b> the manual gates — nothing reaches an environment except through here.", "style": "note" }
+      ],
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["compliance"], "effect": "appear" }
+      ]
+    },
+    {
+      "id": "svg-status",
+      "kind": "svg",
+      "durationSec": 16,
+      "svgFile": "../../assets/brand/blaze-flow.svg",
+      "beats": [
+        { "text": "You always know <b>where you stand</b>.", "style": "h2" },
+        { "text": "Live status in the Blaze UI — manual steps included.", "style": "note" }
+      ],
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["status"], "effect": "appear" }
+      ]
+    },
+    {
+      "id": "recap",
+      "kind": "content",
+      "durationSec": 16,
+      "beats": [
+        { "text": "Everyone's a developer — <b>building and changing</b> apps at scale.", "style": "h2" },
+        { "text": "From a <b>template</b>, in <b>any tool</b> → <b>deploy through Blaze</b>.", "style": "body" },
+        { "text": "Blaze owns <b>100% of compliance</b> — manual steps included — <b>automatically</b>.", "style": "body" },
+        { "text": "Anyone builds. Everything ships safely.", "style": "note" }
+      ]
+    }
+  ]
+}

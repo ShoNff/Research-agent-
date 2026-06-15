@@ -75,6 +75,19 @@ html, body {
 /* When a scene has no diagram, let the text use the whole stage. */
 .scene.no-diagram.is-active { grid-template-columns: 1fr; text-align: center; justify-items: center; }
 
+/* SVG scenes are full-bleed: a compact title on top, the hand-authored SVG
+   filling the rest of the stage (no side-by-side split). */
+.scene[data-kind="svg"].is-active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.8rem;
+}
+.scene[data-kind="svg"] .scene-text { flex: 0 0 auto; text-align: center; align-items: center; }
+.scene[data-kind="svg"] .scene-diagram { flex: 1 1 auto; min-height: 0; width: 100%; }
+.scene[data-kind="svg"] .scene-diagram svg { max-height: 84vh; }
+
 .scene-text { display: flex; flex-direction: column; gap: 0.9rem; }
 
 .scene-diagram {
@@ -241,7 +254,8 @@ html, body {
      content can never grow down over the controls and hide the nav buttons. */
   .scene { gap: 0.8rem; }
   .scene[data-kind="content"].is-active,
-  .scene[data-kind="diagram"].is-active {
+  .scene[data-kind="diagram"].is-active,
+  .scene[data-kind="svg"].is-active {
     display: flex;
     flex-direction: column;
     align-items: stretch;
