@@ -30,7 +30,7 @@ npm install
 npm run dev          # http://localhost:3000
 ```
 
-You'll be redirected to `/login`. The default password is **`Lithium3`**
+You'll be redirected to `/login`. The default password is **`password321yourmom`**
 (override it with the `APP_PASSWORD` env var). After logging in you land on the
 launcher.
 
@@ -45,7 +45,7 @@ npm run build
 1. Import this GitHub repo in Vercel.
 2. Set **Root Directory** = `web` (Vercel auto-detects Next.js).
 3. (Optional but recommended) Add an env var **`APP_PASSWORD`** = your password.
-   If unset, it falls back to `Lithium3`.
+   If unset, it falls back to `password321yourmom`.
 4. Deploy.
 
 ## Adding research projects

@@ -1,7 +1,7 @@
 // Shared auth helpers for the password gate.
 //
 // The password is only ever read on the server (from APP_PASSWORD, falling back
-// to "Lithium3"). We never ship it to the browser. The auth cookie stores a
+// to "password321yourmom"). We never ship it to the browser. The auth cookie stores a
 // SHA-256 hash of the password so it can't be trivially forged without knowing
 // the password. Middleware and the login route both derive the expected token
 // from the same secret, so they always agree.
@@ -10,7 +10,7 @@ export const AUTH_COOKIE = "ra_auth";
 
 /** The configured password (server-side only). */
 export function getPassword(): string {
-  return process.env.APP_PASSWORD ?? "Lithium3";
+  return process.env.APP_PASSWORD ?? "password321yourmom";
 }
 
 /** SHA-256 hex digest of an arbitrary string, using Web Crypto (edge-safe). */
