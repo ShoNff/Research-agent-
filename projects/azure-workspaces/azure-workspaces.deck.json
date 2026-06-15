@@ -1,0 +1,228 @@
+{
+  "title": "Azure Workspaces",
+  "subtitle": "How a KPMG engagement boundary is built, where the data lives, and how agents work inside it.",
+  "targetDurationSec": 210,
+  "defaultAdvance": "auto",
+  "audio": { "enabled": false, "voiceHint": "en", "rate": 1.0 },
+  "theme": { "primary": "#29417a", "secondary": "#4682b4", "accent": "#7b4fb5" },
+  "scenes": [
+    {
+      "id": "intro",
+      "kind": "title",
+      "durationSec": 7,
+      "beats": [
+        { "text": "Azure <b>Workspaces</b>", "style": "h1", "anim": "fade-up" },
+        { "text": "How a KPMG engagement boundary is built — and how agents work inside it.", "style": "body", "anim": "fade" },
+        { "text": "~3 minutes", "style": "note", "anim": "fade" }
+      ]
+    },
+    {
+      "id": "tenant",
+      "kind": "svg",
+      "durationSec": 11,
+      "svgFile": "../../assets/brand/azure-workspace.svg",
+      "beats": [
+        { "text": "It starts with a <b>Tenant</b>.", "style": "h2" },
+        { "text": "A Microsoft Entra ID tenant — your organization's identity boundary.", "style": "note" }
+      ],
+      "buildSteps": [ { "atBeat": 0, "reveal": ["tenant"], "effect": "pulse" } ]
+    },
+    {
+      "id": "subscription",
+      "kind": "svg",
+      "durationSec": 13,
+      "svgFile": "../../assets/brand/azure-workspace.svg",
+      "beats": [
+        { "text": "Inside the tenant: <b>Subscriptions</b>.", "style": "h2" },
+        { "text": "Three of them — <b>GAC</b>, <b>Germany</b>, <b>Digital Gateway</b>.", "style": "note" },
+        { "text": "We build inside Digital Gateway; the rest sit alongside it.", "style": "note" }
+      ],
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["sub-dg"], "effect": "appear" },
+        { "atBeat": 1, "reveal": ["sub-siblings"], "effect": "appear" },
+        { "atBeat": 2, "reveal": ["sub-dg"], "effect": "pulse" }
+      ]
+    },
+    {
+      "id": "resourcegroup",
+      "kind": "svg",
+      "durationSec": 11,
+      "svgFile": "../../assets/brand/azure-workspace.svg",
+      "beats": [
+        { "text": "Subscriptions hold <b>Resource Groups</b>.", "style": "h2" },
+        { "text": "Lifecycle buckets — created, managed, and torn down together.", "style": "note" }
+      ],
+      "buildSteps": [ { "atBeat": 0, "reveal": ["rgs"], "effect": "appear" } ]
+    },
+    {
+      "id": "rg-region",
+      "kind": "svg",
+      "durationSec": 12,
+      "svgFile": "../../assets/brand/azure-workspace.svg",
+      "beats": [
+        { "text": "Every resource group has a <b>home</b>.", "style": "h2" },
+        { "text": "A real region — <b>East US</b> — in a Microsoft data center in Virginia.", "style": "note" }
+      ],
+      "buildSteps": [ { "atBeat": 0, "reveal": ["region"], "effect": "appear" } ]
+    },
+    {
+      "id": "resource-types",
+      "kind": "svg",
+      "durationSec": 15,
+      "svgFile": "../../assets/brand/azure-resources.svg",
+      "beats": [
+        { "text": "What goes <b>inside</b> a resource group?", "style": "h2" },
+        { "text": "VMs, SQL databases, containers, storage…", "style": "note" },
+        { "text": "…app services, networks, key vaults, functions — and more.", "style": "note" }
+      ],
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["rg"], "effect": "appear" },
+        { "atBeat": 1, "reveal": ["core"], "effect": "appear" },
+        { "atBeat": 2, "reveal": ["more"], "effect": "appear" }
+      ]
+    },
+    {
+      "id": "resources",
+      "kind": "svg",
+      "durationSec": 10,
+      "svgFile": "../../assets/brand/azure-workspace.svg",
+      "beats": [
+        { "text": "Our engagement's <b>resources</b>.", "style": "h2" },
+        { "text": "An <b>App Service</b>, its <b>SQL Database</b>, a <b>Storage Account</b>.", "style": "note" }
+      ],
+      "buildSteps": [ { "atBeat": 0, "reveal": ["resources"], "effect": "appear" } ]
+    },
+    {
+      "id": "workspace",
+      "kind": "svg",
+      "durationSec": 13,
+      "svgFile": "../../assets/brand/azure-workspace.svg",
+      "beats": [
+        { "text": "Group them into a <b>Workspace</b>.", "style": "h2" },
+        { "text": "A <b>data boundary</b> — a wall around everything in the engagement.", "style": "note" }
+      ],
+      "buildSteps": [ { "atBeat": 0, "reveal": ["workspace"], "effect": "pulse" } ]
+    },
+    {
+      "id": "extend",
+      "kind": "svg",
+      "durationSec": 11,
+      "svgFile": "../../assets/brand/azure-workspace.svg",
+      "beats": [
+        { "text": "Boundaries can <b>grow</b>.", "style": "h2" },
+        { "text": "Add a resource group mid-engagement — the wall simply extends.", "style": "note" }
+      ],
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["extend"], "effect": "appear" },
+        { "atBeat": 1, "reveal": ["workspace"], "effect": "pulse" }
+      ]
+    },
+    {
+      "id": "shelves",
+      "kind": "svg",
+      "durationSec": 15,
+      "svgFile": "../../assets/brand/azure-shelves.svg",
+      "beats": [
+        { "text": "Outside the workspace: <b>Shelves</b>.", "style": "h2" },
+        { "text": "Reusable, pre-approved <b>gold copies</b> — Velocity and US Specific.", "style": "note" },
+        { "text": "A copy is lifted off the shelf, into the boundary. The shelf stays outside.", "style": "note" }
+      ],
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["shelves"], "effect": "appear" },
+        { "atBeat": 1, "reveal": ["ws", "gold"], "effect": "appear" },
+        { "atBeat": 2, "reveal": ["lift"], "effect": "appear" }
+      ]
+    },
+    {
+      "id": "engagement",
+      "kind": "svg",
+      "durationSec": 12,
+      "svgFile": "../../assets/brand/azure-workspace.svg",
+      "beats": [
+        { "text": "Everything maps to one <b>Engagement Number</b>.", "style": "h2" },
+        { "text": "Tags carry it across every resource — governance, billing, audit.", "style": "note" }
+      ],
+      "buildSteps": [ { "atBeat": 0, "reveal": ["engagement"], "effect": "pulse" } ]
+    },
+    {
+      "id": "client-portal",
+      "kind": "svg",
+      "durationSec": 13,
+      "svgFile": "../../assets/brand/azure-ingress.svg",
+      "beats": [
+        { "text": "How does data get in? The <b>Client Portal</b>.", "style": "h2" },
+        { "text": "One governed doorway — authenticated, scoped, logged.", "style": "note" }
+      ],
+      "buildSteps": [
+        { "atBeat": 0, "reveal": ["client"], "effect": "appear" },
+        { "atBeat": 1, "reveal": ["portal"], "effect": "appear" }
+      ]
+    },
+    {
+      "id": "data-physical",
+      "kind": "svg",
+      "durationSec": 14,
+      "svgFile": "../../assets/brand/azure-ingress.svg",
+      "beats": [
+        { "text": "Client world → portal → <b>Workspace</b>.", "style": "h2" },
+        { "text": "Landing inside the boundary, in the <b>East US</b> data center — real buildings in Virginia.", "style": "note" }
+      ],
+      "buildSteps": [ { "atBeat": 0, "reveal": ["eastus"], "effect": "appear" } ]
+    },
+    {
+      "id": "data-virtual",
+      "kind": "svg",
+      "durationSec": 12,
+      "svgFile": "../../assets/brand/azure-workspace.svg",
+      "beats": [
+        { "text": "Data also moves <b>inside</b> the wall.", "style": "h2" },
+        { "text": "The app writes to its database; data lands in storage. All within the boundary.", "style": "note" }
+      ],
+      "buildSteps": [ { "atBeat": 0, "reveal": ["datavirtual"], "effect": "appear" } ]
+    },
+    {
+      "id": "agents-modify",
+      "kind": "svg",
+      "durationSec": 12,
+      "svgFile": "../../assets/brand/azure-workspace.svg",
+      "beats": [
+        { "text": "Inside the boundary: <b>Agents</b>.", "style": "h2" },
+        { "text": "They modify an app's configuration — safely, never reaching outside the workspace.", "style": "note" }
+      ],
+      "buildSteps": [ { "atBeat": 0, "reveal": ["agents"], "effect": "appear" } ]
+    },
+    {
+      "id": "agents-inspect",
+      "kind": "svg",
+      "durationSec": 12,
+      "svgFile": "../../assets/brand/azure-workspace.svg",
+      "beats": [
+        { "text": "Agents <b>inspect</b> changes.", "style": "h2" },
+        { "text": "Periodically they review what changed and evaluate it — good vs. noise.", "style": "note" }
+      ],
+      "buildSteps": [ { "atBeat": 0, "reveal": ["inspect"], "effect": "appear" } ]
+    },
+    {
+      "id": "backlog",
+      "kind": "svg",
+      "durationSec": 13,
+      "svgFile": "../../assets/brand/azure-workspace.svg",
+      "beats": [
+        { "text": "Good changes feed the <b>Backlog</b>.", "style": "h2" },
+        { "text": "Which feeds the app's <b>golden instance</b> — and the loop repeats.", "style": "note" }
+      ],
+      "buildSteps": [ { "atBeat": 0, "reveal": ["backlog"], "effect": "appear" } ]
+    },
+    {
+      "id": "recap",
+      "kind": "content",
+      "durationSec": 12,
+      "beats": [
+        { "text": "Tenant → Subscriptions → Resource Groups → <b>Workspace boundary</b>.", "style": "h2" },
+        { "text": "Tied to a KPMG engagement number. Data moves — physically and virtually.", "style": "body" },
+        { "text": "Assets arrive from <b>shelves</b> and through the <b>client portal</b>.", "style": "body" },
+        { "text": "Agents improve the golden instance — all inside the wall.", "style": "note" }
+      ]
+    }
+  ]
+}

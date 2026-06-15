@@ -14,8 +14,8 @@ export const LIBRARY = [
       "infrastructure"
     ],
     "created": "2026-06-08",
-    "updated": "2026-06-08",
-    "version": 5,
+    "updated": "2026-06-15",
+    "version": 6,
     "sources": [
       {
         "url": "https://learn.microsoft.com/en-us/entra/fundamentals/whatis",
@@ -65,6 +65,11 @@ export const LIBRARY = [
         "version": 5,
         "date": "2026-06-08",
         "note": "Recolored the Workspace data-boundary border to purple and matched the engagement-number node to the same purple, so the engagement and the boundary it governs read as a pair. Region/resource-group anchor nodes keep the gold accent."
+      },
+      {
+        "version": 6,
+        "date": "2026-06-15",
+        "note": "Brought the deck into compliance with the presentation-grade graphics standard (assets/brand/STYLE.md): rebuilt all 18 scenes on hand-authored SVG (kind:\"svg\") instead of auto-laid-out Mermaid. Four brand SVGs — a master hierarchy diagram (tenant -> subscriptions -> resource groups -> workspace + agent loop) revealed zone by zone, plus focused asides for the resource catalog, shelves, and client-portal ingress. Dropped Mermaid from the output (deck.html 3.4 MB -> 266 KB). Story, claims, and report unchanged."
       }
     ],
     "artifacts": [

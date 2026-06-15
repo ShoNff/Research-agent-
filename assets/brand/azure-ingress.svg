@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1320 600" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="gCanvas" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6f9fd"/><stop offset="1" stop-color="#e7eef8"/></linearGradient>
+    <linearGradient id="gSteel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b91c8"/><stop offset="1" stop-color="#3a6fae"/></linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="6" stdDeviation="9" flood-color="#1c2d54" flood-opacity="0.16"/></filter>
+    <marker id="arwS" viewBox="0 0 12 12" refX="9" refY="6" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M1 1 L10 6 L1 11 Z" fill="#3a6fae"/></marker>
+    <symbol id="sym-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18h10a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 6.5 9.2 3.9 3.9 0 0 0 7 18Z"/></symbol>
+    <symbol id="sym-gateway" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V8l8-4.5L20 8v13"/><path d="M9.5 21v-6a2.5 2.5 0 0 1 5 0v6"/><path d="M2.5 21h19"/></symbol>
+    <symbol id="sym-datacenter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="6" rx="1.2"/><rect x="3.5" y="14" width="17" height="6" rx="1.2"/><path d="M6.8 7h.01M6.8 17h.01"/><path d="M10.5 7H17M10.5 17H17"/></symbol>
+    <symbol id="sym-storage" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M3.5 9.5h17M3.5 14.5h17"/><circle cx="7" cy="7.2" r="0.5" fill="currentColor"/><circle cx="7" cy="12" r="0.5" fill="currentColor"/><circle cx="7" cy="16.8" r="0.5" fill="currentColor"/></symbol>
+  </defs>
+
+  <rect width="1320" height="600" fill="url(#gCanvas)"/>
+
+  <!-- Client environment -->
+  <g data-reveal="client">
+    <rect x="48" y="150" width="332" height="300" rx="16" fill="#eef1f6" stroke="#9db0cf" stroke-width="1.5" stroke-dasharray="6 5"/>
+    <g transform="translate(70,168)" color="#7d8db0"><use href="#sym-cloud" width="28" height="28"/></g>
+    <text x="106" y="188" font-size="17" font-weight="700" fill="#5a6b8f">Client Environment</text>
+    <text x="70" y="214" font-size="13.5" fill="#8294b8">on-prem / client cloud</text>
+    <g filter="url(#soft)"><rect x="84" y="258" width="260" height="120" rx="14" fill="#ffffff" stroke="#d8e1f0"/></g>
+    <g transform="translate(108,292)" color="#5b6b8a"><use href="#sym-storage" width="34" height="34"/></g>
+    <text x="152" y="308" font-size="17" font-weight="700" fill="#1c2d54">Client data</text>
+    <text x="152" y="332" font-size="13.5" fill="#4a5b80">sources</text>
+  </g>
+
+  <!-- Client portal — the one governed doorway -->
+  <g data-reveal="portal">
+    <path d="M380 300 H 470" fill="none" stroke="#3a6fae" stroke-width="3" marker-end="url(#arwS)"/>
+    <text x="424" y="288" text-anchor="middle" font-size="13" font-weight="700" fill="#3a6fae">export / upload</text>
+    <g filter="url(#soft)"><rect x="476" y="210" width="248" height="180" rx="18" fill="url(#gSteel)"/></g>
+    <g transform="translate(508,242)" color="#ffffff"><use href="#sym-gateway" width="44" height="44"/></g>
+    <text x="566" y="272" font-size="21" font-weight="800" fill="#ffffff">Client Portal</text>
+    <text x="500" y="318" font-size="13.5" font-weight="600" fill="#e8f0fb">The single governed doorway:</text>
+    <text x="500" y="342" font-size="13.5" font-weight="600" fill="#e8f0fb">authenticated · scoped · logged</text>
+    <text x="500" y="366" font-size="13" fill="#cfe0f5">Nothing enters except through here.</text>
+  </g>
+
+  <!-- East US data center + workspace landing -->
+  <g data-reveal="eastus">
+    <path d="M724 300 H 812" fill="none" stroke="#3a6fae" stroke-width="3" marker-end="url(#arwS)"/>
+    <text x="768" y="288" text-anchor="middle" font-size="13" font-weight="700" fill="#3a6fae">ingest</text>
+    <rect x="818" y="120" width="454" height="360" rx="16" fill="#ffffff" fill-opacity="0.6" stroke="#4682b4" stroke-width="2"/>
+    <g transform="translate(840,136)" color="#3a6fae"><use href="#sym-datacenter" width="26" height="26"/></g>
+    <text x="876" y="155" font-size="15" font-weight="700" letter-spacing="1" fill="#1c2d54">EAST US — VIRGINIA DATA CENTER</text>
+    <rect x="846" y="190" width="398" height="262" rx="14" fill="#7b4fb5" fill-opacity="0.09" stroke="#7b4fb5" stroke-width="4"/>
+    <text x="868" y="220" font-size="14" font-weight="700" letter-spacing="2" fill="#6a44a0">WORKSPACE — DATA BOUNDARY</text>
+    <g filter="url(#soft)"><rect x="940" y="266" width="232" height="120" rx="14" fill="#29417a" stroke="#1c2d54"/></g>
+    <g transform="translate(966,302)" color="#bcd2f0"><use href="#sym-storage" width="34" height="34"/></g>
+    <text x="1010" y="318" font-size="17" font-weight="700" fill="#ffffff">Workspace storage</text>
+    <text x="1010" y="342" font-size="13.5" fill="#c8d6ee">data lands inside the wall</text>
+  </g>
+</svg>
