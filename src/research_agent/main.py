@@ -26,7 +26,9 @@ from research_agent.prompts.visual import VISUAL_AGENT_PROMPT
 from research_agent.prompts.writer import build_writer_prompt
 from research_agent.tools.diagram_gen import generate_diagram
 from research_agent.tools.doc_gen import render_docx
+from research_agent.tools.fetch import fetch_url, tavily_extract
 from research_agent.tools.html_email import render_email
+from research_agent.tools.limits import get_budget, reset_budget
 from research_agent.tools.memory_tools import search_memory
 from research_agent.tools.publish import publish_project
 from research_agent.tools.slides_gen import generate_slide, render_pptx
@@ -39,7 +41,7 @@ def _build_mcp_servers():
     search_server = create_sdk_mcp_server(
         name="search",
         version="1.0.0",
-        tools=[tavily_search, evaluate_source],
+        tools=[tavily_search, tavily_extract, fetch_url, evaluate_source],
     )
 
     output_server = create_sdk_mcp_server(
@@ -80,13 +82,16 @@ def _build_agent_definitions(config: Config) -> dict[str, AgentDefinition]:
         "search-agent": AgentDefinition(
             description=(
                 "Web research specialist. Use this agent to search the web for "
-                "information about a specific research question. It searches using "
-                "Tavily and evaluates source reliability. Invoke once per research question."
+                "information about a specific research question. It surveys via "
+                "Tavily search, deep-reads the best sources in full, and evaluates "
+                "source reliability. Invoke once per research question."
             ),
             prompt=SEARCH_AGENT_PROMPT,
             tools=[
                 "WebSearch",
                 "mcp__search__tavily_search",
+                "mcp__search__tavily_extract",
+                "mcp__search__fetch_url",
                 "mcp__search__evaluate_source",
             ],
             model=config.models.search,
@@ -174,6 +179,7 @@ def _build_user_prompt(
         formats=", ".join(config.formats),
         style=config.writing_style,
         max_revisions=config.max_qa_revisions,
+        max_research_rounds=config.limits.max_research_rounds,
         output_dir=str(project_dir.resolve()),
         slug=slug,
         memory_dir=str(memory_dir.resolve()),
@@ -213,6 +219,12 @@ async def run_research(
     log_dir = config.log_dir or project_dir / "logs"
     config.log_dir = log_dir
 
+    # Hard per-run tool budgets, enforced inside the search/fetch tools.
+    reset_budget(
+        max_searches=config.limits.max_searches,
+        max_extracts=config.limits.max_extracts,
+    )
+
     mcp_servers = _build_mcp_servers()
     agents = _build_agent_definitions(config)
 
@@ -239,7 +251,7 @@ async def run_research(
         ],
         permission_mode="bypassPermissions",
         model=config.models.orchestrator,
-        max_turns=60,
+        max_turns=80,
         cwd=str(project_dir),
     )
 
@@ -255,6 +267,9 @@ async def run_research(
             if isinstance(message, ResultMessage):
                 result_text = getattr(message, "result", None)
     finally:
+        budget = get_budget()
+        if verbose:
+            print(f"\n  Tool budget used: {budget.summary()}")
         logger.close()
 
     # Enforce the rule: a run only counts as done if it published. A bare

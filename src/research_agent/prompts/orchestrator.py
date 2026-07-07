@@ -40,8 +40,29 @@ For EACH research question, invoke the search-agent subagent. In the prompt you 
 - The specific research question
 - 2-3 suggested search queries
 - Any context from previous findings
+- A reminder to DEEP-READ the best sources in full and return quoted passages,
+  not just search snippets
 
 Collect all findings before proceeding.
+
+### Phase 2.5: Coverage Review & Follow-up (max {max_research_rounds} follow-up rounds)
+Before writing, audit the evidence. Write out an explicit coverage matrix:
+
+| Question | Coverage | Evidence quality | Gaps |
+|---|---|---|---|
+| Q1 ... | strong/partial/weak | full-text quotes / snippet-only | from the GAPS lines |
+
+Rate each question:
+- strong: answered with full-text evidence from reputable+ sources
+- partial: answered but thin — snippet-only sources, or key sub-questions open
+- weak: mostly unanswered, or only opinion-tier sources
+
+For every partial/weak row, launch targeted follow-up search-agent invocations
+with NARROWER questions and a suggested source type (e.g. "find the primary
+pricing documentation", "find the original benchmark paper", "find official
+docs rather than commentary"). Fold the new findings back into the matrix.
+Run at most {max_research_rounds} follow-up rounds, then proceed with the best
+evidence you have — note remaining weak areas so the writer can hedge them.
 
 ### Phase 3: Report Writing (use writer-agent)
 Invoke the writer-agent with a SINGLE prompt containing:
@@ -62,8 +83,12 @@ Invoke the qa-agent with a prompt containing:
 
 ### Phase 5: Revision (conditional — max {max_revisions} revision cycles)
 If the qa-agent returns overall_pass: false:
-1. Invoke writer-agent again with the original draft + specific QA feedback
-2. Invoke qa-agent again on the revision
+1. If the QA feedback lists missing_coverage items, you may run ONE additional
+   round of targeted search-agent invocations on those items first (this counts
+   against the {max_research_rounds} follow-up rounds from Phase 2.5, not
+   against revision cycles) and pass the new findings to the writer.
+2. Invoke writer-agent again with the original draft + specific QA feedback
+3. Invoke qa-agent again on the revision
 Maximum {max_revisions} revision cycles. If still failing, proceed with the best draft.
 
 ### Phase 6: Visuals (use visual-agent)
