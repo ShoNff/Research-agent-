@@ -24,6 +24,8 @@ from research_agent.prompts.qa import QA_AGENT_PROMPT
 from research_agent.prompts.search import SEARCH_AGENT_PROMPT
 from research_agent.prompts.visual import VISUAL_AGENT_PROMPT
 from research_agent.prompts.writer import build_writer_prompt
+from research_agent.tools.chart_gen import generate_chart
+from research_agent.tools.deck_gen import render_deck
 from research_agent.tools.diagram_gen import generate_diagram
 from research_agent.tools.doc_gen import render_docx
 from research_agent.tools.fetch import fetch_url, tavily_extract
@@ -48,7 +50,9 @@ def _build_mcp_servers():
         name="output",
         version="1.0.0",
         tools=[
+            generate_chart,
             generate_diagram,
+            render_deck,
             render_docx,
             render_pptx,
             render_email,
@@ -121,15 +125,18 @@ def _build_agent_definitions(config: Config) -> dict[str, AgentDefinition]:
         ),
         "visual-agent": AgentDefinition(
             description=(
-                "Visual design specialist. Creates diagrams, flowcharts, and visual "
-                "representations of report content using Mermaid syntax. Renders "
-                "diagrams to image files."
+                "Visual design specialist. Creates brand-standard SVG data charts, "
+                "structural diagrams, and the project's animated presentation deck "
+                "(hand-authored SVG scenes rendered via the deck builder)."
             ),
             prompt=VISUAL_AGENT_PROMPT,
             tools=[
                 "Bash",
+                "Read",
                 "Write",
+                "mcp__output__generate_chart",
                 "mcp__output__generate_diagram",
+                "mcp__output__render_deck",
                 "mcp__output__generate_slide",
             ],
             model=config.models.visual,

@@ -73,7 +73,7 @@ function buildProject(projectPath, manifest) {
 
   const reportPath = join(projectPath, "report.md");
   const reportHtml = existsSync(reportPath)
-    ? renderMarkdown(readFileSync(reportPath, "utf8"))
+    ? renderMarkdown(readFileSync(reportPath, "utf8"), `/library/${slug}`)
     : "";
 
   const artifacts = files.map((f) => ({

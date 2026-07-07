@@ -93,16 +93,22 @@ Maximum {max_revisions} revision cycles. If still failing, proceed with the best
 
 ### Phase 6: Visuals (use visual-agent)
 Invoke the visual-agent with a prompt containing:
-- The final report content
-- The output directory: {output_dir}
+- The final report content (including its data tables/numbers)
+- The output directory: {output_dir} and the slug: "{slug}"
 - Instructions to create:
-  - 1 overview/architecture diagram for the topic
-  - 1 diagram per major finding (where visual representation adds value)
+  - 1-3 brand-standard SVG data charts from the report's quantitative findings
+    (generate_chart — bar/line/timeline/stat_row)
+  - At most 1-2 structural Mermaid diagrams, only for genuine process/architecture flows
+  - The presentation deck (MANDATORY): author {slug}.deck.json with hand-authored
+    SVG scenes and render it to {output_dir}/deck.html via render_deck
+Collect the chart markdown_refs the visual-agent reports back.
 
 ### Phase 7: Output Generation
 This project lives in the directory: {output_dir} (slug: "{slug}").
 Write ALL artifacts into that directory. After visuals are generated:
-1. ALWAYS save the markdown report to {output_dir}/report.md using the Write tool
+1. ALWAYS save the markdown report to {output_dir}/report.md using the Write tool.
+   Embed the generated charts at the relevant points in the report using their
+   markdown_refs (e.g. `![Chart title](chart-name.svg)`).
 2. If "docx" is in the requested formats: call mcp__output__render_docx
 3. If "pptx" is in the requested formats: call mcp__output__render_pptx
 4. If "email" is in the requested formats: call mcp__output__render_email

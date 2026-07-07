@@ -464,15 +464,79 @@ body {
   border-color: var(--primary-bright);
 }
 
-/* Rendered report */
+/* Rendered report — publication reading experience */
+.reportLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+@media (min-width: 1024px) {
+  .reportLayout {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+  .toc {
+    position: sticky;
+    top: 24px;
+  }
+}
+.toc {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 14px;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  font-size: 13.5px;
+}
+.tocTitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  padding: 5px 8px;
+  border-radius: 8px;
+  line-height: 1.35;
+}
+.toc a:hover {
+  color: var(--text);
+  background: var(--glass-strong);
+}
+@media (max-width: 1023.5px) {
+  .toc {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+  }
+  .tocTitle {
+    flex-basis: 100%;
+  }
+}
+
 .prose {
   background: var(--glass);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 32px 36px;
-  line-height: 1.7;
+  padding: 36px clamp(20px, 5vw, 48px);
+  font-size: 16.5px;
+  line-height: 1.75;
   color: var(--text);
   overflow-wrap: anywhere;
+}
+.prose > * {
+  max-width: 68ch;
+}
+.prose > .tableWrap,
+.prose > figure.figure,
+.prose > pre {
+  max-width: none;
 }
 .prose h1,
 .prose h2,
@@ -628,12 +692,37 @@ body {
   gap: 8px;
 }
 
-/* Wide content (rare tables / long code) scrolls instead of overflowing. */
-.prose table {
-  display: block;
-  max-width: 100%;
+/* Data tables: styled, and wide ones scroll inside their wrapper. */
+.prose .tableWrap {
   overflow-x: auto;
+  margin: 1.4em 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.prose table {
+  width: 100%;
   border-collapse: collapse;
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+.prose th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-dim);
+  background: var(--glass-strong);
+  padding: 10px 14px;
+  white-space: nowrap;
+}
+.prose td {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  vertical-align: top;
+}
+.prose tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.025);
 }
 
 /* ---------- Mobile ---------- */

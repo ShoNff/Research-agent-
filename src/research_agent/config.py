@@ -16,7 +16,9 @@ class ModelConfig:
     search: str = "sonnet"
     writer: str = "opus"
     qa: str = "sonnet"
-    visual: str = "sonnet"
+    # opus: the visual agent hand-authors presentation-grade SVG deck scenes,
+    # the quality-sensitive step ("light" profile drops it back to sonnet).
+    visual: str = "opus"
 
 
 @dataclass
