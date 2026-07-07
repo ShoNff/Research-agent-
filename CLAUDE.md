@@ -44,10 +44,17 @@ TAVILY_API_KEY=...
 # Run a research task — publishes projects/<slug>/
 research-agent "your topic" --format markdown --style concise -v
 
+# Depth/cost profile: deep | standard | light (search/extract budgets, follow-up rounds, models)
+research-agent "your topic" --profile deep -v
+
 # Dry run (shows the resolved project folder + config)
 research-agent "your topic" --dry-run
 
-# Browse the research library locally (reads projects/)
+# Produce today's edition of the daily paper (editions/<date>/, emailed via Resend)
+research-paper --no-email -v          # local test without sending
+research-paper --refresh-stale 1      # what the daily cron runs
+
+# Browse the research library locally (reads projects/ and editions/)
 cd web && npm install && npm run dev
 ```
 
@@ -62,13 +69,17 @@ cd web && npm install && npm run dev
 | `src/research_agent/memory.py` | Shared-memory keyword index (`MemoryStore`): upsert/search/rebuild over manifests. |
 | `src/research_agent/tracing.py` | Structured logging: JSONL trace + human-readable summary log. See "Logging & Tracing" below. |
 | `src/research_agent/mcp_server.py` | Wraps the research pipeline as an MCP tool for Claude Code. |
+| `src/research_agent/paper.py` | **The Daily Brief.** Cheap sonnet-only pipeline: sweeps `config/interests.json`, pulse-checks the library via memory, writes `editions/<date>/edition.{json,md}` (validated by `models/edition.py`), emails via Resend (`tools/send_email.py`), optionally refreshes stale projects. CLI entry: `paper_cli.py` (`research-paper`). Scheduled by `.github/workflows/daily-paper.yml`. |
+| `src/research_agent/tools/limits.py` | Hard per-run search/extract budgets (`RunBudget`) enforced inside the tools; depth/cost profiles live in `config.py:PROFILES`. |
 | `src/research_agent/prompts/*.py` | System prompts for each agent. These control agent behavior — edit carefully. |
-| `src/research_agent/tools/*.py` | Custom MCP tools using `@tool` decorator + `create_sdk_mcp_server()`. Includes `publish.py` (the mandatory publish step). |
-| `src/research_agent/models/*.py` | Pydantic models for source metadata, findings, reports, QA reviews. |
-| `src/research_agent/templates/` | Jinja2 email template + PowerPoint layout constants. |
+| `src/research_agent/tools/*.py` | Custom MCP tools using `@tool` decorator + `create_sdk_mcp_server()`. Includes `publish.py` (the mandatory publish step), `fetch.py` (full-source reading), `chart_gen.py` (brand SVG charts), `deck_gen.py` (deck build). |
+| `src/research_agent/models/*.py` | Pydantic models for source metadata, findings, reports, QA reviews, and editions. |
+| `src/research_agent/templates/` | Jinja2 email templates (incl. `newspaper.html`) + PowerPoint layout constants. |
+| `config/interests.json` | Daily-paper config: reader persona, standing interests, watch list, email recipients. |
 | `projects/<slug>/` | Published projects — the source of truth. See `projects/README.md`. |
+| `editions/YYYY-MM-DD/` | Daily paper editions (date-keyed snapshots, not living reports). See `editions/README.md`. |
 | `memory/index.json` | Shared-memory index derived from manifests. See `memory/README.md`. |
-| `web/` | Next.js research-library front end. Auto-built from `projects/`. See `web/README.md`. |
+| `web/` | Next.js research-library front end. Auto-built from `projects/` + `editions/`. See `web/README.md`. |
 
 ## Architecture
 

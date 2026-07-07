@@ -1,0 +1,69 @@
+# The Daily Brief — unattended daily edition.
+#
+# Runs the research-paper pipeline every morning: sweeps standing interests,
+# pulse-checks the library, writes editions/<date>/, emails the edition via
+# Resend, optionally refreshes one stale project, then commits. The push
+# triggers the Vercel deploy, which rebuilds the web app's front page from
+# editions/ — no other consumer needs to know this workflow exists.
+#
+# Cost guard: the paper profile is sonnet-only with a hard 14-search/6-extract
+# budget (see src/research_agent/paper.py); expected ~$0.30–0.80/day plus one
+# living-report refresh when a project has gone stale.
+#
+# Required repo secrets: ANTHROPIC_API_KEY, TAVILY_API_KEY, RESEND_API_KEY.
+
+name: daily-paper
+
+on:
+  schedule:
+    - cron: "0 11 * * *" # ~6-7am ET
+  workflow_dispatch:
+    inputs:
+      no_email:
+        description: "Skip the email send"
+        type: boolean
+        default: false
+
+concurrency: daily-paper
+
+permissions:
+  contents: write
+
+jobs:
+  paper:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: pip install -e .
+
+      - name: Produce today's edition
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: |
+          research-paper --refresh-stale 1 -v \
+            ${{ inputs.no_email && '--no-email' || '' }}
+
+      - name: Rebuild memory index
+        run: python -m research_agent.memory rebuild ./projects
+
+      - name: Commit and push
+        run: |
+          git config user.name "daily-paper-bot"
+          git config user.email "daily-paper-bot@users.noreply.github.com"
+          git add editions/ projects/ memory/
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+            exit 0
+          fi
+          git commit -m "paper: $(date -u +%F) edition"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "${GITHUB_REF_NAME}"
