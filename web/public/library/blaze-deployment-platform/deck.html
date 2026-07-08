@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en" style="--primary:#29417a;--secondary:#4682b4;--accent:#e8732b;--text:#1c2533;--bg:#0d1626;">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Everyone Is a Developer</title>
+  <style>
+/* Animated Mermaid Deck — styles
+ * Theme custom properties (--primary, --secondary, --accent, --text, --bg)
+ * are injected inline on <html> by the builder so a deck can re-theme itself.
+ */
+
+:root {
+  --primary: #29417a;
+  --secondary: #4682b4;
+  --accent: #daa520;
+  --text: #1c2533;
+  --bg: #0d1626;
+  --panel: rgba(255, 255, 255, 0.96);
+  --beat-stagger: 700ms;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: radial-gradient(120% 120% at 50% 0%, #16233f 0%, var(--bg) 60%, #060b15 100%);
+  color: #eaf0fa;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden;
+}
+
+/* ---- Layout ---------------------------------------------------------- */
+
+#deck {
+  position: relative;
+  height: 100vh;
+  height: 100dvh;   /* dvh excludes mobile browser chrome so controls stay on-screen */
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+}
+
+#stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 3vh 4vw 1vh;
+}
+
+.scene {
+  position: absolute;
+  inset: 3vh 4vw 1vh;
+  display: none;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.scene.is-active { display: flex; }
+
+/* Title scenes center everything; content/diagram scenes split text + diagram. */
+.scene[data-kind="title"] {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.scene[data-kind="content"],
+.scene[data-kind="diagram"] {
+  display: none;
+}
+.scene[data-kind="content"].is-active,
+.scene[data-kind="diagram"].is-active {
+  display: grid;
+  grid-template-columns: minmax(280px, 38%) 1fr;
+  align-items: center;
+  gap: 2vw;
+}
+/* When a scene has no diagram, let the text use the whole stage. */
+.scene.no-diagram.is-active { grid-template-columns: 1fr; text-align: center; justify-items: center; }
+
+/* SVG scenes are full-bleed: a compact title on top, the hand-authored SVG
+   filling the rest of the stage (no side-by-side split). */
+.scene[data-kind="svg"].is-active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.8rem;
+}
+.scene[data-kind="svg"] .scene-text { flex: 0 0 auto; text-align: center; align-items: center; }
+.scene[data-kind="svg"] .scene-diagram { flex: 1 1 auto; min-height: 0; width: 100%; }
+.scene[data-kind="svg"] .scene-diagram svg { max-height: 84vh; }
+
+.scene-text { display: flex; flex-direction: column; gap: 0.9rem; }
+
+.scene-diagram {
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.scene-diagram svg { width: 100%; max-width: 100%; max-height: 80vh; height: auto; }
+
+/* ---- Text beats ------------------------------------------------------ */
+
+.beat {
+  opacity: 0;
+  will-change: opacity, transform;
+}
+.beat[data-anim="fade-up"] { transform: translateY(14px); transition: opacity .55s ease, transform .55s ease; }
+.beat[data-anim="fade"]    { transition: opacity .6s ease; }
+.beat.is-in { opacity: 1; transform: none; }
+
+/* Typewriter: clip the inner span's width with a steps() animation + caret. */
+.beat[data-anim="typewriter"] { opacity: 1; }
+.beat[data-anim="typewriter"] .tw {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 0;
+  border-right: 2px solid var(--accent);
+  vertical-align: bottom;
+}
+.beat[data-anim="typewriter"].is-in .tw {
+  animation: tw-type var(--tw-dur, 1.6s) steps(var(--tw-steps, 30)) forwards,
+             tw-caret 700ms step-end infinite;
+}
+@keyframes tw-type { to { width: 100%; } }
+@keyframes tw-caret { 50% { border-color: transparent; } }
+
+.beat--h1 { font-size: clamp(2rem, 5.2vw, 4rem); font-weight: 800; line-height: 1.05; color: #ffffff; letter-spacing: -0.02em; }
+.beat--h2 { font-size: clamp(1.5rem, 3.4vw, 2.6rem); font-weight: 700; line-height: 1.12; color: #ffffff; }
+.beat--body { font-size: clamp(1.05rem, 1.9vw, 1.5rem); font-weight: 400; line-height: 1.4; color: #d6e0f0; }
+.beat--note { font-size: clamp(0.85rem, 1.3vw, 1.05rem); font-weight: 400; color: #93a6c4; }
+.beat b, .beat strong { color: var(--accent); font-weight: 800; }
+
+.scene-caption {
+  position: absolute;
+  bottom: 0.4rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #7e90ad;
+}
+
+/* ---- Mermaid element reveal (set by JS) ------------------------------ */
+/* The engine sets inline opacity/transform on targeted SVG groups for the
+ * initial hidden state, then adds .revealed. We keep transitions in CSS so
+ * reduced-motion can zero them. */
+/* Only opacity is animated on SVG groups — CSS `transform` would override the
+ * SVG `transform` attribute that positions each node and collapse them to 0,0. */
+.mm-hidden { opacity: 0; }
+.mm-anim   { transition: opacity .5s ease; }
+.mm-anim.revealed { opacity: 1 !important; }
+
+@keyframes mm-pulse {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+.mm-pulse { transform-box: fill-box; transform-origin: center; animation: mm-pulse 900ms ease-in-out 2; }
+
+/* ---- Controls -------------------------------------------------------- */
+
+#progress {
+  position: relative;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  flex: 0 0 auto;
+}
+#progress-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 0%;
+  background: linear-gradient(90deg, var(--secondary), var(--accent));
+}
+#progress-ticks { position: absolute; inset: 0; }
+#progress-ticks .tick { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.25); }
+
+#controls {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;          /* never let buttons overflow off-screen */
+  gap: 0.6rem;
+  padding: 0.7rem 1.2rem;
+  background: rgba(8, 14, 26, 0.7);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+#controls button {
+  background: var(--primary);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  padding: 0.45rem 0.7rem;
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+}
+#controls button:hover { background: var(--secondary); }
+#scene-counter { margin-left: auto; font-variant-numeric: tabular-nums; color: #aebbd2; font-size: 0.95rem; }
+#deck-title-mini { color: #8294b2; font-size: 0.9rem; margin-right: 0.4rem; }
+#reduced-hint { color: var(--accent); font-size: 0.85rem; display: none; }
+#voice-status {
+  display: none;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  background: var(--accent);
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  cursor: help;
+}
+#voice-status.show { display: inline-flex; }
+
+/* ---- Start overlay (needed to unlock audio autoplay) ---------------- */
+
+#start-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  background: radial-gradient(120% 120% at 50% 30%, rgba(22,35,63,0.96), rgba(6,11,21,0.98));
+  text-align: center;
+  padding: 2rem;
+}
+#start-overlay.hidden { display: none; }
+#start-overlay h1 { font-size: clamp(2rem, 6vw, 4.5rem); margin: 0; color: #fff; }
+#start-overlay p { color: #b9c6dd; max-width: 40ch; margin: 0; }
+#start-btn {
+  margin-top: 0.6rem;
+  background: var(--accent);
+  color: #1a1a1a;
+  border: none;
+  border-radius: 999px;
+  padding: 0.9rem 2.2rem;
+  font-size: 1.3rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+#start-btn:hover { filter: brightness(1.07); }
+
+/* ---- Mobile / narrow screens ---------------------------------------- */
+@media (max-width: 760px) {
+  #stage { padding: 1.6vh 4vw 0.8vh; }
+
+  /* On phones the side-by-side text/diagram grid doesn't fit. Stack the text
+     above the diagram and let the scene scroll inside the stage, so tall
+     content can never grow down over the controls and hide the nav buttons. */
+  .scene { gap: 0.8rem; }
+  .scene[data-kind="content"].is-active,
+  .scene[data-kind="diagram"].is-active,
+  .scene[data-kind="svg"].is-active {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-items: stretch;
+    justify-content: center;
+    gap: 1rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .scene.no-diagram.is-active { overflow-y: auto; justify-content: center; }
+  .scene-text { gap: 0.7rem; flex: 0 0 auto; }
+
+  /* The engine sizes the diagram (sizeDiagram) so a wide diagram is rendered at
+     a legible scale rather than shrunk to the phone's width; this container
+     just lets it scroll, and the engine pans it to the revealed parts. */
+  .scene-diagram {
+    display: block;
+    flex: 0 1 auto;
+    min-height: 0;
+    width: 100%;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    text-align: center;   /* centre a diagram that's narrower than the screen */
+  }
+  .scene-diagram svg { display: inline-block; max-height: none; }
+
+  #controls {
+    gap: 0.4rem;
+    padding: 0.5rem 0.6rem calc(0.5rem + env(safe-area-inset-bottom));
+    justify-content: center;
+  }
+  #deck-title-mini { display: none; }          /* free up horizontal space */
+  #controls button {
+    flex: 0 0 auto;
+    min-width: 44px;                            /* comfortable touch targets */
+    min-height: 44px;
+    padding: 0.5rem 0.7rem;
+    font-size: 1.15rem;
+  }
+  #scene-counter { margin-left: 0; order: 1; }  /* sits inline, no auto-push */
+  #voice-status {
+    order: 2;
+    flex-basis: 100%;                           /* its own row below the buttons */
+    justify-content: center;
+    font-size: 0.78rem;
+  }
+}
+
+/* ---- Reduced motion -------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .beat,
+  .beat[data-anim="fade-up"],
+  .beat[data-anim="fade"] { transition: none !important; transform: none !important; }
+  .beat[data-anim="typewriter"] .tw { animation: none !important; width: 100% !important; border-right: none; }
+  .mm-anim { transition: none !important; }
+  .mm-pulse { animation: none !important; }
+  #progress-fill { transition: none !important; }
+}
+
+  </style>
+</head>
+<body>
+  <div id="deck">
+    <div id="progress">
+      <div id="progress-fill"></div>
+      <div id="progress-ticks"></div>
+    </div>
+
+    <div id="stage"><!-- scenes injected by engine --></div>
+
+    <div id="controls">
+      <span id="deck-title-mini">Everyone Is a Developer</span>
+      <button id="btn-prev" title="Previous (←)">⏮</button>
+      <button id="btn-play" title="Play / Pause (Space)">▶</button>
+      <button id="btn-next" title="Next (→)">⏭</button>
+      <button id="btn-replay" title="Replay (R)">↺</button>
+      <button id="btn-mute" title="Mute / unmute narration">🔊</button>
+      <span id="reduced-hint">Reduced motion is on — use ⏮ ⏭</span>
+      <span id="voice-status" title="No text-to-speech voice is installed in this browser/OS, so narration is silent. The slides still advance on their own.">🔇 No narration voice on this device</span>
+      <span id="scene-counter">1 / 1</span>
+    </div>
+
+    <div id="start-overlay">
+      <h1>Everyone Is a Developer</h1>
+      <p>Anyone builds — or changes — an app at scale, in any tool. Blaze deploys it and owns compliance, end to end, automatically.</p>
+      <button id="start-btn">▶ Play</button>
+      <p style="font-size:.8rem;color:#7e90ad">Audio narration uses your browser's voice. Space = play/pause, ← → = navigate, R = replay.</p>
+    </div>
+  </div>
+
+  
+  <script>window.DECK = {"title": "Everyone Is a Developer", "subtitle": "Anyone builds — or changes — an app at scale, in any tool. Blaze deploys it and owns compliance, end to end, automatically.", "targetDurationSec": 170, "defaultAdvance": "auto", "audio": {"enabled": false, "voiceHint": "en", "rate": 1.0}, "theme": {"primary": "#29417a", "secondary": "#4682b4", "accent": "#e8732b"}, "scenes": [{"id": "intro", "kind": "title", "durationSec": 8, "beats": [{"text": "Everyone Is a <b>Developer<\/b>", "style": "h1", "anim": "fade-up"}, {"text": "Anyone builds — or <b>changes<\/b> — an app. At scale. <b>Automated<\/b>.", "style": "body", "anim": "fade"}, {"text": "~3 minutes", "style": "note", "anim": "fade"}]}, {"id": "scale", "kind": "content", "durationSec": 15, "beats": [{"text": "Everyone becomes a <b>developer<\/b>.", "style": "h2"}, {"text": "Spin up a <b>new app<\/b> — or <b>change one that already exists<\/b>, with the right access.", "style": "body"}, {"text": "<b>Hundreds of thousands<\/b> of apps and changes. That's the volume.", "style": "body"}, {"text": "At that scale, the path has to be <b>automated<\/b> — end to end.", "style": "note"}]}, {"id": "arc", "kind": "content", "durationSec": 14, "beats": [{"text": "Three moves make it <b>safe and automatic<\/b>:", "style": "h2"}, {"text": "1 — Start from a <b>template<\/b>, vibe-code in <b>any tool<\/b>.", "style": "body"}, {"text": "2 — Deploy through <b>Blaze<\/b> — our enterprise Vercel.", "style": "body"}, {"text": "3 — Blaze owns <b>100% of compliance<\/b> and shows you where you stand.", "style": "note"}]}, {"id": "svg-templates", "kind": "svg", "durationSec": 12, "beats": [{"text": "It starts with <b>templates<\/b>.", "style": "h2"}, {"text": "Starter repos on GitHub — one per stack, no blank page.", "style": "note"}], "buildSteps": [{"atBeat": 0, "reveal": ["templates"], "effect": "appear"}], "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1320 820\" font-family=\"'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif\">\n  <defs>\n    <linearGradient id=\"gCanvas\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#f6f9fd\"/>\n      <stop offset=\"1\" stop-color=\"#e7eef8\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gNavy\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#34518f\"/>\n      <stop offset=\"1\" stop-color=\"#1c2d54\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gSteel\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#5b91c8\"/>\n      <stop offset=\"1\" stop-color=\"#3a6fae\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gBlaze\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#ffb15a\"/>\n      <stop offset=\"0.5\" stop-color=\"#f0822f\"/>\n      <stop offset=\"1\" stop-color=\"#d2541a\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gGold\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#f3d27a\"/>\n      <stop offset=\"1\" stop-color=\"#d9a92e\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gOrangeBar\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\">\n      <stop offset=\"0\" stop-color=\"#f0822f\"/>\n      <stop offset=\"1\" stop-color=\"#e8732b\"/>\n    <\/linearGradient>\n    <filter id=\"soft\" x=\"-20%\" y=\"-20%\" width=\"140%\" height=\"140%\">\n      <feDropShadow dx=\"0\" dy=\"6\" stdDeviation=\"9\" flood-color=\"#1c2d54\" flood-opacity=\"0.18\"/>\n    <\/filter>\n    <filter id=\"softLg\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\">\n      <feDropShadow dx=\"0\" dy=\"10\" stdDeviation=\"16\" flood-color=\"#c2410c\" flood-opacity=\"0.35\"/>\n    <\/filter>\n    <marker id=\"arw\" viewBox=\"0 0 12 12\" refX=\"9\" refY=\"6\" markerWidth=\"9\" markerHeight=\"9\" orient=\"auto-start-reverse\">\n      <path d=\"M1 1 L10 6 L1 11 Z\" fill=\"#6b7da6\"/>\n    <\/marker>\n    <marker id=\"arwO\" viewBox=\"0 0 12 12\" refX=\"9\" refY=\"6\" markerWidth=\"9\" markerHeight=\"9\" orient=\"auto-start-reverse\">\n      <path d=\"M1 1 L10 6 L1 11 Z\" fill=\"#e8732b\"/>\n    <\/marker>\n\n    <!-- ===== Reusable symbol kit (stroke = currentColor); see symbols.svg ===== -->\n    <symbol id=\"sym-template\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M6 2.5h8l4 4v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z\"/>\n      <path d=\"M14 2.5V6.5h4\"/><path d=\"M8 12h8\"/><path d=\"M8 15.5h8\"/><path d=\"M8 19h5\"/>\n    <\/symbol>\n    <symbol id=\"sym-ai\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 3 l1.7 4.3 L18 9 l-4.3 1.7 L12 15 l-1.7-4.3 L6 9 l4.3-1.7 Z\"/>\n      <path d=\"M18.5 14.5 l.8 2 l2 .8 l-2 .8 l-.8 2 l-.8-2 l-2-.8 l2-.8 Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-app\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/>\n      <path d=\"M3 8.5h18\"/><circle cx=\"6\" cy=\"6.2\" r=\"0.6\" fill=\"currentColor\"/><circle cx=\"8.2\" cy=\"6.2\" r=\"0.6\" fill=\"currentColor\"/>\n    <\/symbol>\n    <symbol id=\"sym-flame\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 2.5c2.5 3.5 5.5 5.6 5.5 9.8a5.5 5.5 0 0 1-11 0c0-1.7.6-3 1.6-4 .2 1.2.9 2 1.9 2.3-.3-2.6.9-5.5 2-8.1Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-shield\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 2.5 4.5 5.5v6c0 4.7 3.2 8.4 7.5 10 4.3-1.6 7.5-5.3 7.5-10v-6Z\"/>\n      <path d=\"M8.5 12l2.4 2.4L15.5 9.8\"/>\n    <\/symbol>\n    <symbol id=\"sym-approval\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <circle cx=\"10\" cy=\"8\" r=\"3.2\"/>\n      <path d=\"M3.8 20c.6-3.3 3.1-5.2 6.2-5.2 1.2 0 2.3.3 3.2.8\"/>\n      <path d=\"M15.5 18.2l1.8 1.8 3.4-3.6\"/>\n    <\/symbol>\n    <symbol id=\"sym-cloud\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M7 18h10a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 6.5 9.2 3.9 3.9 0 0 0 7 18Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-gateway\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M4 21V8l8-4.5L20 8v13\"/><path d=\"M9.5 21v-6a2.5 2.5 0 0 1 5 0v6\"/><path d=\"M2.5 21h19\"/>\n    <\/symbol>\n    <symbol id=\"sym-bell\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M6.5 17V10.5a5.5 5.5 0 0 1 11 0V17l1.8 2.2H4.7Z\"/><path d=\"M10 20.5a2 2 0 0 0 4 0\"/>\n    <\/symbol>\n  <\/defs>\n\n  <!-- Static canvas (always visible) -->\n  <rect width=\"1320\" height=\"820\" fill=\"url(#gCanvas)\"/>\n\n  <!-- ============ TEMPLATES ============ -->\n  <g data-reveal=\"templates\">\n    <text x=\"52\" y=\"68\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">BUILD — ANYONE, ANY TOOL<\/text>\n    <g filter=\"url(#soft)\">\n      <rect x=\"50\" y=\"90\" width=\"250\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"50\" y=\"90\" width=\"250\" height=\"6\" rx=\"3\" fill=\"url(#gGold)\"/>\n    <\/g>\n    <g transform=\"translate(74,120)\" color=\"#b9881d\"><use href=\"#sym-template\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"126\" y=\"140\" font-size=\"22\" font-weight=\"700\" fill=\"#1c2d54\">Templates<\/text>\n    <text x=\"74\" y=\"178\" font-size=\"15\" fill=\"#4a5b80\">Starter repos on GitHub,<\/text>\n    <text x=\"74\" y=\"200\" font-size=\"15\" fill=\"#4a5b80\">one per stack — no blank page.<\/text>\n  <\/g>\n\n  <!-- ============ TOOLS ============ -->\n  <g data-reveal=\"tools\">\n    <path d=\"M300 156 H346\" fill=\"none\" stroke=\"#6b7da6\" stroke-width=\"2.4\" marker-end=\"url(#arw)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"350\" y=\"90\" width=\"270\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"350\" y=\"90\" width=\"270\" height=\"6\" rx=\"3\" fill=\"url(#gSteel)\"/>\n    <\/g>\n    <g transform=\"translate(374,118)\" color=\"#3a6fae\"><use href=\"#sym-ai\" width=\"38\" height=\"38\"/><\/g>\n    <text x=\"422\" y=\"138\" font-size=\"20\" font-weight=\"700\" fill=\"#1c2d54\">Vibe-code in any tool<\/text>\n    <g font-size=\"14\" font-weight=\"600\">\n      <rect x=\"374\" y=\"160\" width=\"86\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"417\" y=\"180\" text-anchor=\"middle\" fill=\"#2f6fae\">Lovable<\/text>\n      <rect x=\"468\" y=\"160\" width=\"118\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"527\" y=\"180\" text-anchor=\"middle\" fill=\"#2f6fae\">Claude Code<\/text>\n      <rect x=\"374\" y=\"196\" width=\"80\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"414\" y=\"216\" text-anchor=\"middle\" fill=\"#2f6fae\">Cursor<\/text>\n      <rect x=\"462\" y=\"196\" width=\"98\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"511\" y=\"216\" text-anchor=\"middle\" fill=\"#2f6fae\">any AI<\/text>\n    <\/g>\n  <\/g>\n\n  <!-- ============ YOUR APP ============ -->\n  <g data-reveal=\"app\">\n    <path d=\"M620 156 H666\" fill=\"none\" stroke=\"#6b7da6\" stroke-width=\"2.4\" marker-end=\"url(#arw)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"670\" y=\"90\" width=\"200\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"670\" y=\"90\" width=\"200\" height=\"6\" rx=\"3\" fill=\"url(#gSteel)\"/>\n    <\/g>\n    <g transform=\"translate(694,120)\" color=\"#3a6fae\"><use href=\"#sym-app\" width=\"38\" height=\"38\"/><\/g>\n    <text x=\"742\" y=\"140\" font-size=\"21\" font-weight=\"700\" fill=\"#1c2d54\">Your app<\/text>\n    <text x=\"694\" y=\"178\" font-size=\"15\" fill=\"#4a5b80\">New build —<\/text>\n    <text x=\"694\" y=\"200\" font-size=\"15\" fill=\"#4a5b80\">or a change to an existing one.<\/text>\n  <\/g>\n\n  <!-- ============ BLAZE HUB ============ -->\n  <g data-reveal=\"blaze\">\n    <text x=\"922\" y=\"58\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">DEPLOY<\/text>\n    <path d=\"M870 156 H918\" fill=\"none\" stroke=\"#e8732b\" stroke-width=\"3.2\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#softLg)\">\n      <rect x=\"922\" y=\"70\" width=\"350\" height=\"170\" rx=\"22\" fill=\"url(#gBlaze)\"/>\n    <\/g>\n    <g transform=\"translate(956,108)\" color=\"#ffffff\"><use href=\"#sym-flame\" width=\"64\" height=\"64\"/><\/g>\n    <text x=\"1040\" y=\"138\" font-size=\"40\" font-weight=\"800\" fill=\"#ffffff\" letter-spacing=\"1\">BLAZE<\/text>\n    <text x=\"1040\" y=\"170\" font-size=\"17\" font-weight=\"600\" fill=\"#fff3e8\">The Enterprise Vercel<\/text>\n    <text x=\"956\" y=\"216\" font-size=\"16\" fill=\"#fff3e8\">One front door — it deploys what you built.<\/text>\n  <\/g>\n\n  <!-- ============ ENVIRONMENTS ============ -->\n  <g data-reveal=\"envs\">\n    <text x=\"52\" y=\"556\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">RUN — GOVERNED ENVIRONMENTS<\/text>\n    <g filter=\"url(#soft)\"><rect x=\"50\" y=\"570\" width=\"260\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(72,594)\" color=\"#bcd2f0\"><use href=\"#sym-cloud\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"124\" y=\"618\" font-size=\"21\" font-weight=\"700\" fill=\"#ffffff\">Commercial Cloud<\/text>\n    <text x=\"72\" y=\"660\" font-size=\"15\" fill=\"#c8d6ee\">Build and ship apps in the<\/text>\n    <text x=\"72\" y=\"682\" font-size=\"15\" fill=\"#c8d6ee\">commercial estate.<\/text>\n    <g font-size=\"14\" font-weight=\"700\">\n      <rect x=\"72\" y=\"694\" width=\"58\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"101\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Dev<\/text>\n      <rect x=\"138\" y=\"694\" width=\"62\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"169\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Prod<\/text>\n    <\/g>\n    <g filter=\"url(#soft)\"><rect x=\"330\" y=\"570\" width=\"240\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(352,594)\" color=\"#bcd2f0\"><use href=\"#sym-cloud\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"404\" y=\"618\" font-size=\"21\" font-weight=\"700\" fill=\"#ffffff\">GAC<\/text>\n    <text x=\"352\" y=\"660\" font-size=\"15\" fill=\"#c8d6ee\">The governed production<\/text>\n    <text x=\"352\" y=\"682\" font-size=\"15\" fill=\"#c8d6ee\">estate.<\/text>\n    <g font-size=\"14\" font-weight=\"700\"><rect x=\"352\" y=\"694\" width=\"62\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"383\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Prod<\/text><\/g>\n    <g filter=\"url(#soft)\"><rect x=\"590\" y=\"570\" width=\"310\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(612,594)\" color=\"#bcd2f0\"><use href=\"#sym-gateway\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"664\" y=\"612\" font-size=\"20\" font-weight=\"700\" fill=\"#ffffff\">Advisory Digital<\/text>\n    <text x=\"664\" y=\"636\" font-size=\"20\" font-weight=\"700\" fill=\"#ffffff\">Gateway<\/text>\n    <text x=\"612\" y=\"676\" font-size=\"15\" fill=\"#c8d6ee\">Our hosted application —<\/text>\n    <text x=\"612\" y=\"698\" font-size=\"15\" fill=\"#c8d6ee\">organized by country shelf.<\/text>\n  <\/g>\n\n  <!-- ============ COMPLIANCE ============ -->\n  <g data-reveal=\"compliance\">\n    <text x=\"52\" y=\"300\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">COMPLIANCE — OWNED 100% BY BLAZE<\/text>\n    <!-- arrows: Blaze -> Compliance, Compliance -> each environment -->\n    <path d=\"M1000 240 C 1000 280, 880 280, 880 318\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M180 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M455 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M735 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"50\" y=\"318\" width=\"850\" height=\"190\" rx=\"18\" fill=\"#ffffff\" stroke=\"#f0c9aa\"/>\n      <path d=\"M68 318 h814 a18 18 0 0 1 18 18 v26 h-850 v-26 a18 18 0 0 1 18 -18 Z\" fill=\"url(#gOrangeBar)\"/>\n    <\/g>\n    <g transform=\"translate(70,328)\" color=\"#ffffff\"><use href=\"#sym-shield\" width=\"26\" height=\"26\"/><\/g>\n    <text x=\"106\" y=\"347\" font-size=\"19\" font-weight=\"700\" fill=\"#ffffff\">Nothing reaches an environment except through here<\/text>\n    <rect x=\"74\" y=\"384\" width=\"388\" height=\"104\" rx=\"14\" fill=\"#f4f8fd\" stroke=\"#d8e1f0\"/>\n    <g transform=\"translate(94,406)\" color=\"#3a6fae\"><use href=\"#sym-shield\" width=\"34\" height=\"34\"/><\/g>\n    <text x=\"140\" y=\"420\" font-size=\"19\" font-weight=\"700\" fill=\"#1c2d54\">Automated checks<\/text>\n    <text x=\"140\" y=\"446\" font-size=\"15\" fill=\"#4a5b80\">Policy · security scans · gates<\/text>\n    <text x=\"140\" y=\"468\" font-size=\"15\" fill=\"#4a5b80\">run automatically on every deploy.<\/text>\n    <rect x=\"488\" y=\"384\" width=\"388\" height=\"104\" rx=\"14\" fill=\"#fdf6e6\" stroke=\"#ecd9a3\"/>\n    <g transform=\"translate(508,406)\" color=\"#b9881d\"><use href=\"#sym-approval\" width=\"34\" height=\"34\"/><\/g>\n    <text x=\"554\" y=\"420\" font-size=\"19\" font-weight=\"700\" fill=\"#1c2d54\">Manual gates<\/text>\n    <text x=\"554\" y=\"446\" font-size=\"15\" fill=\"#4a5b80\">Human approvals — tracked and<\/text>\n    <text x=\"554\" y=\"468\" font-size=\"15\" fill=\"#4a5b80\">orchestrated by Blaze, not chased.<\/text>\n  <\/g>\n\n  <!-- ============ STATUS ============ -->\n  <g data-reveal=\"status\">\n    <text x=\"978\" y=\"300\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">STATUS<\/text>\n    <path d=\"M1130 240 V 318\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#soft)\"><rect x=\"960\" y=\"318\" width=\"312\" height=\"402\" rx=\"18\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/><\/g>\n    <g transform=\"translate(984,340)\" color=\"#e8732b\"><use href=\"#sym-bell\" width=\"30\" height=\"30\"/><\/g>\n    <text x=\"1024\" y=\"362\" font-size=\"20\" font-weight=\"700\" fill=\"#1c2d54\">Live status<\/text>\n    <text x=\"984\" y=\"392\" font-size=\"15\" fill=\"#4a5b80\">Where your deploy stands —<\/text>\n    <text x=\"984\" y=\"412\" font-size=\"15\" fill=\"#4a5b80\">right in the Blaze UI.<\/text>\n    <g font-size=\"16\">\n      <circle cx=\"998\" cy=\"448\" r=\"11\" fill=\"#e7f5ec\" stroke=\"#3ba66a\"/><path d=\"M993 448l3.2 3.2L1004 444\" fill=\"none\" stroke=\"#2e9259\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"453\" fill=\"#1c2d54\" font-weight=\"600\">Build checks passed<\/text>\n      <circle cx=\"998\" cy=\"488\" r=\"11\" fill=\"#e7f5ec\" stroke=\"#3ba66a\"/><path d=\"M993 488l3.2 3.2L1004 484\" fill=\"none\" stroke=\"#2e9259\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"493\" fill=\"#1c2d54\" font-weight=\"600\">Policy &amp; scans clear<\/text>\n      <circle cx=\"998\" cy=\"528\" r=\"11\" fill=\"#fcefce\" stroke=\"#d9a92e\"/><circle cx=\"998\" cy=\"528\" r=\"2.2\" fill=\"#b9881d\"/>\n      <text x=\"1018\" y=\"533\" fill=\"#1c2d54\" font-weight=\"600\">Manual approval — pending<\/text>\n      <circle cx=\"998\" cy=\"568\" r=\"11\" fill=\"#eaf1fa\" stroke=\"#3a6fae\"/><path d=\"M995 563l5 5-5 5\" fill=\"none\" stroke=\"#2f6fae\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"573\" fill=\"#5a6b8f\" font-weight=\"600\">Deploy to Prod (queued)<\/text>\n    <\/g>\n    <line x1=\"984\" y1=\"604\" x2=\"1248\" y2=\"604\" stroke=\"#e6ecf5\"/>\n    <text x=\"984\" y=\"636\" font-size=\"15\" fill=\"#4a5b80\">Including the manual steps.<\/text>\n    <text x=\"984\" y=\"660\" font-size=\"17\" font-weight=\"700\" fill=\"#e8732b\">You always know where you stand.<\/text>\n    <text x=\"660\" y=\"788\" text-anchor=\"middle\" font-size=\"18\" font-weight=\"700\" fill=\"#34518f\" letter-spacing=\"0.5\">Anyone builds — or changes — an app, at scale. Blaze deploys it and owns compliance, automatically.<\/text>\n  <\/g>\n<\/svg>\n"}, {"id": "svg-tools", "kind": "svg", "durationSec": 14, "beats": [{"text": "Vibe-code in <b>any tool<\/b>.", "style": "h2"}, {"text": "Lovable, Claude Code, Cursor — any AI assistant.", "style": "note"}], "buildSteps": [{"atBeat": 0, "reveal": ["tools"], "effect": "appear"}], "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1320 820\" font-family=\"'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif\">\n  <defs>\n    <linearGradient id=\"gCanvas\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#f6f9fd\"/>\n      <stop offset=\"1\" stop-color=\"#e7eef8\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gNavy\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#34518f\"/>\n      <stop offset=\"1\" stop-color=\"#1c2d54\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gSteel\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#5b91c8\"/>\n      <stop offset=\"1\" stop-color=\"#3a6fae\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gBlaze\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#ffb15a\"/>\n      <stop offset=\"0.5\" stop-color=\"#f0822f\"/>\n      <stop offset=\"1\" stop-color=\"#d2541a\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gGold\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#f3d27a\"/>\n      <stop offset=\"1\" stop-color=\"#d9a92e\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gOrangeBar\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\">\n      <stop offset=\"0\" stop-color=\"#f0822f\"/>\n      <stop offset=\"1\" stop-color=\"#e8732b\"/>\n    <\/linearGradient>\n    <filter id=\"soft\" x=\"-20%\" y=\"-20%\" width=\"140%\" height=\"140%\">\n      <feDropShadow dx=\"0\" dy=\"6\" stdDeviation=\"9\" flood-color=\"#1c2d54\" flood-opacity=\"0.18\"/>\n    <\/filter>\n    <filter id=\"softLg\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\">\n      <feDropShadow dx=\"0\" dy=\"10\" stdDeviation=\"16\" flood-color=\"#c2410c\" flood-opacity=\"0.35\"/>\n    <\/filter>\n    <marker id=\"arw\" viewBox=\"0 0 12 12\" refX=\"9\" refY=\"6\" markerWidth=\"9\" markerHeight=\"9\" orient=\"auto-start-reverse\">\n      <path d=\"M1 1 L10 6 L1 11 Z\" fill=\"#6b7da6\"/>\n    <\/marker>\n    <marker id=\"arwO\" viewBox=\"0 0 12 12\" refX=\"9\" refY=\"6\" markerWidth=\"9\" markerHeight=\"9\" orient=\"auto-start-reverse\">\n      <path d=\"M1 1 L10 6 L1 11 Z\" fill=\"#e8732b\"/>\n    <\/marker>\n\n    <!-- ===== Reusable symbol kit (stroke = currentColor); see symbols.svg ===== -->\n    <symbol id=\"sym-template\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M6 2.5h8l4 4v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z\"/>\n      <path d=\"M14 2.5V6.5h4\"/><path d=\"M8 12h8\"/><path d=\"M8 15.5h8\"/><path d=\"M8 19h5\"/>\n    <\/symbol>\n    <symbol id=\"sym-ai\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 3 l1.7 4.3 L18 9 l-4.3 1.7 L12 15 l-1.7-4.3 L6 9 l4.3-1.7 Z\"/>\n      <path d=\"M18.5 14.5 l.8 2 l2 .8 l-2 .8 l-.8 2 l-.8-2 l-2-.8 l2-.8 Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-app\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/>\n      <path d=\"M3 8.5h18\"/><circle cx=\"6\" cy=\"6.2\" r=\"0.6\" fill=\"currentColor\"/><circle cx=\"8.2\" cy=\"6.2\" r=\"0.6\" fill=\"currentColor\"/>\n    <\/symbol>\n    <symbol id=\"sym-flame\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 2.5c2.5 3.5 5.5 5.6 5.5 9.8a5.5 5.5 0 0 1-11 0c0-1.7.6-3 1.6-4 .2 1.2.9 2 1.9 2.3-.3-2.6.9-5.5 2-8.1Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-shield\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 2.5 4.5 5.5v6c0 4.7 3.2 8.4 7.5 10 4.3-1.6 7.5-5.3 7.5-10v-6Z\"/>\n      <path d=\"M8.5 12l2.4 2.4L15.5 9.8\"/>\n    <\/symbol>\n    <symbol id=\"sym-approval\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <circle cx=\"10\" cy=\"8\" r=\"3.2\"/>\n      <path d=\"M3.8 20c.6-3.3 3.1-5.2 6.2-5.2 1.2 0 2.3.3 3.2.8\"/>\n      <path d=\"M15.5 18.2l1.8 1.8 3.4-3.6\"/>\n    <\/symbol>\n    <symbol id=\"sym-cloud\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M7 18h10a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 6.5 9.2 3.9 3.9 0 0 0 7 18Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-gateway\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M4 21V8l8-4.5L20 8v13\"/><path d=\"M9.5 21v-6a2.5 2.5 0 0 1 5 0v6\"/><path d=\"M2.5 21h19\"/>\n    <\/symbol>\n    <symbol id=\"sym-bell\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M6.5 17V10.5a5.5 5.5 0 0 1 11 0V17l1.8 2.2H4.7Z\"/><path d=\"M10 20.5a2 2 0 0 0 4 0\"/>\n    <\/symbol>\n  <\/defs>\n\n  <!-- Static canvas (always visible) -->\n  <rect width=\"1320\" height=\"820\" fill=\"url(#gCanvas)\"/>\n\n  <!-- ============ TEMPLATES ============ -->\n  <g data-reveal=\"templates\">\n    <text x=\"52\" y=\"68\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">BUILD — ANYONE, ANY TOOL<\/text>\n    <g filter=\"url(#soft)\">\n      <rect x=\"50\" y=\"90\" width=\"250\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"50\" y=\"90\" width=\"250\" height=\"6\" rx=\"3\" fill=\"url(#gGold)\"/>\n    <\/g>\n    <g transform=\"translate(74,120)\" color=\"#b9881d\"><use href=\"#sym-template\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"126\" y=\"140\" font-size=\"22\" font-weight=\"700\" fill=\"#1c2d54\">Templates<\/text>\n    <text x=\"74\" y=\"178\" font-size=\"15\" fill=\"#4a5b80\">Starter repos on GitHub,<\/text>\n    <text x=\"74\" y=\"200\" font-size=\"15\" fill=\"#4a5b80\">one per stack — no blank page.<\/text>\n  <\/g>\n\n  <!-- ============ TOOLS ============ -->\n  <g data-reveal=\"tools\">\n    <path d=\"M300 156 H346\" fill=\"none\" stroke=\"#6b7da6\" stroke-width=\"2.4\" marker-end=\"url(#arw)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"350\" y=\"90\" width=\"270\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"350\" y=\"90\" width=\"270\" height=\"6\" rx=\"3\" fill=\"url(#gSteel)\"/>\n    <\/g>\n    <g transform=\"translate(374,118)\" color=\"#3a6fae\"><use href=\"#sym-ai\" width=\"38\" height=\"38\"/><\/g>\n    <text x=\"422\" y=\"138\" font-size=\"20\" font-weight=\"700\" fill=\"#1c2d54\">Vibe-code in any tool<\/text>\n    <g font-size=\"14\" font-weight=\"600\">\n      <rect x=\"374\" y=\"160\" width=\"86\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"417\" y=\"180\" text-anchor=\"middle\" fill=\"#2f6fae\">Lovable<\/text>\n      <rect x=\"468\" y=\"160\" width=\"118\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"527\" y=\"180\" text-anchor=\"middle\" fill=\"#2f6fae\">Claude Code<\/text>\n      <rect x=\"374\" y=\"196\" width=\"80\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"414\" y=\"216\" text-anchor=\"middle\" fill=\"#2f6fae\">Cursor<\/text>\n      <rect x=\"462\" y=\"196\" width=\"98\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"511\" y=\"216\" text-anchor=\"middle\" fill=\"#2f6fae\">any AI<\/text>\n    <\/g>\n  <\/g>\n\n  <!-- ============ YOUR APP ============ -->\n  <g data-reveal=\"app\">\n    <path d=\"M620 156 H666\" fill=\"none\" stroke=\"#6b7da6\" stroke-width=\"2.4\" marker-end=\"url(#arw)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"670\" y=\"90\" width=\"200\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"670\" y=\"90\" width=\"200\" height=\"6\" rx=\"3\" fill=\"url(#gSteel)\"/>\n    <\/g>\n    <g transform=\"translate(694,120)\" color=\"#3a6fae\"><use href=\"#sym-app\" width=\"38\" height=\"38\"/><\/g>\n    <text x=\"742\" y=\"140\" font-size=\"21\" font-weight=\"700\" fill=\"#1c2d54\">Your app<\/text>\n    <text x=\"694\" y=\"178\" font-size=\"15\" fill=\"#4a5b80\">New build —<\/text>\n    <text x=\"694\" y=\"200\" font-size=\"15\" fill=\"#4a5b80\">or a change to an existing one.<\/text>\n  <\/g>\n\n  <!-- ============ BLAZE HUB ============ -->\n  <g data-reveal=\"blaze\">\n    <text x=\"922\" y=\"58\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">DEPLOY<\/text>\n    <path d=\"M870 156 H918\" fill=\"none\" stroke=\"#e8732b\" stroke-width=\"3.2\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#softLg)\">\n      <rect x=\"922\" y=\"70\" width=\"350\" height=\"170\" rx=\"22\" fill=\"url(#gBlaze)\"/>\n    <\/g>\n    <g transform=\"translate(956,108)\" color=\"#ffffff\"><use href=\"#sym-flame\" width=\"64\" height=\"64\"/><\/g>\n    <text x=\"1040\" y=\"138\" font-size=\"40\" font-weight=\"800\" fill=\"#ffffff\" letter-spacing=\"1\">BLAZE<\/text>\n    <text x=\"1040\" y=\"170\" font-size=\"17\" font-weight=\"600\" fill=\"#fff3e8\">The Enterprise Vercel<\/text>\n    <text x=\"956\" y=\"216\" font-size=\"16\" fill=\"#fff3e8\">One front door — it deploys what you built.<\/text>\n  <\/g>\n\n  <!-- ============ ENVIRONMENTS ============ -->\n  <g data-reveal=\"envs\">\n    <text x=\"52\" y=\"556\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">RUN — GOVERNED ENVIRONMENTS<\/text>\n    <g filter=\"url(#soft)\"><rect x=\"50\" y=\"570\" width=\"260\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(72,594)\" color=\"#bcd2f0\"><use href=\"#sym-cloud\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"124\" y=\"618\" font-size=\"21\" font-weight=\"700\" fill=\"#ffffff\">Commercial Cloud<\/text>\n    <text x=\"72\" y=\"660\" font-size=\"15\" fill=\"#c8d6ee\">Build and ship apps in the<\/text>\n    <text x=\"72\" y=\"682\" font-size=\"15\" fill=\"#c8d6ee\">commercial estate.<\/text>\n    <g font-size=\"14\" font-weight=\"700\">\n      <rect x=\"72\" y=\"694\" width=\"58\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"101\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Dev<\/text>\n      <rect x=\"138\" y=\"694\" width=\"62\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"169\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Prod<\/text>\n    <\/g>\n    <g filter=\"url(#soft)\"><rect x=\"330\" y=\"570\" width=\"240\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(352,594)\" color=\"#bcd2f0\"><use href=\"#sym-cloud\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"404\" y=\"618\" font-size=\"21\" font-weight=\"700\" fill=\"#ffffff\">GAC<\/text>\n    <text x=\"352\" y=\"660\" font-size=\"15\" fill=\"#c8d6ee\">The governed production<\/text>\n    <text x=\"352\" y=\"682\" font-size=\"15\" fill=\"#c8d6ee\">estate.<\/text>\n    <g font-size=\"14\" font-weight=\"700\"><rect x=\"352\" y=\"694\" width=\"62\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"383\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Prod<\/text><\/g>\n    <g filter=\"url(#soft)\"><rect x=\"590\" y=\"570\" width=\"310\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(612,594)\" color=\"#bcd2f0\"><use href=\"#sym-gateway\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"664\" y=\"612\" font-size=\"20\" font-weight=\"700\" fill=\"#ffffff\">Advisory Digital<\/text>\n    <text x=\"664\" y=\"636\" font-size=\"20\" font-weight=\"700\" fill=\"#ffffff\">Gateway<\/text>\n    <text x=\"612\" y=\"676\" font-size=\"15\" fill=\"#c8d6ee\">Our hosted application —<\/text>\n    <text x=\"612\" y=\"698\" font-size=\"15\" fill=\"#c8d6ee\">organized by country shelf.<\/text>\n  <\/g>\n\n  <!-- ============ COMPLIANCE ============ -->\n  <g data-reveal=\"compliance\">\n    <text x=\"52\" y=\"300\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">COMPLIANCE — OWNED 100% BY BLAZE<\/text>\n    <!-- arrows: Blaze -> Compliance, Compliance -> each environment -->\n    <path d=\"M1000 240 C 1000 280, 880 280, 880 318\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M180 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M455 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M735 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"50\" y=\"318\" width=\"850\" height=\"190\" rx=\"18\" fill=\"#ffffff\" stroke=\"#f0c9aa\"/>\n      <path d=\"M68 318 h814 a18 18 0 0 1 18 18 v26 h-850 v-26 a18 18 0 0 1 18 -18 Z\" fill=\"url(#gOrangeBar)\"/>\n    <\/g>\n    <g transform=\"translate(70,328)\" color=\"#ffffff\"><use href=\"#sym-shield\" width=\"26\" height=\"26\"/><\/g>\n    <text x=\"106\" y=\"347\" font-size=\"19\" font-weight=\"700\" fill=\"#ffffff\">Nothing reaches an environment except through here<\/text>\n    <rect x=\"74\" y=\"384\" width=\"388\" height=\"104\" rx=\"14\" fill=\"#f4f8fd\" stroke=\"#d8e1f0\"/>\n    <g transform=\"translate(94,406)\" color=\"#3a6fae\"><use href=\"#sym-shield\" width=\"34\" height=\"34\"/><\/g>\n    <text x=\"140\" y=\"420\" font-size=\"19\" font-weight=\"700\" fill=\"#1c2d54\">Automated checks<\/text>\n    <text x=\"140\" y=\"446\" font-size=\"15\" fill=\"#4a5b80\">Policy · security scans · gates<\/text>\n    <text x=\"140\" y=\"468\" font-size=\"15\" fill=\"#4a5b80\">run automatically on every deploy.<\/text>\n    <rect x=\"488\" y=\"384\" width=\"388\" height=\"104\" rx=\"14\" fill=\"#fdf6e6\" stroke=\"#ecd9a3\"/>\n    <g transform=\"translate(508,406)\" color=\"#b9881d\"><use href=\"#sym-approval\" width=\"34\" height=\"34\"/><\/g>\n    <text x=\"554\" y=\"420\" font-size=\"19\" font-weight=\"700\" fill=\"#1c2d54\">Manual gates<\/text>\n    <text x=\"554\" y=\"446\" font-size=\"15\" fill=\"#4a5b80\">Human approvals — tracked and<\/text>\n    <text x=\"554\" y=\"468\" font-size=\"15\" fill=\"#4a5b80\">orchestrated by Blaze, not chased.<\/text>\n  <\/g>\n\n  <!-- ============ STATUS ============ -->\n  <g data-reveal=\"status\">\n    <text x=\"978\" y=\"300\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">STATUS<\/text>\n    <path d=\"M1130 240 V 318\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#soft)\"><rect x=\"960\" y=\"318\" width=\"312\" height=\"402\" rx=\"18\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/><\/g>\n    <g transform=\"translate(984,340)\" color=\"#e8732b\"><use href=\"#sym-bell\" width=\"30\" height=\"30\"/><\/g>\n    <text x=\"1024\" y=\"362\" font-size=\"20\" font-weight=\"700\" fill=\"#1c2d54\">Live status<\/text>\n    <text x=\"984\" y=\"392\" font-size=\"15\" fill=\"#4a5b80\">Where your deploy stands —<\/text>\n    <text x=\"984\" y=\"412\" font-size=\"15\" fill=\"#4a5b80\">right in the Blaze UI.<\/text>\n    <g font-size=\"16\">\n      <circle cx=\"998\" cy=\"448\" r=\"11\" fill=\"#e7f5ec\" stroke=\"#3ba66a\"/><path d=\"M993 448l3.2 3.2L1004 444\" fill=\"none\" stroke=\"#2e9259\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"453\" fill=\"#1c2d54\" font-weight=\"600\">Build checks passed<\/text>\n      <circle cx=\"998\" cy=\"488\" r=\"11\" fill=\"#e7f5ec\" stroke=\"#3ba66a\"/><path d=\"M993 488l3.2 3.2L1004 484\" fill=\"none\" stroke=\"#2e9259\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"493\" fill=\"#1c2d54\" font-weight=\"600\">Policy &amp; scans clear<\/text>\n      <circle cx=\"998\" cy=\"528\" r=\"11\" fill=\"#fcefce\" stroke=\"#d9a92e\"/><circle cx=\"998\" cy=\"528\" r=\"2.2\" fill=\"#b9881d\"/>\n      <text x=\"1018\" y=\"533\" fill=\"#1c2d54\" font-weight=\"600\">Manual approval — pending<\/text>\n      <circle cx=\"998\" cy=\"568\" r=\"11\" fill=\"#eaf1fa\" stroke=\"#3a6fae\"/><path d=\"M995 563l5 5-5 5\" fill=\"none\" stroke=\"#2f6fae\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"573\" fill=\"#5a6b8f\" font-weight=\"600\">Deploy to Prod (queued)<\/text>\n    <\/g>\n    <line x1=\"984\" y1=\"604\" x2=\"1248\" y2=\"604\" stroke=\"#e6ecf5\"/>\n    <text x=\"984\" y=\"636\" font-size=\"15\" fill=\"#4a5b80\">Including the manual steps.<\/text>\n    <text x=\"984\" y=\"660\" font-size=\"17\" font-weight=\"700\" fill=\"#e8732b\">You always know where you stand.<\/text>\n    <text x=\"660\" y=\"788\" text-anchor=\"middle\" font-size=\"18\" font-weight=\"700\" fill=\"#34518f\" letter-spacing=\"0.5\">Anyone builds — or changes — an app, at scale. Blaze deploys it and owns compliance, automatically.<\/text>\n  <\/g>\n<\/svg>\n"}, {"id": "svg-app", "kind": "svg", "durationSec": 12, "beats": [{"text": "Out comes <b>your app<\/b>.", "style": "h2"}, {"text": "A new build — or a change to an existing one.", "style": "note"}], "buildSteps": [{"atBeat": 0, "reveal": ["app"], "effect": "appear"}], "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1320 820\" font-family=\"'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif\">\n  <defs>\n    <linearGradient id=\"gCanvas\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#f6f9fd\"/>\n      <stop offset=\"1\" stop-color=\"#e7eef8\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gNavy\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#34518f\"/>\n      <stop offset=\"1\" stop-color=\"#1c2d54\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gSteel\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#5b91c8\"/>\n      <stop offset=\"1\" stop-color=\"#3a6fae\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gBlaze\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#ffb15a\"/>\n      <stop offset=\"0.5\" stop-color=\"#f0822f\"/>\n      <stop offset=\"1\" stop-color=\"#d2541a\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gGold\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#f3d27a\"/>\n      <stop offset=\"1\" stop-color=\"#d9a92e\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gOrangeBar\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\">\n      <stop offset=\"0\" stop-color=\"#f0822f\"/>\n      <stop offset=\"1\" stop-color=\"#e8732b\"/>\n    <\/linearGradient>\n    <filter id=\"soft\" x=\"-20%\" y=\"-20%\" width=\"140%\" height=\"140%\">\n      <feDropShadow dx=\"0\" dy=\"6\" stdDeviation=\"9\" flood-color=\"#1c2d54\" flood-opacity=\"0.18\"/>\n    <\/filter>\n    <filter id=\"softLg\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\">\n      <feDropShadow dx=\"0\" dy=\"10\" stdDeviation=\"16\" flood-color=\"#c2410c\" flood-opacity=\"0.35\"/>\n    <\/filter>\n    <marker id=\"arw\" viewBox=\"0 0 12 12\" refX=\"9\" refY=\"6\" markerWidth=\"9\" markerHeight=\"9\" orient=\"auto-start-reverse\">\n      <path d=\"M1 1 L10 6 L1 11 Z\" fill=\"#6b7da6\"/>\n    <\/marker>\n    <marker id=\"arwO\" viewBox=\"0 0 12 12\" refX=\"9\" refY=\"6\" markerWidth=\"9\" markerHeight=\"9\" orient=\"auto-start-reverse\">\n      <path d=\"M1 1 L10 6 L1 11 Z\" fill=\"#e8732b\"/>\n    <\/marker>\n\n    <!-- ===== Reusable symbol kit (stroke = currentColor); see symbols.svg ===== -->\n    <symbol id=\"sym-template\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M6 2.5h8l4 4v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z\"/>\n      <path d=\"M14 2.5V6.5h4\"/><path d=\"M8 12h8\"/><path d=\"M8 15.5h8\"/><path d=\"M8 19h5\"/>\n    <\/symbol>\n    <symbol id=\"sym-ai\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 3 l1.7 4.3 L18 9 l-4.3 1.7 L12 15 l-1.7-4.3 L6 9 l4.3-1.7 Z\"/>\n      <path d=\"M18.5 14.5 l.8 2 l2 .8 l-2 .8 l-.8 2 l-.8-2 l-2-.8 l2-.8 Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-app\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/>\n      <path d=\"M3 8.5h18\"/><circle cx=\"6\" cy=\"6.2\" r=\"0.6\" fill=\"currentColor\"/><circle cx=\"8.2\" cy=\"6.2\" r=\"0.6\" fill=\"currentColor\"/>\n    <\/symbol>\n    <symbol id=\"sym-flame\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 2.5c2.5 3.5 5.5 5.6 5.5 9.8a5.5 5.5 0 0 1-11 0c0-1.7.6-3 1.6-4 .2 1.2.9 2 1.9 2.3-.3-2.6.9-5.5 2-8.1Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-shield\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 2.5 4.5 5.5v6c0 4.7 3.2 8.4 7.5 10 4.3-1.6 7.5-5.3 7.5-10v-6Z\"/>\n      <path d=\"M8.5 12l2.4 2.4L15.5 9.8\"/>\n    <\/symbol>\n    <symbol id=\"sym-approval\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <circle cx=\"10\" cy=\"8\" r=\"3.2\"/>\n      <path d=\"M3.8 20c.6-3.3 3.1-5.2 6.2-5.2 1.2 0 2.3.3 3.2.8\"/>\n      <path d=\"M15.5 18.2l1.8 1.8 3.4-3.6\"/>\n    <\/symbol>\n    <symbol id=\"sym-cloud\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M7 18h10a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 6.5 9.2 3.9 3.9 0 0 0 7 18Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-gateway\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M4 21V8l8-4.5L20 8v13\"/><path d=\"M9.5 21v-6a2.5 2.5 0 0 1 5 0v6\"/><path d=\"M2.5 21h19\"/>\n    <\/symbol>\n    <symbol id=\"sym-bell\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M6.5 17V10.5a5.5 5.5 0 0 1 11 0V17l1.8 2.2H4.7Z\"/><path d=\"M10 20.5a2 2 0 0 0 4 0\"/>\n    <\/symbol>\n  <\/defs>\n\n  <!-- Static canvas (always visible) -->\n  <rect width=\"1320\" height=\"820\" fill=\"url(#gCanvas)\"/>\n\n  <!-- ============ TEMPLATES ============ -->\n  <g data-reveal=\"templates\">\n    <text x=\"52\" y=\"68\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">BUILD — ANYONE, ANY TOOL<\/text>\n    <g filter=\"url(#soft)\">\n      <rect x=\"50\" y=\"90\" width=\"250\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"50\" y=\"90\" width=\"250\" height=\"6\" rx=\"3\" fill=\"url(#gGold)\"/>\n    <\/g>\n    <g transform=\"translate(74,120)\" color=\"#b9881d\"><use href=\"#sym-template\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"126\" y=\"140\" font-size=\"22\" font-weight=\"700\" fill=\"#1c2d54\">Templates<\/text>\n    <text x=\"74\" y=\"178\" font-size=\"15\" fill=\"#4a5b80\">Starter repos on GitHub,<\/text>\n    <text x=\"74\" y=\"200\" font-size=\"15\" fill=\"#4a5b80\">one per stack — no blank page.<\/text>\n  <\/g>\n\n  <!-- ============ TOOLS ============ -->\n  <g data-reveal=\"tools\">\n    <path d=\"M300 156 H346\" fill=\"none\" stroke=\"#6b7da6\" stroke-width=\"2.4\" marker-end=\"url(#arw)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"350\" y=\"90\" width=\"270\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"350\" y=\"90\" width=\"270\" height=\"6\" rx=\"3\" fill=\"url(#gSteel)\"/>\n    <\/g>\n    <g transform=\"translate(374,118)\" color=\"#3a6fae\"><use href=\"#sym-ai\" width=\"38\" height=\"38\"/><\/g>\n    <text x=\"422\" y=\"138\" font-size=\"20\" font-weight=\"700\" fill=\"#1c2d54\">Vibe-code in any tool<\/text>\n    <g font-size=\"14\" font-weight=\"600\">\n      <rect x=\"374\" y=\"160\" width=\"86\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"417\" y=\"180\" text-anchor=\"middle\" fill=\"#2f6fae\">Lovable<\/text>\n      <rect x=\"468\" y=\"160\" width=\"118\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"527\" y=\"180\" text-anchor=\"middle\" fill=\"#2f6fae\">Claude Code<\/text>\n      <rect x=\"374\" y=\"196\" width=\"80\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"414\" y=\"216\" text-anchor=\"middle\" fill=\"#2f6fae\">Cursor<\/text>\n      <rect x=\"462\" y=\"196\" width=\"98\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"511\" y=\"216\" text-anchor=\"middle\" fill=\"#2f6fae\">any AI<\/text>\n    <\/g>\n  <\/g>\n\n  <!-- ============ YOUR APP ============ -->\n  <g data-reveal=\"app\">\n    <path d=\"M620 156 H666\" fill=\"none\" stroke=\"#6b7da6\" stroke-width=\"2.4\" marker-end=\"url(#arw)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"670\" y=\"90\" width=\"200\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"670\" y=\"90\" width=\"200\" height=\"6\" rx=\"3\" fill=\"url(#gSteel)\"/>\n    <\/g>\n    <g transform=\"translate(694,120)\" color=\"#3a6fae\"><use href=\"#sym-app\" width=\"38\" height=\"38\"/><\/g>\n    <text x=\"742\" y=\"140\" font-size=\"21\" font-weight=\"700\" fill=\"#1c2d54\">Your app<\/text>\n    <text x=\"694\" y=\"178\" font-size=\"15\" fill=\"#4a5b80\">New build —<\/text>\n    <text x=\"694\" y=\"200\" font-size=\"15\" fill=\"#4a5b80\">or a change to an existing one.<\/text>\n  <\/g>\n\n  <!-- ============ BLAZE HUB ============ -->\n  <g data-reveal=\"blaze\">\n    <text x=\"922\" y=\"58\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">DEPLOY<\/text>\n    <path d=\"M870 156 H918\" fill=\"none\" stroke=\"#e8732b\" stroke-width=\"3.2\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#softLg)\">\n      <rect x=\"922\" y=\"70\" width=\"350\" height=\"170\" rx=\"22\" fill=\"url(#gBlaze)\"/>\n    <\/g>\n    <g transform=\"translate(956,108)\" color=\"#ffffff\"><use href=\"#sym-flame\" width=\"64\" height=\"64\"/><\/g>\n    <text x=\"1040\" y=\"138\" font-size=\"40\" font-weight=\"800\" fill=\"#ffffff\" letter-spacing=\"1\">BLAZE<\/text>\n    <text x=\"1040\" y=\"170\" font-size=\"17\" font-weight=\"600\" fill=\"#fff3e8\">The Enterprise Vercel<\/text>\n    <text x=\"956\" y=\"216\" font-size=\"16\" fill=\"#fff3e8\">One front door — it deploys what you built.<\/text>\n  <\/g>\n\n  <!-- ============ ENVIRONMENTS ============ -->\n  <g data-reveal=\"envs\">\n    <text x=\"52\" y=\"556\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">RUN — GOVERNED ENVIRONMENTS<\/text>\n    <g filter=\"url(#soft)\"><rect x=\"50\" y=\"570\" width=\"260\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(72,594)\" color=\"#bcd2f0\"><use href=\"#sym-cloud\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"124\" y=\"618\" font-size=\"21\" font-weight=\"700\" fill=\"#ffffff\">Commercial Cloud<\/text>\n    <text x=\"72\" y=\"660\" font-size=\"15\" fill=\"#c8d6ee\">Build and ship apps in the<\/text>\n    <text x=\"72\" y=\"682\" font-size=\"15\" fill=\"#c8d6ee\">commercial estate.<\/text>\n    <g font-size=\"14\" font-weight=\"700\">\n      <rect x=\"72\" y=\"694\" width=\"58\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"101\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Dev<\/text>\n      <rect x=\"138\" y=\"694\" width=\"62\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"169\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Prod<\/text>\n    <\/g>\n    <g filter=\"url(#soft)\"><rect x=\"330\" y=\"570\" width=\"240\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(352,594)\" color=\"#bcd2f0\"><use href=\"#sym-cloud\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"404\" y=\"618\" font-size=\"21\" font-weight=\"700\" fill=\"#ffffff\">GAC<\/text>\n    <text x=\"352\" y=\"660\" font-size=\"15\" fill=\"#c8d6ee\">The governed production<\/text>\n    <text x=\"352\" y=\"682\" font-size=\"15\" fill=\"#c8d6ee\">estate.<\/text>\n    <g font-size=\"14\" font-weight=\"700\"><rect x=\"352\" y=\"694\" width=\"62\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"383\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Prod<\/text><\/g>\n    <g filter=\"url(#soft)\"><rect x=\"590\" y=\"570\" width=\"310\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(612,594)\" color=\"#bcd2f0\"><use href=\"#sym-gateway\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"664\" y=\"612\" font-size=\"20\" font-weight=\"700\" fill=\"#ffffff\">Advisory Digital<\/text>\n    <text x=\"664\" y=\"636\" font-size=\"20\" font-weight=\"700\" fill=\"#ffffff\">Gateway<\/text>\n    <text x=\"612\" y=\"676\" font-size=\"15\" fill=\"#c8d6ee\">Our hosted application —<\/text>\n    <text x=\"612\" y=\"698\" font-size=\"15\" fill=\"#c8d6ee\">organized by country shelf.<\/text>\n  <\/g>\n\n  <!-- ============ COMPLIANCE ============ -->\n  <g data-reveal=\"compliance\">\n    <text x=\"52\" y=\"300\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">COMPLIANCE — OWNED 100% BY BLAZE<\/text>\n    <!-- arrows: Blaze -> Compliance, Compliance -> each environment -->\n    <path d=\"M1000 240 C 1000 280, 880 280, 880 318\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M180 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M455 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M735 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"50\" y=\"318\" width=\"850\" height=\"190\" rx=\"18\" fill=\"#ffffff\" stroke=\"#f0c9aa\"/>\n      <path d=\"M68 318 h814 a18 18 0 0 1 18 18 v26 h-850 v-26 a18 18 0 0 1 18 -18 Z\" fill=\"url(#gOrangeBar)\"/>\n    <\/g>\n    <g transform=\"translate(70,328)\" color=\"#ffffff\"><use href=\"#sym-shield\" width=\"26\" height=\"26\"/><\/g>\n    <text x=\"106\" y=\"347\" font-size=\"19\" font-weight=\"700\" fill=\"#ffffff\">Nothing reaches an environment except through here<\/text>\n    <rect x=\"74\" y=\"384\" width=\"388\" height=\"104\" rx=\"14\" fill=\"#f4f8fd\" stroke=\"#d8e1f0\"/>\n    <g transform=\"translate(94,406)\" color=\"#3a6fae\"><use href=\"#sym-shield\" width=\"34\" height=\"34\"/><\/g>\n    <text x=\"140\" y=\"420\" font-size=\"19\" font-weight=\"700\" fill=\"#1c2d54\">Automated checks<\/text>\n    <text x=\"140\" y=\"446\" font-size=\"15\" fill=\"#4a5b80\">Policy · security scans · gates<\/text>\n    <text x=\"140\" y=\"468\" font-size=\"15\" fill=\"#4a5b80\">run automatically on every deploy.<\/text>\n    <rect x=\"488\" y=\"384\" width=\"388\" height=\"104\" rx=\"14\" fill=\"#fdf6e6\" stroke=\"#ecd9a3\"/>\n    <g transform=\"translate(508,406)\" color=\"#b9881d\"><use href=\"#sym-approval\" width=\"34\" height=\"34\"/><\/g>\n    <text x=\"554\" y=\"420\" font-size=\"19\" font-weight=\"700\" fill=\"#1c2d54\">Manual gates<\/text>\n    <text x=\"554\" y=\"446\" font-size=\"15\" fill=\"#4a5b80\">Human approvals — tracked and<\/text>\n    <text x=\"554\" y=\"468\" font-size=\"15\" fill=\"#4a5b80\">orchestrated by Blaze, not chased.<\/text>\n  <\/g>\n\n  <!-- ============ STATUS ============ -->\n  <g data-reveal=\"status\">\n    <text x=\"978\" y=\"300\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">STATUS<\/text>\n    <path d=\"M1130 240 V 318\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#soft)\"><rect x=\"960\" y=\"318\" width=\"312\" height=\"402\" rx=\"18\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/><\/g>\n    <g transform=\"translate(984,340)\" color=\"#e8732b\"><use href=\"#sym-bell\" width=\"30\" height=\"30\"/><\/g>\n    <text x=\"1024\" y=\"362\" font-size=\"20\" font-weight=\"700\" fill=\"#1c2d54\">Live status<\/text>\n    <text x=\"984\" y=\"392\" font-size=\"15\" fill=\"#4a5b80\">Where your deploy stands —<\/text>\n    <text x=\"984\" y=\"412\" font-size=\"15\" fill=\"#4a5b80\">right in the Blaze UI.<\/text>\n    <g font-size=\"16\">\n      <circle cx=\"998\" cy=\"448\" r=\"11\" fill=\"#e7f5ec\" stroke=\"#3ba66a\"/><path d=\"M993 448l3.2 3.2L1004 444\" fill=\"none\" stroke=\"#2e9259\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"453\" fill=\"#1c2d54\" font-weight=\"600\">Build checks passed<\/text>\n      <circle cx=\"998\" cy=\"488\" r=\"11\" fill=\"#e7f5ec\" stroke=\"#3ba66a\"/><path d=\"M993 488l3.2 3.2L1004 484\" fill=\"none\" stroke=\"#2e9259\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"493\" fill=\"#1c2d54\" font-weight=\"600\">Policy &amp; scans clear<\/text>\n      <circle cx=\"998\" cy=\"528\" r=\"11\" fill=\"#fcefce\" stroke=\"#d9a92e\"/><circle cx=\"998\" cy=\"528\" r=\"2.2\" fill=\"#b9881d\"/>\n      <text x=\"1018\" y=\"533\" fill=\"#1c2d54\" font-weight=\"600\">Manual approval — pending<\/text>\n      <circle cx=\"998\" cy=\"568\" r=\"11\" fill=\"#eaf1fa\" stroke=\"#3a6fae\"/><path d=\"M995 563l5 5-5 5\" fill=\"none\" stroke=\"#2f6fae\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"573\" fill=\"#5a6b8f\" font-weight=\"600\">Deploy to Prod (queued)<\/text>\n    <\/g>\n    <line x1=\"984\" y1=\"604\" x2=\"1248\" y2=\"604\" stroke=\"#e6ecf5\"/>\n    <text x=\"984\" y=\"636\" font-size=\"15\" fill=\"#4a5b80\">Including the manual steps.<\/text>\n    <text x=\"984\" y=\"660\" font-size=\"17\" font-weight=\"700\" fill=\"#e8732b\">You always know where you stand.<\/text>\n    <text x=\"660\" y=\"788\" text-anchor=\"middle\" font-size=\"18\" font-weight=\"700\" fill=\"#34518f\" letter-spacing=\"0.5\">Anyone builds — or changes — an app, at scale. Blaze deploys it and owns compliance, automatically.<\/text>\n  <\/g>\n<\/svg>\n"}, {"id": "svg-blaze", "kind": "svg", "durationSec": 15, "beats": [{"text": "One front door: <b>Blaze<\/b>.", "style": "h2"}, {"text": "The enterprise Vercel — it deploys what you built.", "style": "note"}], "buildSteps": [{"atBeat": 0, "reveal": ["blaze"], "effect": "pulse"}], "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1320 820\" font-family=\"'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif\">\n  <defs>\n    <linearGradient id=\"gCanvas\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#f6f9fd\"/>\n      <stop offset=\"1\" stop-color=\"#e7eef8\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gNavy\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#34518f\"/>\n      <stop offset=\"1\" stop-color=\"#1c2d54\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gSteel\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#5b91c8\"/>\n      <stop offset=\"1\" stop-color=\"#3a6fae\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gBlaze\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#ffb15a\"/>\n      <stop offset=\"0.5\" stop-color=\"#f0822f\"/>\n      <stop offset=\"1\" stop-color=\"#d2541a\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gGold\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#f3d27a\"/>\n      <stop offset=\"1\" stop-color=\"#d9a92e\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gOrangeBar\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\">\n      <stop offset=\"0\" stop-color=\"#f0822f\"/>\n      <stop offset=\"1\" stop-color=\"#e8732b\"/>\n    <\/linearGradient>\n    <filter id=\"soft\" x=\"-20%\" y=\"-20%\" width=\"140%\" height=\"140%\">\n      <feDropShadow dx=\"0\" dy=\"6\" stdDeviation=\"9\" flood-color=\"#1c2d54\" flood-opacity=\"0.18\"/>\n    <\/filter>\n    <filter id=\"softLg\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\">\n      <feDropShadow dx=\"0\" dy=\"10\" stdDeviation=\"16\" flood-color=\"#c2410c\" flood-opacity=\"0.35\"/>\n    <\/filter>\n    <marker id=\"arw\" viewBox=\"0 0 12 12\" refX=\"9\" refY=\"6\" markerWidth=\"9\" markerHeight=\"9\" orient=\"auto-start-reverse\">\n      <path d=\"M1 1 L10 6 L1 11 Z\" fill=\"#6b7da6\"/>\n    <\/marker>\n    <marker id=\"arwO\" viewBox=\"0 0 12 12\" refX=\"9\" refY=\"6\" markerWidth=\"9\" markerHeight=\"9\" orient=\"auto-start-reverse\">\n      <path d=\"M1 1 L10 6 L1 11 Z\" fill=\"#e8732b\"/>\n    <\/marker>\n\n    <!-- ===== Reusable symbol kit (stroke = currentColor); see symbols.svg ===== -->\n    <symbol id=\"sym-template\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M6 2.5h8l4 4v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z\"/>\n      <path d=\"M14 2.5V6.5h4\"/><path d=\"M8 12h8\"/><path d=\"M8 15.5h8\"/><path d=\"M8 19h5\"/>\n    <\/symbol>\n    <symbol id=\"sym-ai\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 3 l1.7 4.3 L18 9 l-4.3 1.7 L12 15 l-1.7-4.3 L6 9 l4.3-1.7 Z\"/>\n      <path d=\"M18.5 14.5 l.8 2 l2 .8 l-2 .8 l-.8 2 l-.8-2 l-2-.8 l2-.8 Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-app\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/>\n      <path d=\"M3 8.5h18\"/><circle cx=\"6\" cy=\"6.2\" r=\"0.6\" fill=\"currentColor\"/><circle cx=\"8.2\" cy=\"6.2\" r=\"0.6\" fill=\"currentColor\"/>\n    <\/symbol>\n    <symbol id=\"sym-flame\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 2.5c2.5 3.5 5.5 5.6 5.5 9.8a5.5 5.5 0 0 1-11 0c0-1.7.6-3 1.6-4 .2 1.2.9 2 1.9 2.3-.3-2.6.9-5.5 2-8.1Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-shield\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 2.5 4.5 5.5v6c0 4.7 3.2 8.4 7.5 10 4.3-1.6 7.5-5.3 7.5-10v-6Z\"/>\n      <path d=\"M8.5 12l2.4 2.4L15.5 9.8\"/>\n    <\/symbol>\n    <symbol id=\"sym-approval\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <circle cx=\"10\" cy=\"8\" r=\"3.2\"/>\n      <path d=\"M3.8 20c.6-3.3 3.1-5.2 6.2-5.2 1.2 0 2.3.3 3.2.8\"/>\n      <path d=\"M15.5 18.2l1.8 1.8 3.4-3.6\"/>\n    <\/symbol>\n    <symbol id=\"sym-cloud\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M7 18h10a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 6.5 9.2 3.9 3.9 0 0 0 7 18Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-gateway\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M4 21V8l8-4.5L20 8v13\"/><path d=\"M9.5 21v-6a2.5 2.5 0 0 1 5 0v6\"/><path d=\"M2.5 21h19\"/>\n    <\/symbol>\n    <symbol id=\"sym-bell\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M6.5 17V10.5a5.5 5.5 0 0 1 11 0V17l1.8 2.2H4.7Z\"/><path d=\"M10 20.5a2 2 0 0 0 4 0\"/>\n    <\/symbol>\n  <\/defs>\n\n  <!-- Static canvas (always visible) -->\n  <rect width=\"1320\" height=\"820\" fill=\"url(#gCanvas)\"/>\n\n  <!-- ============ TEMPLATES ============ -->\n  <g data-reveal=\"templates\">\n    <text x=\"52\" y=\"68\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">BUILD — ANYONE, ANY TOOL<\/text>\n    <g filter=\"url(#soft)\">\n      <rect x=\"50\" y=\"90\" width=\"250\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"50\" y=\"90\" width=\"250\" height=\"6\" rx=\"3\" fill=\"url(#gGold)\"/>\n    <\/g>\n    <g transform=\"translate(74,120)\" color=\"#b9881d\"><use href=\"#sym-template\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"126\" y=\"140\" font-size=\"22\" font-weight=\"700\" fill=\"#1c2d54\">Templates<\/text>\n    <text x=\"74\" y=\"178\" font-size=\"15\" fill=\"#4a5b80\">Starter repos on GitHub,<\/text>\n    <text x=\"74\" y=\"200\" font-size=\"15\" fill=\"#4a5b80\">one per stack — no blank page.<\/text>\n  <\/g>\n\n  <!-- ============ TOOLS ============ -->\n  <g data-reveal=\"tools\">\n    <path d=\"M300 156 H346\" fill=\"none\" stroke=\"#6b7da6\" stroke-width=\"2.4\" marker-end=\"url(#arw)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"350\" y=\"90\" width=\"270\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"350\" y=\"90\" width=\"270\" height=\"6\" rx=\"3\" fill=\"url(#gSteel)\"/>\n    <\/g>\n    <g transform=\"translate(374,118)\" color=\"#3a6fae\"><use href=\"#sym-ai\" width=\"38\" height=\"38\"/><\/g>\n    <text x=\"422\" y=\"138\" font-size=\"20\" font-weight=\"700\" fill=\"#1c2d54\">Vibe-code in any tool<\/text>\n    <g font-size=\"14\" font-weight=\"600\">\n      <rect x=\"374\" y=\"160\" width=\"86\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"417\" y=\"180\" text-anchor=\"middle\" fill=\"#2f6fae\">Lovable<\/text>\n      <rect x=\"468\" y=\"160\" width=\"118\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"527\" y=\"180\" text-anchor=\"middle\" fill=\"#2f6fae\">Claude Code<\/text>\n      <rect x=\"374\" y=\"196\" width=\"80\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"414\" y=\"216\" text-anchor=\"middle\" fill=\"#2f6fae\">Cursor<\/text>\n      <rect x=\"462\" y=\"196\" width=\"98\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"511\" y=\"216\" text-anchor=\"middle\" fill=\"#2f6fae\">any AI<\/text>\n    <\/g>\n  <\/g>\n\n  <!-- ============ YOUR APP ============ -->\n  <g data-reveal=\"app\">\n    <path d=\"M620 156 H666\" fill=\"none\" stroke=\"#6b7da6\" stroke-width=\"2.4\" marker-end=\"url(#arw)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"670\" y=\"90\" width=\"200\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"670\" y=\"90\" width=\"200\" height=\"6\" rx=\"3\" fill=\"url(#gSteel)\"/>\n    <\/g>\n    <g transform=\"translate(694,120)\" color=\"#3a6fae\"><use href=\"#sym-app\" width=\"38\" height=\"38\"/><\/g>\n    <text x=\"742\" y=\"140\" font-size=\"21\" font-weight=\"700\" fill=\"#1c2d54\">Your app<\/text>\n    <text x=\"694\" y=\"178\" font-size=\"15\" fill=\"#4a5b80\">New build —<\/text>\n    <text x=\"694\" y=\"200\" font-size=\"15\" fill=\"#4a5b80\">or a change to an existing one.<\/text>\n  <\/g>\n\n  <!-- ============ BLAZE HUB ============ -->\n  <g data-reveal=\"blaze\">\n    <text x=\"922\" y=\"58\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">DEPLOY<\/text>\n    <path d=\"M870 156 H918\" fill=\"none\" stroke=\"#e8732b\" stroke-width=\"3.2\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#softLg)\">\n      <rect x=\"922\" y=\"70\" width=\"350\" height=\"170\" rx=\"22\" fill=\"url(#gBlaze)\"/>\n    <\/g>\n    <g transform=\"translate(956,108)\" color=\"#ffffff\"><use href=\"#sym-flame\" width=\"64\" height=\"64\"/><\/g>\n    <text x=\"1040\" y=\"138\" font-size=\"40\" font-weight=\"800\" fill=\"#ffffff\" letter-spacing=\"1\">BLAZE<\/text>\n    <text x=\"1040\" y=\"170\" font-size=\"17\" font-weight=\"600\" fill=\"#fff3e8\">The Enterprise Vercel<\/text>\n    <text x=\"956\" y=\"216\" font-size=\"16\" fill=\"#fff3e8\">One front door — it deploys what you built.<\/text>\n  <\/g>\n\n  <!-- ============ ENVIRONMENTS ============ -->\n  <g data-reveal=\"envs\">\n    <text x=\"52\" y=\"556\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">RUN — GOVERNED ENVIRONMENTS<\/text>\n    <g filter=\"url(#soft)\"><rect x=\"50\" y=\"570\" width=\"260\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(72,594)\" color=\"#bcd2f0\"><use href=\"#sym-cloud\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"124\" y=\"618\" font-size=\"21\" font-weight=\"700\" fill=\"#ffffff\">Commercial Cloud<\/text>\n    <text x=\"72\" y=\"660\" font-size=\"15\" fill=\"#c8d6ee\">Build and ship apps in the<\/text>\n    <text x=\"72\" y=\"682\" font-size=\"15\" fill=\"#c8d6ee\">commercial estate.<\/text>\n    <g font-size=\"14\" font-weight=\"700\">\n      <rect x=\"72\" y=\"694\" width=\"58\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"101\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Dev<\/text>\n      <rect x=\"138\" y=\"694\" width=\"62\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"169\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Prod<\/text>\n    <\/g>\n    <g filter=\"url(#soft)\"><rect x=\"330\" y=\"570\" width=\"240\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(352,594)\" color=\"#bcd2f0\"><use href=\"#sym-cloud\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"404\" y=\"618\" font-size=\"21\" font-weight=\"700\" fill=\"#ffffff\">GAC<\/text>\n    <text x=\"352\" y=\"660\" font-size=\"15\" fill=\"#c8d6ee\">The governed production<\/text>\n    <text x=\"352\" y=\"682\" font-size=\"15\" fill=\"#c8d6ee\">estate.<\/text>\n    <g font-size=\"14\" font-weight=\"700\"><rect x=\"352\" y=\"694\" width=\"62\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"383\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Prod<\/text><\/g>\n    <g filter=\"url(#soft)\"><rect x=\"590\" y=\"570\" width=\"310\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(612,594)\" color=\"#bcd2f0\"><use href=\"#sym-gateway\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"664\" y=\"612\" font-size=\"20\" font-weight=\"700\" fill=\"#ffffff\">Advisory Digital<\/text>\n    <text x=\"664\" y=\"636\" font-size=\"20\" font-weight=\"700\" fill=\"#ffffff\">Gateway<\/text>\n    <text x=\"612\" y=\"676\" font-size=\"15\" fill=\"#c8d6ee\">Our hosted application —<\/text>\n    <text x=\"612\" y=\"698\" font-size=\"15\" fill=\"#c8d6ee\">organized by country shelf.<\/text>\n  <\/g>\n\n  <!-- ============ COMPLIANCE ============ -->\n  <g data-reveal=\"compliance\">\n    <text x=\"52\" y=\"300\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">COMPLIANCE — OWNED 100% BY BLAZE<\/text>\n    <!-- arrows: Blaze -> Compliance, Compliance -> each environment -->\n    <path d=\"M1000 240 C 1000 280, 880 280, 880 318\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M180 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M455 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M735 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"50\" y=\"318\" width=\"850\" height=\"190\" rx=\"18\" fill=\"#ffffff\" stroke=\"#f0c9aa\"/>\n      <path d=\"M68 318 h814 a18 18 0 0 1 18 18 v26 h-850 v-26 a18 18 0 0 1 18 -18 Z\" fill=\"url(#gOrangeBar)\"/>\n    <\/g>\n    <g transform=\"translate(70,328)\" color=\"#ffffff\"><use href=\"#sym-shield\" width=\"26\" height=\"26\"/><\/g>\n    <text x=\"106\" y=\"347\" font-size=\"19\" font-weight=\"700\" fill=\"#ffffff\">Nothing reaches an environment except through here<\/text>\n    <rect x=\"74\" y=\"384\" width=\"388\" height=\"104\" rx=\"14\" fill=\"#f4f8fd\" stroke=\"#d8e1f0\"/>\n    <g transform=\"translate(94,406)\" color=\"#3a6fae\"><use href=\"#sym-shield\" width=\"34\" height=\"34\"/><\/g>\n    <text x=\"140\" y=\"420\" font-size=\"19\" font-weight=\"700\" fill=\"#1c2d54\">Automated checks<\/text>\n    <text x=\"140\" y=\"446\" font-size=\"15\" fill=\"#4a5b80\">Policy · security scans · gates<\/text>\n    <text x=\"140\" y=\"468\" font-size=\"15\" fill=\"#4a5b80\">run automatically on every deploy.<\/text>\n    <rect x=\"488\" y=\"384\" width=\"388\" height=\"104\" rx=\"14\" fill=\"#fdf6e6\" stroke=\"#ecd9a3\"/>\n    <g transform=\"translate(508,406)\" color=\"#b9881d\"><use href=\"#sym-approval\" width=\"34\" height=\"34\"/><\/g>\n    <text x=\"554\" y=\"420\" font-size=\"19\" font-weight=\"700\" fill=\"#1c2d54\">Manual gates<\/text>\n    <text x=\"554\" y=\"446\" font-size=\"15\" fill=\"#4a5b80\">Human approvals — tracked and<\/text>\n    <text x=\"554\" y=\"468\" font-size=\"15\" fill=\"#4a5b80\">orchestrated by Blaze, not chased.<\/text>\n  <\/g>\n\n  <!-- ============ STATUS ============ -->\n  <g data-reveal=\"status\">\n    <text x=\"978\" y=\"300\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">STATUS<\/text>\n    <path d=\"M1130 240 V 318\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#soft)\"><rect x=\"960\" y=\"318\" width=\"312\" height=\"402\" rx=\"18\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/><\/g>\n    <g transform=\"translate(984,340)\" color=\"#e8732b\"><use href=\"#sym-bell\" width=\"30\" height=\"30\"/><\/g>\n    <text x=\"1024\" y=\"362\" font-size=\"20\" font-weight=\"700\" fill=\"#1c2d54\">Live status<\/text>\n    <text x=\"984\" y=\"392\" font-size=\"15\" fill=\"#4a5b80\">Where your deploy stands —<\/text>\n    <text x=\"984\" y=\"412\" font-size=\"15\" fill=\"#4a5b80\">right in the Blaze UI.<\/text>\n    <g font-size=\"16\">\n      <circle cx=\"998\" cy=\"448\" r=\"11\" fill=\"#e7f5ec\" stroke=\"#3ba66a\"/><path d=\"M993 448l3.2 3.2L1004 444\" fill=\"none\" stroke=\"#2e9259\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"453\" fill=\"#1c2d54\" font-weight=\"600\">Build checks passed<\/text>\n      <circle cx=\"998\" cy=\"488\" r=\"11\" fill=\"#e7f5ec\" stroke=\"#3ba66a\"/><path d=\"M993 488l3.2 3.2L1004 484\" fill=\"none\" stroke=\"#2e9259\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"493\" fill=\"#1c2d54\" font-weight=\"600\">Policy &amp; scans clear<\/text>\n      <circle cx=\"998\" cy=\"528\" r=\"11\" fill=\"#fcefce\" stroke=\"#d9a92e\"/><circle cx=\"998\" cy=\"528\" r=\"2.2\" fill=\"#b9881d\"/>\n      <text x=\"1018\" y=\"533\" fill=\"#1c2d54\" font-weight=\"600\">Manual approval — pending<\/text>\n      <circle cx=\"998\" cy=\"568\" r=\"11\" fill=\"#eaf1fa\" stroke=\"#3a6fae\"/><path d=\"M995 563l5 5-5 5\" fill=\"none\" stroke=\"#2f6fae\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"573\" fill=\"#5a6b8f\" font-weight=\"600\">Deploy to Prod (queued)<\/text>\n    <\/g>\n    <line x1=\"984\" y1=\"604\" x2=\"1248\" y2=\"604\" stroke=\"#e6ecf5\"/>\n    <text x=\"984\" y=\"636\" font-size=\"15\" fill=\"#4a5b80\">Including the manual steps.<\/text>\n    <text x=\"984\" y=\"660\" font-size=\"17\" font-weight=\"700\" fill=\"#e8732b\">You always know where you stand.<\/text>\n    <text x=\"660\" y=\"788\" text-anchor=\"middle\" font-size=\"18\" font-weight=\"700\" fill=\"#34518f\" letter-spacing=\"0.5\">Anyone builds — or changes — an app, at scale. Blaze deploys it and owns compliance, automatically.<\/text>\n  <\/g>\n<\/svg>\n"}, {"id": "svg-environments", "kind": "svg", "durationSec": 16, "beats": [{"text": "Into <b>governed environments<\/b>.", "style": "h2"}, {"text": "Commercial Cloud · GAC Prod · the Advisory Digital Gateway.", "style": "note"}], "buildSteps": [{"atBeat": 0, "reveal": ["envs"], "effect": "appear"}], "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1320 820\" font-family=\"'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif\">\n  <defs>\n    <linearGradient id=\"gCanvas\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#f6f9fd\"/>\n      <stop offset=\"1\" stop-color=\"#e7eef8\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gNavy\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#34518f\"/>\n      <stop offset=\"1\" stop-color=\"#1c2d54\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gSteel\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#5b91c8\"/>\n      <stop offset=\"1\" stop-color=\"#3a6fae\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gBlaze\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#ffb15a\"/>\n      <stop offset=\"0.5\" stop-color=\"#f0822f\"/>\n      <stop offset=\"1\" stop-color=\"#d2541a\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gGold\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#f3d27a\"/>\n      <stop offset=\"1\" stop-color=\"#d9a92e\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gOrangeBar\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\">\n      <stop offset=\"0\" stop-color=\"#f0822f\"/>\n      <stop offset=\"1\" stop-color=\"#e8732b\"/>\n    <\/linearGradient>\n    <filter id=\"soft\" x=\"-20%\" y=\"-20%\" width=\"140%\" height=\"140%\">\n      <feDropShadow dx=\"0\" dy=\"6\" stdDeviation=\"9\" flood-color=\"#1c2d54\" flood-opacity=\"0.18\"/>\n    <\/filter>\n    <filter id=\"softLg\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\">\n      <feDropShadow dx=\"0\" dy=\"10\" stdDeviation=\"16\" flood-color=\"#c2410c\" flood-opacity=\"0.35\"/>\n    <\/filter>\n    <marker id=\"arw\" viewBox=\"0 0 12 12\" refX=\"9\" refY=\"6\" markerWidth=\"9\" markerHeight=\"9\" orient=\"auto-start-reverse\">\n      <path d=\"M1 1 L10 6 L1 11 Z\" fill=\"#6b7da6\"/>\n    <\/marker>\n    <marker id=\"arwO\" viewBox=\"0 0 12 12\" refX=\"9\" refY=\"6\" markerWidth=\"9\" markerHeight=\"9\" orient=\"auto-start-reverse\">\n      <path d=\"M1 1 L10 6 L1 11 Z\" fill=\"#e8732b\"/>\n    <\/marker>\n\n    <!-- ===== Reusable symbol kit (stroke = currentColor); see symbols.svg ===== -->\n    <symbol id=\"sym-template\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M6 2.5h8l4 4v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z\"/>\n      <path d=\"M14 2.5V6.5h4\"/><path d=\"M8 12h8\"/><path d=\"M8 15.5h8\"/><path d=\"M8 19h5\"/>\n    <\/symbol>\n    <symbol id=\"sym-ai\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 3 l1.7 4.3 L18 9 l-4.3 1.7 L12 15 l-1.7-4.3 L6 9 l4.3-1.7 Z\"/>\n      <path d=\"M18.5 14.5 l.8 2 l2 .8 l-2 .8 l-.8 2 l-.8-2 l-2-.8 l2-.8 Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-app\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/>\n      <path d=\"M3 8.5h18\"/><circle cx=\"6\" cy=\"6.2\" r=\"0.6\" fill=\"currentColor\"/><circle cx=\"8.2\" cy=\"6.2\" r=\"0.6\" fill=\"currentColor\"/>\n    <\/symbol>\n    <symbol id=\"sym-flame\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 2.5c2.5 3.5 5.5 5.6 5.5 9.8a5.5 5.5 0 0 1-11 0c0-1.7.6-3 1.6-4 .2 1.2.9 2 1.9 2.3-.3-2.6.9-5.5 2-8.1Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-shield\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 2.5 4.5 5.5v6c0 4.7 3.2 8.4 7.5 10 4.3-1.6 7.5-5.3 7.5-10v-6Z\"/>\n      <path d=\"M8.5 12l2.4 2.4L15.5 9.8\"/>\n    <\/symbol>\n    <symbol id=\"sym-approval\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <circle cx=\"10\" cy=\"8\" r=\"3.2\"/>\n      <path d=\"M3.8 20c.6-3.3 3.1-5.2 6.2-5.2 1.2 0 2.3.3 3.2.8\"/>\n      <path d=\"M15.5 18.2l1.8 1.8 3.4-3.6\"/>\n    <\/symbol>\n    <symbol id=\"sym-cloud\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M7 18h10a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 6.5 9.2 3.9 3.9 0 0 0 7 18Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-gateway\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M4 21V8l8-4.5L20 8v13\"/><path d=\"M9.5 21v-6a2.5 2.5 0 0 1 5 0v6\"/><path d=\"M2.5 21h19\"/>\n    <\/symbol>\n    <symbol id=\"sym-bell\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M6.5 17V10.5a5.5 5.5 0 0 1 11 0V17l1.8 2.2H4.7Z\"/><path d=\"M10 20.5a2 2 0 0 0 4 0\"/>\n    <\/symbol>\n  <\/defs>\n\n  <!-- Static canvas (always visible) -->\n  <rect width=\"1320\" height=\"820\" fill=\"url(#gCanvas)\"/>\n\n  <!-- ============ TEMPLATES ============ -->\n  <g data-reveal=\"templates\">\n    <text x=\"52\" y=\"68\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">BUILD — ANYONE, ANY TOOL<\/text>\n    <g filter=\"url(#soft)\">\n      <rect x=\"50\" y=\"90\" width=\"250\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"50\" y=\"90\" width=\"250\" height=\"6\" rx=\"3\" fill=\"url(#gGold)\"/>\n    <\/g>\n    <g transform=\"translate(74,120)\" color=\"#b9881d\"><use href=\"#sym-template\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"126\" y=\"140\" font-size=\"22\" font-weight=\"700\" fill=\"#1c2d54\">Templates<\/text>\n    <text x=\"74\" y=\"178\" font-size=\"15\" fill=\"#4a5b80\">Starter repos on GitHub,<\/text>\n    <text x=\"74\" y=\"200\" font-size=\"15\" fill=\"#4a5b80\">one per stack — no blank page.<\/text>\n  <\/g>\n\n  <!-- ============ TOOLS ============ -->\n  <g data-reveal=\"tools\">\n    <path d=\"M300 156 H346\" fill=\"none\" stroke=\"#6b7da6\" stroke-width=\"2.4\" marker-end=\"url(#arw)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"350\" y=\"90\" width=\"270\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"350\" y=\"90\" width=\"270\" height=\"6\" rx=\"3\" fill=\"url(#gSteel)\"/>\n    <\/g>\n    <g transform=\"translate(374,118)\" color=\"#3a6fae\"><use href=\"#sym-ai\" width=\"38\" height=\"38\"/><\/g>\n    <text x=\"422\" y=\"138\" font-size=\"20\" font-weight=\"700\" fill=\"#1c2d54\">Vibe-code in any tool<\/text>\n    <g font-size=\"14\" font-weight=\"600\">\n      <rect x=\"374\" y=\"160\" width=\"86\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"417\" y=\"180\" text-anchor=\"middle\" fill=\"#2f6fae\">Lovable<\/text>\n      <rect x=\"468\" y=\"160\" width=\"118\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"527\" y=\"180\" text-anchor=\"middle\" fill=\"#2f6fae\">Claude Code<\/text>\n      <rect x=\"374\" y=\"196\" width=\"80\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"414\" y=\"216\" text-anchor=\"middle\" fill=\"#2f6fae\">Cursor<\/text>\n      <rect x=\"462\" y=\"196\" width=\"98\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"511\" y=\"216\" text-anchor=\"middle\" fill=\"#2f6fae\">any AI<\/text>\n    <\/g>\n  <\/g>\n\n  <!-- ============ YOUR APP ============ -->\n  <g data-reveal=\"app\">\n    <path d=\"M620 156 H666\" fill=\"none\" stroke=\"#6b7da6\" stroke-width=\"2.4\" marker-end=\"url(#arw)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"670\" y=\"90\" width=\"200\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"670\" y=\"90\" width=\"200\" height=\"6\" rx=\"3\" fill=\"url(#gSteel)\"/>\n    <\/g>\n    <g transform=\"translate(694,120)\" color=\"#3a6fae\"><use href=\"#sym-app\" width=\"38\" height=\"38\"/><\/g>\n    <text x=\"742\" y=\"140\" font-size=\"21\" font-weight=\"700\" fill=\"#1c2d54\">Your app<\/text>\n    <text x=\"694\" y=\"178\" font-size=\"15\" fill=\"#4a5b80\">New build —<\/text>\n    <text x=\"694\" y=\"200\" font-size=\"15\" fill=\"#4a5b80\">or a change to an existing one.<\/text>\n  <\/g>\n\n  <!-- ============ BLAZE HUB ============ -->\n  <g data-reveal=\"blaze\">\n    <text x=\"922\" y=\"58\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">DEPLOY<\/text>\n    <path d=\"M870 156 H918\" fill=\"none\" stroke=\"#e8732b\" stroke-width=\"3.2\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#softLg)\">\n      <rect x=\"922\" y=\"70\" width=\"350\" height=\"170\" rx=\"22\" fill=\"url(#gBlaze)\"/>\n    <\/g>\n    <g transform=\"translate(956,108)\" color=\"#ffffff\"><use href=\"#sym-flame\" width=\"64\" height=\"64\"/><\/g>\n    <text x=\"1040\" y=\"138\" font-size=\"40\" font-weight=\"800\" fill=\"#ffffff\" letter-spacing=\"1\">BLAZE<\/text>\n    <text x=\"1040\" y=\"170\" font-size=\"17\" font-weight=\"600\" fill=\"#fff3e8\">The Enterprise Vercel<\/text>\n    <text x=\"956\" y=\"216\" font-size=\"16\" fill=\"#fff3e8\">One front door — it deploys what you built.<\/text>\n  <\/g>\n\n  <!-- ============ ENVIRONMENTS ============ -->\n  <g data-reveal=\"envs\">\n    <text x=\"52\" y=\"556\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">RUN — GOVERNED ENVIRONMENTS<\/text>\n    <g filter=\"url(#soft)\"><rect x=\"50\" y=\"570\" width=\"260\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(72,594)\" color=\"#bcd2f0\"><use href=\"#sym-cloud\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"124\" y=\"618\" font-size=\"21\" font-weight=\"700\" fill=\"#ffffff\">Commercial Cloud<\/text>\n    <text x=\"72\" y=\"660\" font-size=\"15\" fill=\"#c8d6ee\">Build and ship apps in the<\/text>\n    <text x=\"72\" y=\"682\" font-size=\"15\" fill=\"#c8d6ee\">commercial estate.<\/text>\n    <g font-size=\"14\" font-weight=\"700\">\n      <rect x=\"72\" y=\"694\" width=\"58\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"101\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Dev<\/text>\n      <rect x=\"138\" y=\"694\" width=\"62\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"169\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Prod<\/text>\n    <\/g>\n    <g filter=\"url(#soft)\"><rect x=\"330\" y=\"570\" width=\"240\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(352,594)\" color=\"#bcd2f0\"><use href=\"#sym-cloud\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"404\" y=\"618\" font-size=\"21\" font-weight=\"700\" fill=\"#ffffff\">GAC<\/text>\n    <text x=\"352\" y=\"660\" font-size=\"15\" fill=\"#c8d6ee\">The governed production<\/text>\n    <text x=\"352\" y=\"682\" font-size=\"15\" fill=\"#c8d6ee\">estate.<\/text>\n    <g font-size=\"14\" font-weight=\"700\"><rect x=\"352\" y=\"694\" width=\"62\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"383\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Prod<\/text><\/g>\n    <g filter=\"url(#soft)\"><rect x=\"590\" y=\"570\" width=\"310\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(612,594)\" color=\"#bcd2f0\"><use href=\"#sym-gateway\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"664\" y=\"612\" font-size=\"20\" font-weight=\"700\" fill=\"#ffffff\">Advisory Digital<\/text>\n    <text x=\"664\" y=\"636\" font-size=\"20\" font-weight=\"700\" fill=\"#ffffff\">Gateway<\/text>\n    <text x=\"612\" y=\"676\" font-size=\"15\" fill=\"#c8d6ee\">Our hosted application —<\/text>\n    <text x=\"612\" y=\"698\" font-size=\"15\" fill=\"#c8d6ee\">organized by country shelf.<\/text>\n  <\/g>\n\n  <!-- ============ COMPLIANCE ============ -->\n  <g data-reveal=\"compliance\">\n    <text x=\"52\" y=\"300\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">COMPLIANCE — OWNED 100% BY BLAZE<\/text>\n    <!-- arrows: Blaze -> Compliance, Compliance -> each environment -->\n    <path d=\"M1000 240 C 1000 280, 880 280, 880 318\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M180 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M455 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M735 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"50\" y=\"318\" width=\"850\" height=\"190\" rx=\"18\" fill=\"#ffffff\" stroke=\"#f0c9aa\"/>\n      <path d=\"M68 318 h814 a18 18 0 0 1 18 18 v26 h-850 v-26 a18 18 0 0 1 18 -18 Z\" fill=\"url(#gOrangeBar)\"/>\n    <\/g>\n    <g transform=\"translate(70,328)\" color=\"#ffffff\"><use href=\"#sym-shield\" width=\"26\" height=\"26\"/><\/g>\n    <text x=\"106\" y=\"347\" font-size=\"19\" font-weight=\"700\" fill=\"#ffffff\">Nothing reaches an environment except through here<\/text>\n    <rect x=\"74\" y=\"384\" width=\"388\" height=\"104\" rx=\"14\" fill=\"#f4f8fd\" stroke=\"#d8e1f0\"/>\n    <g transform=\"translate(94,406)\" color=\"#3a6fae\"><use href=\"#sym-shield\" width=\"34\" height=\"34\"/><\/g>\n    <text x=\"140\" y=\"420\" font-size=\"19\" font-weight=\"700\" fill=\"#1c2d54\">Automated checks<\/text>\n    <text x=\"140\" y=\"446\" font-size=\"15\" fill=\"#4a5b80\">Policy · security scans · gates<\/text>\n    <text x=\"140\" y=\"468\" font-size=\"15\" fill=\"#4a5b80\">run automatically on every deploy.<\/text>\n    <rect x=\"488\" y=\"384\" width=\"388\" height=\"104\" rx=\"14\" fill=\"#fdf6e6\" stroke=\"#ecd9a3\"/>\n    <g transform=\"translate(508,406)\" color=\"#b9881d\"><use href=\"#sym-approval\" width=\"34\" height=\"34\"/><\/g>\n    <text x=\"554\" y=\"420\" font-size=\"19\" font-weight=\"700\" fill=\"#1c2d54\">Manual gates<\/text>\n    <text x=\"554\" y=\"446\" font-size=\"15\" fill=\"#4a5b80\">Human approvals — tracked and<\/text>\n    <text x=\"554\" y=\"468\" font-size=\"15\" fill=\"#4a5b80\">orchestrated by Blaze, not chased.<\/text>\n  <\/g>\n\n  <!-- ============ STATUS ============ -->\n  <g data-reveal=\"status\">\n    <text x=\"978\" y=\"300\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">STATUS<\/text>\n    <path d=\"M1130 240 V 318\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#soft)\"><rect x=\"960\" y=\"318\" width=\"312\" height=\"402\" rx=\"18\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/><\/g>\n    <g transform=\"translate(984,340)\" color=\"#e8732b\"><use href=\"#sym-bell\" width=\"30\" height=\"30\"/><\/g>\n    <text x=\"1024\" y=\"362\" font-size=\"20\" font-weight=\"700\" fill=\"#1c2d54\">Live status<\/text>\n    <text x=\"984\" y=\"392\" font-size=\"15\" fill=\"#4a5b80\">Where your deploy stands —<\/text>\n    <text x=\"984\" y=\"412\" font-size=\"15\" fill=\"#4a5b80\">right in the Blaze UI.<\/text>\n    <g font-size=\"16\">\n      <circle cx=\"998\" cy=\"448\" r=\"11\" fill=\"#e7f5ec\" stroke=\"#3ba66a\"/><path d=\"M993 448l3.2 3.2L1004 444\" fill=\"none\" stroke=\"#2e9259\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"453\" fill=\"#1c2d54\" font-weight=\"600\">Build checks passed<\/text>\n      <circle cx=\"998\" cy=\"488\" r=\"11\" fill=\"#e7f5ec\" stroke=\"#3ba66a\"/><path d=\"M993 488l3.2 3.2L1004 484\" fill=\"none\" stroke=\"#2e9259\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"493\" fill=\"#1c2d54\" font-weight=\"600\">Policy &amp; scans clear<\/text>\n      <circle cx=\"998\" cy=\"528\" r=\"11\" fill=\"#fcefce\" stroke=\"#d9a92e\"/><circle cx=\"998\" cy=\"528\" r=\"2.2\" fill=\"#b9881d\"/>\n      <text x=\"1018\" y=\"533\" fill=\"#1c2d54\" font-weight=\"600\">Manual approval — pending<\/text>\n      <circle cx=\"998\" cy=\"568\" r=\"11\" fill=\"#eaf1fa\" stroke=\"#3a6fae\"/><path d=\"M995 563l5 5-5 5\" fill=\"none\" stroke=\"#2f6fae\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"573\" fill=\"#5a6b8f\" font-weight=\"600\">Deploy to Prod (queued)<\/text>\n    <\/g>\n    <line x1=\"984\" y1=\"604\" x2=\"1248\" y2=\"604\" stroke=\"#e6ecf5\"/>\n    <text x=\"984\" y=\"636\" font-size=\"15\" fill=\"#4a5b80\">Including the manual steps.<\/text>\n    <text x=\"984\" y=\"660\" font-size=\"17\" font-weight=\"700\" fill=\"#e8732b\">You always know where you stand.<\/text>\n    <text x=\"660\" y=\"788\" text-anchor=\"middle\" font-size=\"18\" font-weight=\"700\" fill=\"#34518f\" letter-spacing=\"0.5\">Anyone builds — or changes — an app, at scale. Blaze deploys it and owns compliance, automatically.<\/text>\n  <\/g>\n<\/svg>\n"}, {"id": "svg-compliance", "kind": "svg", "durationSec": 20, "beats": [{"text": "Blaze owns <b>100% of compliance<\/b>.", "style": "h2"}, {"text": "Automated checks <b>and<\/b> the manual gates — nothing reaches an environment except through here.", "style": "note"}], "buildSteps": [{"atBeat": 0, "reveal": ["compliance"], "effect": "appear"}], "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1320 820\" font-family=\"'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif\">\n  <defs>\n    <linearGradient id=\"gCanvas\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#f6f9fd\"/>\n      <stop offset=\"1\" stop-color=\"#e7eef8\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gNavy\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#34518f\"/>\n      <stop offset=\"1\" stop-color=\"#1c2d54\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gSteel\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#5b91c8\"/>\n      <stop offset=\"1\" stop-color=\"#3a6fae\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gBlaze\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#ffb15a\"/>\n      <stop offset=\"0.5\" stop-color=\"#f0822f\"/>\n      <stop offset=\"1\" stop-color=\"#d2541a\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gGold\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#f3d27a\"/>\n      <stop offset=\"1\" stop-color=\"#d9a92e\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gOrangeBar\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\">\n      <stop offset=\"0\" stop-color=\"#f0822f\"/>\n      <stop offset=\"1\" stop-color=\"#e8732b\"/>\n    <\/linearGradient>\n    <filter id=\"soft\" x=\"-20%\" y=\"-20%\" width=\"140%\" height=\"140%\">\n      <feDropShadow dx=\"0\" dy=\"6\" stdDeviation=\"9\" flood-color=\"#1c2d54\" flood-opacity=\"0.18\"/>\n    <\/filter>\n    <filter id=\"softLg\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\">\n      <feDropShadow dx=\"0\" dy=\"10\" stdDeviation=\"16\" flood-color=\"#c2410c\" flood-opacity=\"0.35\"/>\n    <\/filter>\n    <marker id=\"arw\" viewBox=\"0 0 12 12\" refX=\"9\" refY=\"6\" markerWidth=\"9\" markerHeight=\"9\" orient=\"auto-start-reverse\">\n      <path d=\"M1 1 L10 6 L1 11 Z\" fill=\"#6b7da6\"/>\n    <\/marker>\n    <marker id=\"arwO\" viewBox=\"0 0 12 12\" refX=\"9\" refY=\"6\" markerWidth=\"9\" markerHeight=\"9\" orient=\"auto-start-reverse\">\n      <path d=\"M1 1 L10 6 L1 11 Z\" fill=\"#e8732b\"/>\n    <\/marker>\n\n    <!-- ===== Reusable symbol kit (stroke = currentColor); see symbols.svg ===== -->\n    <symbol id=\"sym-template\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M6 2.5h8l4 4v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z\"/>\n      <path d=\"M14 2.5V6.5h4\"/><path d=\"M8 12h8\"/><path d=\"M8 15.5h8\"/><path d=\"M8 19h5\"/>\n    <\/symbol>\n    <symbol id=\"sym-ai\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 3 l1.7 4.3 L18 9 l-4.3 1.7 L12 15 l-1.7-4.3 L6 9 l4.3-1.7 Z\"/>\n      <path d=\"M18.5 14.5 l.8 2 l2 .8 l-2 .8 l-.8 2 l-.8-2 l-2-.8 l2-.8 Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-app\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/>\n      <path d=\"M3 8.5h18\"/><circle cx=\"6\" cy=\"6.2\" r=\"0.6\" fill=\"currentColor\"/><circle cx=\"8.2\" cy=\"6.2\" r=\"0.6\" fill=\"currentColor\"/>\n    <\/symbol>\n    <symbol id=\"sym-flame\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 2.5c2.5 3.5 5.5 5.6 5.5 9.8a5.5 5.5 0 0 1-11 0c0-1.7.6-3 1.6-4 .2 1.2.9 2 1.9 2.3-.3-2.6.9-5.5 2-8.1Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-shield\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 2.5 4.5 5.5v6c0 4.7 3.2 8.4 7.5 10 4.3-1.6 7.5-5.3 7.5-10v-6Z\"/>\n      <path d=\"M8.5 12l2.4 2.4L15.5 9.8\"/>\n    <\/symbol>\n    <symbol id=\"sym-approval\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <circle cx=\"10\" cy=\"8\" r=\"3.2\"/>\n      <path d=\"M3.8 20c.6-3.3 3.1-5.2 6.2-5.2 1.2 0 2.3.3 3.2.8\"/>\n      <path d=\"M15.5 18.2l1.8 1.8 3.4-3.6\"/>\n    <\/symbol>\n    <symbol id=\"sym-cloud\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M7 18h10a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 6.5 9.2 3.9 3.9 0 0 0 7 18Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-gateway\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M4 21V8l8-4.5L20 8v13\"/><path d=\"M9.5 21v-6a2.5 2.5 0 0 1 5 0v6\"/><path d=\"M2.5 21h19\"/>\n    <\/symbol>\n    <symbol id=\"sym-bell\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M6.5 17V10.5a5.5 5.5 0 0 1 11 0V17l1.8 2.2H4.7Z\"/><path d=\"M10 20.5a2 2 0 0 0 4 0\"/>\n    <\/symbol>\n  <\/defs>\n\n  <!-- Static canvas (always visible) -->\n  <rect width=\"1320\" height=\"820\" fill=\"url(#gCanvas)\"/>\n\n  <!-- ============ TEMPLATES ============ -->\n  <g data-reveal=\"templates\">\n    <text x=\"52\" y=\"68\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">BUILD — ANYONE, ANY TOOL<\/text>\n    <g filter=\"url(#soft)\">\n      <rect x=\"50\" y=\"90\" width=\"250\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"50\" y=\"90\" width=\"250\" height=\"6\" rx=\"3\" fill=\"url(#gGold)\"/>\n    <\/g>\n    <g transform=\"translate(74,120)\" color=\"#b9881d\"><use href=\"#sym-template\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"126\" y=\"140\" font-size=\"22\" font-weight=\"700\" fill=\"#1c2d54\">Templates<\/text>\n    <text x=\"74\" y=\"178\" font-size=\"15\" fill=\"#4a5b80\">Starter repos on GitHub,<\/text>\n    <text x=\"74\" y=\"200\" font-size=\"15\" fill=\"#4a5b80\">one per stack — no blank page.<\/text>\n  <\/g>\n\n  <!-- ============ TOOLS ============ -->\n  <g data-reveal=\"tools\">\n    <path d=\"M300 156 H346\" fill=\"none\" stroke=\"#6b7da6\" stroke-width=\"2.4\" marker-end=\"url(#arw)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"350\" y=\"90\" width=\"270\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"350\" y=\"90\" width=\"270\" height=\"6\" rx=\"3\" fill=\"url(#gSteel)\"/>\n    <\/g>\n    <g transform=\"translate(374,118)\" color=\"#3a6fae\"><use href=\"#sym-ai\" width=\"38\" height=\"38\"/><\/g>\n    <text x=\"422\" y=\"138\" font-size=\"20\" font-weight=\"700\" fill=\"#1c2d54\">Vibe-code in any tool<\/text>\n    <g font-size=\"14\" font-weight=\"600\">\n      <rect x=\"374\" y=\"160\" width=\"86\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"417\" y=\"180\" text-anchor=\"middle\" fill=\"#2f6fae\">Lovable<\/text>\n      <rect x=\"468\" y=\"160\" width=\"118\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"527\" y=\"180\" text-anchor=\"middle\" fill=\"#2f6fae\">Claude Code<\/text>\n      <rect x=\"374\" y=\"196\" width=\"80\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"414\" y=\"216\" text-anchor=\"middle\" fill=\"#2f6fae\">Cursor<\/text>\n      <rect x=\"462\" y=\"196\" width=\"98\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"511\" y=\"216\" text-anchor=\"middle\" fill=\"#2f6fae\">any AI<\/text>\n    <\/g>\n  <\/g>\n\n  <!-- ============ YOUR APP ============ -->\n  <g data-reveal=\"app\">\n    <path d=\"M620 156 H666\" fill=\"none\" stroke=\"#6b7da6\" stroke-width=\"2.4\" marker-end=\"url(#arw)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"670\" y=\"90\" width=\"200\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"670\" y=\"90\" width=\"200\" height=\"6\" rx=\"3\" fill=\"url(#gSteel)\"/>\n    <\/g>\n    <g transform=\"translate(694,120)\" color=\"#3a6fae\"><use href=\"#sym-app\" width=\"38\" height=\"38\"/><\/g>\n    <text x=\"742\" y=\"140\" font-size=\"21\" font-weight=\"700\" fill=\"#1c2d54\">Your app<\/text>\n    <text x=\"694\" y=\"178\" font-size=\"15\" fill=\"#4a5b80\">New build —<\/text>\n    <text x=\"694\" y=\"200\" font-size=\"15\" fill=\"#4a5b80\">or a change to an existing one.<\/text>\n  <\/g>\n\n  <!-- ============ BLAZE HUB ============ -->\n  <g data-reveal=\"blaze\">\n    <text x=\"922\" y=\"58\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">DEPLOY<\/text>\n    <path d=\"M870 156 H918\" fill=\"none\" stroke=\"#e8732b\" stroke-width=\"3.2\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#softLg)\">\n      <rect x=\"922\" y=\"70\" width=\"350\" height=\"170\" rx=\"22\" fill=\"url(#gBlaze)\"/>\n    <\/g>\n    <g transform=\"translate(956,108)\" color=\"#ffffff\"><use href=\"#sym-flame\" width=\"64\" height=\"64\"/><\/g>\n    <text x=\"1040\" y=\"138\" font-size=\"40\" font-weight=\"800\" fill=\"#ffffff\" letter-spacing=\"1\">BLAZE<\/text>\n    <text x=\"1040\" y=\"170\" font-size=\"17\" font-weight=\"600\" fill=\"#fff3e8\">The Enterprise Vercel<\/text>\n    <text x=\"956\" y=\"216\" font-size=\"16\" fill=\"#fff3e8\">One front door — it deploys what you built.<\/text>\n  <\/g>\n\n  <!-- ============ ENVIRONMENTS ============ -->\n  <g data-reveal=\"envs\">\n    <text x=\"52\" y=\"556\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">RUN — GOVERNED ENVIRONMENTS<\/text>\n    <g filter=\"url(#soft)\"><rect x=\"50\" y=\"570\" width=\"260\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(72,594)\" color=\"#bcd2f0\"><use href=\"#sym-cloud\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"124\" y=\"618\" font-size=\"21\" font-weight=\"700\" fill=\"#ffffff\">Commercial Cloud<\/text>\n    <text x=\"72\" y=\"660\" font-size=\"15\" fill=\"#c8d6ee\">Build and ship apps in the<\/text>\n    <text x=\"72\" y=\"682\" font-size=\"15\" fill=\"#c8d6ee\">commercial estate.<\/text>\n    <g font-size=\"14\" font-weight=\"700\">\n      <rect x=\"72\" y=\"694\" width=\"58\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"101\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Dev<\/text>\n      <rect x=\"138\" y=\"694\" width=\"62\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"169\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Prod<\/text>\n    <\/g>\n    <g filter=\"url(#soft)\"><rect x=\"330\" y=\"570\" width=\"240\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(352,594)\" color=\"#bcd2f0\"><use href=\"#sym-cloud\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"404\" y=\"618\" font-size=\"21\" font-weight=\"700\" fill=\"#ffffff\">GAC<\/text>\n    <text x=\"352\" y=\"660\" font-size=\"15\" fill=\"#c8d6ee\">The governed production<\/text>\n    <text x=\"352\" y=\"682\" font-size=\"15\" fill=\"#c8d6ee\">estate.<\/text>\n    <g font-size=\"14\" font-weight=\"700\"><rect x=\"352\" y=\"694\" width=\"62\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"383\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Prod<\/text><\/g>\n    <g filter=\"url(#soft)\"><rect x=\"590\" y=\"570\" width=\"310\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(612,594)\" color=\"#bcd2f0\"><use href=\"#sym-gateway\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"664\" y=\"612\" font-size=\"20\" font-weight=\"700\" fill=\"#ffffff\">Advisory Digital<\/text>\n    <text x=\"664\" y=\"636\" font-size=\"20\" font-weight=\"700\" fill=\"#ffffff\">Gateway<\/text>\n    <text x=\"612\" y=\"676\" font-size=\"15\" fill=\"#c8d6ee\">Our hosted application —<\/text>\n    <text x=\"612\" y=\"698\" font-size=\"15\" fill=\"#c8d6ee\">organized by country shelf.<\/text>\n  <\/g>\n\n  <!-- ============ COMPLIANCE ============ -->\n  <g data-reveal=\"compliance\">\n    <text x=\"52\" y=\"300\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">COMPLIANCE — OWNED 100% BY BLAZE<\/text>\n    <!-- arrows: Blaze -> Compliance, Compliance -> each environment -->\n    <path d=\"M1000 240 C 1000 280, 880 280, 880 318\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M180 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M455 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M735 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"50\" y=\"318\" width=\"850\" height=\"190\" rx=\"18\" fill=\"#ffffff\" stroke=\"#f0c9aa\"/>\n      <path d=\"M68 318 h814 a18 18 0 0 1 18 18 v26 h-850 v-26 a18 18 0 0 1 18 -18 Z\" fill=\"url(#gOrangeBar)\"/>\n    <\/g>\n    <g transform=\"translate(70,328)\" color=\"#ffffff\"><use href=\"#sym-shield\" width=\"26\" height=\"26\"/><\/g>\n    <text x=\"106\" y=\"347\" font-size=\"19\" font-weight=\"700\" fill=\"#ffffff\">Nothing reaches an environment except through here<\/text>\n    <rect x=\"74\" y=\"384\" width=\"388\" height=\"104\" rx=\"14\" fill=\"#f4f8fd\" stroke=\"#d8e1f0\"/>\n    <g transform=\"translate(94,406)\" color=\"#3a6fae\"><use href=\"#sym-shield\" width=\"34\" height=\"34\"/><\/g>\n    <text x=\"140\" y=\"420\" font-size=\"19\" font-weight=\"700\" fill=\"#1c2d54\">Automated checks<\/text>\n    <text x=\"140\" y=\"446\" font-size=\"15\" fill=\"#4a5b80\">Policy · security scans · gates<\/text>\n    <text x=\"140\" y=\"468\" font-size=\"15\" fill=\"#4a5b80\">run automatically on every deploy.<\/text>\n    <rect x=\"488\" y=\"384\" width=\"388\" height=\"104\" rx=\"14\" fill=\"#fdf6e6\" stroke=\"#ecd9a3\"/>\n    <g transform=\"translate(508,406)\" color=\"#b9881d\"><use href=\"#sym-approval\" width=\"34\" height=\"34\"/><\/g>\n    <text x=\"554\" y=\"420\" font-size=\"19\" font-weight=\"700\" fill=\"#1c2d54\">Manual gates<\/text>\n    <text x=\"554\" y=\"446\" font-size=\"15\" fill=\"#4a5b80\">Human approvals — tracked and<\/text>\n    <text x=\"554\" y=\"468\" font-size=\"15\" fill=\"#4a5b80\">orchestrated by Blaze, not chased.<\/text>\n  <\/g>\n\n  <!-- ============ STATUS ============ -->\n  <g data-reveal=\"status\">\n    <text x=\"978\" y=\"300\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">STATUS<\/text>\n    <path d=\"M1130 240 V 318\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#soft)\"><rect x=\"960\" y=\"318\" width=\"312\" height=\"402\" rx=\"18\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/><\/g>\n    <g transform=\"translate(984,340)\" color=\"#e8732b\"><use href=\"#sym-bell\" width=\"30\" height=\"30\"/><\/g>\n    <text x=\"1024\" y=\"362\" font-size=\"20\" font-weight=\"700\" fill=\"#1c2d54\">Live status<\/text>\n    <text x=\"984\" y=\"392\" font-size=\"15\" fill=\"#4a5b80\">Where your deploy stands —<\/text>\n    <text x=\"984\" y=\"412\" font-size=\"15\" fill=\"#4a5b80\">right in the Blaze UI.<\/text>\n    <g font-size=\"16\">\n      <circle cx=\"998\" cy=\"448\" r=\"11\" fill=\"#e7f5ec\" stroke=\"#3ba66a\"/><path d=\"M993 448l3.2 3.2L1004 444\" fill=\"none\" stroke=\"#2e9259\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"453\" fill=\"#1c2d54\" font-weight=\"600\">Build checks passed<\/text>\n      <circle cx=\"998\" cy=\"488\" r=\"11\" fill=\"#e7f5ec\" stroke=\"#3ba66a\"/><path d=\"M993 488l3.2 3.2L1004 484\" fill=\"none\" stroke=\"#2e9259\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"493\" fill=\"#1c2d54\" font-weight=\"600\">Policy &amp; scans clear<\/text>\n      <circle cx=\"998\" cy=\"528\" r=\"11\" fill=\"#fcefce\" stroke=\"#d9a92e\"/><circle cx=\"998\" cy=\"528\" r=\"2.2\" fill=\"#b9881d\"/>\n      <text x=\"1018\" y=\"533\" fill=\"#1c2d54\" font-weight=\"600\">Manual approval — pending<\/text>\n      <circle cx=\"998\" cy=\"568\" r=\"11\" fill=\"#eaf1fa\" stroke=\"#3a6fae\"/><path d=\"M995 563l5 5-5 5\" fill=\"none\" stroke=\"#2f6fae\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"573\" fill=\"#5a6b8f\" font-weight=\"600\">Deploy to Prod (queued)<\/text>\n    <\/g>\n    <line x1=\"984\" y1=\"604\" x2=\"1248\" y2=\"604\" stroke=\"#e6ecf5\"/>\n    <text x=\"984\" y=\"636\" font-size=\"15\" fill=\"#4a5b80\">Including the manual steps.<\/text>\n    <text x=\"984\" y=\"660\" font-size=\"17\" font-weight=\"700\" fill=\"#e8732b\">You always know where you stand.<\/text>\n    <text x=\"660\" y=\"788\" text-anchor=\"middle\" font-size=\"18\" font-weight=\"700\" fill=\"#34518f\" letter-spacing=\"0.5\">Anyone builds — or changes — an app, at scale. Blaze deploys it and owns compliance, automatically.<\/text>\n  <\/g>\n<\/svg>\n"}, {"id": "svg-status", "kind": "svg", "durationSec": 16, "beats": [{"text": "You always know <b>where you stand<\/b>.", "style": "h2"}, {"text": "Live status in the Blaze UI — manual steps included.", "style": "note"}], "buildSteps": [{"atBeat": 0, "reveal": ["status"], "effect": "appear"}], "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1320 820\" font-family=\"'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif\">\n  <defs>\n    <linearGradient id=\"gCanvas\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#f6f9fd\"/>\n      <stop offset=\"1\" stop-color=\"#e7eef8\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gNavy\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#34518f\"/>\n      <stop offset=\"1\" stop-color=\"#1c2d54\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gSteel\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#5b91c8\"/>\n      <stop offset=\"1\" stop-color=\"#3a6fae\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gBlaze\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#ffb15a\"/>\n      <stop offset=\"0.5\" stop-color=\"#f0822f\"/>\n      <stop offset=\"1\" stop-color=\"#d2541a\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gGold\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#f3d27a\"/>\n      <stop offset=\"1\" stop-color=\"#d9a92e\"/>\n    <\/linearGradient>\n    <linearGradient id=\"gOrangeBar\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\">\n      <stop offset=\"0\" stop-color=\"#f0822f\"/>\n      <stop offset=\"1\" stop-color=\"#e8732b\"/>\n    <\/linearGradient>\n    <filter id=\"soft\" x=\"-20%\" y=\"-20%\" width=\"140%\" height=\"140%\">\n      <feDropShadow dx=\"0\" dy=\"6\" stdDeviation=\"9\" flood-color=\"#1c2d54\" flood-opacity=\"0.18\"/>\n    <\/filter>\n    <filter id=\"softLg\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\">\n      <feDropShadow dx=\"0\" dy=\"10\" stdDeviation=\"16\" flood-color=\"#c2410c\" flood-opacity=\"0.35\"/>\n    <\/filter>\n    <marker id=\"arw\" viewBox=\"0 0 12 12\" refX=\"9\" refY=\"6\" markerWidth=\"9\" markerHeight=\"9\" orient=\"auto-start-reverse\">\n      <path d=\"M1 1 L10 6 L1 11 Z\" fill=\"#6b7da6\"/>\n    <\/marker>\n    <marker id=\"arwO\" viewBox=\"0 0 12 12\" refX=\"9\" refY=\"6\" markerWidth=\"9\" markerHeight=\"9\" orient=\"auto-start-reverse\">\n      <path d=\"M1 1 L10 6 L1 11 Z\" fill=\"#e8732b\"/>\n    <\/marker>\n\n    <!-- ===== Reusable symbol kit (stroke = currentColor); see symbols.svg ===== -->\n    <symbol id=\"sym-template\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M6 2.5h8l4 4v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z\"/>\n      <path d=\"M14 2.5V6.5h4\"/><path d=\"M8 12h8\"/><path d=\"M8 15.5h8\"/><path d=\"M8 19h5\"/>\n    <\/symbol>\n    <symbol id=\"sym-ai\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 3 l1.7 4.3 L18 9 l-4.3 1.7 L12 15 l-1.7-4.3 L6 9 l4.3-1.7 Z\"/>\n      <path d=\"M18.5 14.5 l.8 2 l2 .8 l-2 .8 l-.8 2 l-.8-2 l-2-.8 l2-.8 Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-app\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/>\n      <path d=\"M3 8.5h18\"/><circle cx=\"6\" cy=\"6.2\" r=\"0.6\" fill=\"currentColor\"/><circle cx=\"8.2\" cy=\"6.2\" r=\"0.6\" fill=\"currentColor\"/>\n    <\/symbol>\n    <symbol id=\"sym-flame\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 2.5c2.5 3.5 5.5 5.6 5.5 9.8a5.5 5.5 0 0 1-11 0c0-1.7.6-3 1.6-4 .2 1.2.9 2 1.9 2.3-.3-2.6.9-5.5 2-8.1Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-shield\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M12 2.5 4.5 5.5v6c0 4.7 3.2 8.4 7.5 10 4.3-1.6 7.5-5.3 7.5-10v-6Z\"/>\n      <path d=\"M8.5 12l2.4 2.4L15.5 9.8\"/>\n    <\/symbol>\n    <symbol id=\"sym-approval\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <circle cx=\"10\" cy=\"8\" r=\"3.2\"/>\n      <path d=\"M3.8 20c.6-3.3 3.1-5.2 6.2-5.2 1.2 0 2.3.3 3.2.8\"/>\n      <path d=\"M15.5 18.2l1.8 1.8 3.4-3.6\"/>\n    <\/symbol>\n    <symbol id=\"sym-cloud\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M7 18h10a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 6.5 9.2 3.9 3.9 0 0 0 7 18Z\"/>\n    <\/symbol>\n    <symbol id=\"sym-gateway\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M4 21V8l8-4.5L20 8v13\"/><path d=\"M9.5 21v-6a2.5 2.5 0 0 1 5 0v6\"/><path d=\"M2.5 21h19\"/>\n    <\/symbol>\n    <symbol id=\"sym-bell\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <path d=\"M6.5 17V10.5a5.5 5.5 0 0 1 11 0V17l1.8 2.2H4.7Z\"/><path d=\"M10 20.5a2 2 0 0 0 4 0\"/>\n    <\/symbol>\n  <\/defs>\n\n  <!-- Static canvas (always visible) -->\n  <rect width=\"1320\" height=\"820\" fill=\"url(#gCanvas)\"/>\n\n  <!-- ============ TEMPLATES ============ -->\n  <g data-reveal=\"templates\">\n    <text x=\"52\" y=\"68\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">BUILD — ANYONE, ANY TOOL<\/text>\n    <g filter=\"url(#soft)\">\n      <rect x=\"50\" y=\"90\" width=\"250\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"50\" y=\"90\" width=\"250\" height=\"6\" rx=\"3\" fill=\"url(#gGold)\"/>\n    <\/g>\n    <g transform=\"translate(74,120)\" color=\"#b9881d\"><use href=\"#sym-template\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"126\" y=\"140\" font-size=\"22\" font-weight=\"700\" fill=\"#1c2d54\">Templates<\/text>\n    <text x=\"74\" y=\"178\" font-size=\"15\" fill=\"#4a5b80\">Starter repos on GitHub,<\/text>\n    <text x=\"74\" y=\"200\" font-size=\"15\" fill=\"#4a5b80\">one per stack — no blank page.<\/text>\n  <\/g>\n\n  <!-- ============ TOOLS ============ -->\n  <g data-reveal=\"tools\">\n    <path d=\"M300 156 H346\" fill=\"none\" stroke=\"#6b7da6\" stroke-width=\"2.4\" marker-end=\"url(#arw)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"350\" y=\"90\" width=\"270\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"350\" y=\"90\" width=\"270\" height=\"6\" rx=\"3\" fill=\"url(#gSteel)\"/>\n    <\/g>\n    <g transform=\"translate(374,118)\" color=\"#3a6fae\"><use href=\"#sym-ai\" width=\"38\" height=\"38\"/><\/g>\n    <text x=\"422\" y=\"138\" font-size=\"20\" font-weight=\"700\" fill=\"#1c2d54\">Vibe-code in any tool<\/text>\n    <g font-size=\"14\" font-weight=\"600\">\n      <rect x=\"374\" y=\"160\" width=\"86\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"417\" y=\"180\" text-anchor=\"middle\" fill=\"#2f6fae\">Lovable<\/text>\n      <rect x=\"468\" y=\"160\" width=\"118\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"527\" y=\"180\" text-anchor=\"middle\" fill=\"#2f6fae\">Claude Code<\/text>\n      <rect x=\"374\" y=\"196\" width=\"80\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"414\" y=\"216\" text-anchor=\"middle\" fill=\"#2f6fae\">Cursor<\/text>\n      <rect x=\"462\" y=\"196\" width=\"98\" height=\"30\" rx=\"15\" fill=\"#eaf1fa\" stroke=\"#cdddf0\"/><text x=\"511\" y=\"216\" text-anchor=\"middle\" fill=\"#2f6fae\">any AI<\/text>\n    <\/g>\n  <\/g>\n\n  <!-- ============ YOUR APP ============ -->\n  <g data-reveal=\"app\">\n    <path d=\"M620 156 H666\" fill=\"none\" stroke=\"#6b7da6\" stroke-width=\"2.4\" marker-end=\"url(#arw)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"670\" y=\"90\" width=\"200\" height=\"132\" rx=\"16\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/>\n      <rect x=\"670\" y=\"90\" width=\"200\" height=\"6\" rx=\"3\" fill=\"url(#gSteel)\"/>\n    <\/g>\n    <g transform=\"translate(694,120)\" color=\"#3a6fae\"><use href=\"#sym-app\" width=\"38\" height=\"38\"/><\/g>\n    <text x=\"742\" y=\"140\" font-size=\"21\" font-weight=\"700\" fill=\"#1c2d54\">Your app<\/text>\n    <text x=\"694\" y=\"178\" font-size=\"15\" fill=\"#4a5b80\">New build —<\/text>\n    <text x=\"694\" y=\"200\" font-size=\"15\" fill=\"#4a5b80\">or a change to an existing one.<\/text>\n  <\/g>\n\n  <!-- ============ BLAZE HUB ============ -->\n  <g data-reveal=\"blaze\">\n    <text x=\"922\" y=\"58\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">DEPLOY<\/text>\n    <path d=\"M870 156 H918\" fill=\"none\" stroke=\"#e8732b\" stroke-width=\"3.2\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#softLg)\">\n      <rect x=\"922\" y=\"70\" width=\"350\" height=\"170\" rx=\"22\" fill=\"url(#gBlaze)\"/>\n    <\/g>\n    <g transform=\"translate(956,108)\" color=\"#ffffff\"><use href=\"#sym-flame\" width=\"64\" height=\"64\"/><\/g>\n    <text x=\"1040\" y=\"138\" font-size=\"40\" font-weight=\"800\" fill=\"#ffffff\" letter-spacing=\"1\">BLAZE<\/text>\n    <text x=\"1040\" y=\"170\" font-size=\"17\" font-weight=\"600\" fill=\"#fff3e8\">The Enterprise Vercel<\/text>\n    <text x=\"956\" y=\"216\" font-size=\"16\" fill=\"#fff3e8\">One front door — it deploys what you built.<\/text>\n  <\/g>\n\n  <!-- ============ ENVIRONMENTS ============ -->\n  <g data-reveal=\"envs\">\n    <text x=\"52\" y=\"556\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">RUN — GOVERNED ENVIRONMENTS<\/text>\n    <g filter=\"url(#soft)\"><rect x=\"50\" y=\"570\" width=\"260\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(72,594)\" color=\"#bcd2f0\"><use href=\"#sym-cloud\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"124\" y=\"618\" font-size=\"21\" font-weight=\"700\" fill=\"#ffffff\">Commercial Cloud<\/text>\n    <text x=\"72\" y=\"660\" font-size=\"15\" fill=\"#c8d6ee\">Build and ship apps in the<\/text>\n    <text x=\"72\" y=\"682\" font-size=\"15\" fill=\"#c8d6ee\">commercial estate.<\/text>\n    <g font-size=\"14\" font-weight=\"700\">\n      <rect x=\"72\" y=\"694\" width=\"58\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"101\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Dev<\/text>\n      <rect x=\"138\" y=\"694\" width=\"62\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"169\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Prod<\/text>\n    <\/g>\n    <g filter=\"url(#soft)\"><rect x=\"330\" y=\"570\" width=\"240\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(352,594)\" color=\"#bcd2f0\"><use href=\"#sym-cloud\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"404\" y=\"618\" font-size=\"21\" font-weight=\"700\" fill=\"#ffffff\">GAC<\/text>\n    <text x=\"352\" y=\"660\" font-size=\"15\" fill=\"#c8d6ee\">The governed production<\/text>\n    <text x=\"352\" y=\"682\" font-size=\"15\" fill=\"#c8d6ee\">estate.<\/text>\n    <g font-size=\"14\" font-weight=\"700\"><rect x=\"352\" y=\"694\" width=\"62\" height=\"24\" rx=\"12\" fill=\"#ffffff22\" stroke=\"#ffffff55\"/><text x=\"383\" y=\"711\" text-anchor=\"middle\" fill=\"#ffffff\">Prod<\/text><\/g>\n    <g filter=\"url(#soft)\"><rect x=\"590\" y=\"570\" width=\"310\" height=\"150\" rx=\"16\" fill=\"url(#gNavy)\"/><\/g>\n    <g transform=\"translate(612,594)\" color=\"#bcd2f0\"><use href=\"#sym-gateway\" width=\"40\" height=\"40\"/><\/g>\n    <text x=\"664\" y=\"612\" font-size=\"20\" font-weight=\"700\" fill=\"#ffffff\">Advisory Digital<\/text>\n    <text x=\"664\" y=\"636\" font-size=\"20\" font-weight=\"700\" fill=\"#ffffff\">Gateway<\/text>\n    <text x=\"612\" y=\"676\" font-size=\"15\" fill=\"#c8d6ee\">Our hosted application —<\/text>\n    <text x=\"612\" y=\"698\" font-size=\"15\" fill=\"#c8d6ee\">organized by country shelf.<\/text>\n  <\/g>\n\n  <!-- ============ COMPLIANCE ============ -->\n  <g data-reveal=\"compliance\">\n    <text x=\"52\" y=\"300\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">COMPLIANCE — OWNED 100% BY BLAZE<\/text>\n    <!-- arrows: Blaze -> Compliance, Compliance -> each environment -->\n    <path d=\"M1000 240 C 1000 280, 880 280, 880 318\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M180 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M455 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <path d=\"M735 508 V 568\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#soft)\">\n      <rect x=\"50\" y=\"318\" width=\"850\" height=\"190\" rx=\"18\" fill=\"#ffffff\" stroke=\"#f0c9aa\"/>\n      <path d=\"M68 318 h814 a18 18 0 0 1 18 18 v26 h-850 v-26 a18 18 0 0 1 18 -18 Z\" fill=\"url(#gOrangeBar)\"/>\n    <\/g>\n    <g transform=\"translate(70,328)\" color=\"#ffffff\"><use href=\"#sym-shield\" width=\"26\" height=\"26\"/><\/g>\n    <text x=\"106\" y=\"347\" font-size=\"19\" font-weight=\"700\" fill=\"#ffffff\">Nothing reaches an environment except through here<\/text>\n    <rect x=\"74\" y=\"384\" width=\"388\" height=\"104\" rx=\"14\" fill=\"#f4f8fd\" stroke=\"#d8e1f0\"/>\n    <g transform=\"translate(94,406)\" color=\"#3a6fae\"><use href=\"#sym-shield\" width=\"34\" height=\"34\"/><\/g>\n    <text x=\"140\" y=\"420\" font-size=\"19\" font-weight=\"700\" fill=\"#1c2d54\">Automated checks<\/text>\n    <text x=\"140\" y=\"446\" font-size=\"15\" fill=\"#4a5b80\">Policy · security scans · gates<\/text>\n    <text x=\"140\" y=\"468\" font-size=\"15\" fill=\"#4a5b80\">run automatically on every deploy.<\/text>\n    <rect x=\"488\" y=\"384\" width=\"388\" height=\"104\" rx=\"14\" fill=\"#fdf6e6\" stroke=\"#ecd9a3\"/>\n    <g transform=\"translate(508,406)\" color=\"#b9881d\"><use href=\"#sym-approval\" width=\"34\" height=\"34\"/><\/g>\n    <text x=\"554\" y=\"420\" font-size=\"19\" font-weight=\"700\" fill=\"#1c2d54\">Manual gates<\/text>\n    <text x=\"554\" y=\"446\" font-size=\"15\" fill=\"#4a5b80\">Human approvals — tracked and<\/text>\n    <text x=\"554\" y=\"468\" font-size=\"15\" fill=\"#4a5b80\">orchestrated by Blaze, not chased.<\/text>\n  <\/g>\n\n  <!-- ============ STATUS ============ -->\n  <g data-reveal=\"status\">\n    <text x=\"978\" y=\"300\" fill=\"#8194b8\" font-size=\"15\" font-weight=\"700\" letter-spacing=\"2\">STATUS<\/text>\n    <path d=\"M1130 240 V 318\" stroke=\"#e8732b\" stroke-width=\"3.2\" fill=\"none\" marker-end=\"url(#arwO)\"/>\n    <g filter=\"url(#soft)\"><rect x=\"960\" y=\"318\" width=\"312\" height=\"402\" rx=\"18\" fill=\"#ffffff\" stroke=\"#d8e1f0\"/><\/g>\n    <g transform=\"translate(984,340)\" color=\"#e8732b\"><use href=\"#sym-bell\" width=\"30\" height=\"30\"/><\/g>\n    <text x=\"1024\" y=\"362\" font-size=\"20\" font-weight=\"700\" fill=\"#1c2d54\">Live status<\/text>\n    <text x=\"984\" y=\"392\" font-size=\"15\" fill=\"#4a5b80\">Where your deploy stands —<\/text>\n    <text x=\"984\" y=\"412\" font-size=\"15\" fill=\"#4a5b80\">right in the Blaze UI.<\/text>\n    <g font-size=\"16\">\n      <circle cx=\"998\" cy=\"448\" r=\"11\" fill=\"#e7f5ec\" stroke=\"#3ba66a\"/><path d=\"M993 448l3.2 3.2L1004 444\" fill=\"none\" stroke=\"#2e9259\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"453\" fill=\"#1c2d54\" font-weight=\"600\">Build checks passed<\/text>\n      <circle cx=\"998\" cy=\"488\" r=\"11\" fill=\"#e7f5ec\" stroke=\"#3ba66a\"/><path d=\"M993 488l3.2 3.2L1004 484\" fill=\"none\" stroke=\"#2e9259\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"493\" fill=\"#1c2d54\" font-weight=\"600\">Policy &amp; scans clear<\/text>\n      <circle cx=\"998\" cy=\"528\" r=\"11\" fill=\"#fcefce\" stroke=\"#d9a92e\"/><circle cx=\"998\" cy=\"528\" r=\"2.2\" fill=\"#b9881d\"/>\n      <text x=\"1018\" y=\"533\" fill=\"#1c2d54\" font-weight=\"600\">Manual approval — pending<\/text>\n      <circle cx=\"998\" cy=\"568\" r=\"11\" fill=\"#eaf1fa\" stroke=\"#3a6fae\"/><path d=\"M995 563l5 5-5 5\" fill=\"none\" stroke=\"#2f6fae\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <text x=\"1018\" y=\"573\" fill=\"#5a6b8f\" font-weight=\"600\">Deploy to Prod (queued)<\/text>\n    <\/g>\n    <line x1=\"984\" y1=\"604\" x2=\"1248\" y2=\"604\" stroke=\"#e6ecf5\"/>\n    <text x=\"984\" y=\"636\" font-size=\"15\" fill=\"#4a5b80\">Including the manual steps.<\/text>\n    <text x=\"984\" y=\"660\" font-size=\"17\" font-weight=\"700\" fill=\"#e8732b\">You always know where you stand.<\/text>\n    <text x=\"660\" y=\"788\" text-anchor=\"middle\" font-size=\"18\" font-weight=\"700\" fill=\"#34518f\" letter-spacing=\"0.5\">Anyone builds — or changes — an app, at scale. Blaze deploys it and owns compliance, automatically.<\/text>\n  <\/g>\n<\/svg>\n"}, {"id": "recap", "kind": "content", "durationSec": 16, "beats": [{"text": "Everyone's a developer — <b>building and changing<\/b> apps at scale.", "style": "h2"}, {"text": "From a <b>template<\/b>, in <b>any tool<\/b> → <b>deploy through Blaze<\/b>.", "style": "body"}, {"text": "Blaze owns <b>100% of compliance<\/b> — manual steps included — <b>automatically<\/b>.", "style": "body"}, {"text": "Anyone builds. Everything ships safely.", "style": "note"}]}]};</script>
+  <script>
+/* Animated Mermaid Deck — engine
+ *
+ * Reads window.DECK (injected by the builder), builds the scene DOM, pre-renders
+ * each scene's Mermaid to SVG, then drives a timeline that reveals text beats and
+ * diagram elements in lockstep, with optional Web Speech narration.
+ *
+ * Edge reveal tokens are pre-resolved to "edge:N" by the Python builder, so this
+ * file only deals with: node ids, subgraph/cluster ids, and "edge:N".
+ */
+(function () {
+  "use strict";
+
+  var DECK = window.DECK || { scenes: [] };
+  var SCENES = DECK.scenes || [];
+  var BEAT_STAGGER = 700;          // ms between auto-staggered beats
+  var REVEAL_STAGGER = 130;        // ms between elements within one build step
+  var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var SPEECH_OK = "speechSynthesis" in window;
+
+  // Voices load asynchronously in Chrome/Edge; cache them and refresh on the
+  // voiceschanged event so speak() always sees the latest list.
+  var VOICES = [];
+  var started = false;   // becomes true after the first Play
+  function loadVoices() { if (SPEECH_OK) VOICES = window.speechSynthesis.getVoices() || []; }
+  if (SPEECH_OK) {
+    loadVoices();
+    try {
+      window.speechSynthesis.onvoiceschanged = function () { loadVoices(); updateVoiceStatus(); };
+    } catch (e) {}
+  }
+
+  // Narration is "intended" when audio isn't explicitly disabled and at least
+  // one scene has spoken text. A voice is "missing" when speech is unsupported
+  // or the OS/browser exposes no TTS voices at all.
+  function narrationIntended() {
+    if (DECK.audio && DECK.audio.enabled === false) return false;
+    return SCENES.some(function (s) { return narrationText(s); });
+  }
+  function voiceMissing() { return !SPEECH_OK || VOICES.length === 0; }
+
+  // Show the on-screen indicator only after playback has begun (voices enumerate
+  // lazily, so checking earlier yields false positives) and while not muted.
+  function updateVoiceStatus() {
+    if (!els.voiceStatus) return;
+    els.voiceStatus.classList.toggle(
+      "show", started && !muted && narrationIntended() && voiceMissing());
+  }
+
+  var els = {};                    // cached DOM refs
+  var sceneEls = [];               // per-scene { root, beats[], diagram, svg, edges[], edgeLabels[], plan }
+  var idx = 0;
+  var playing = false;
+  var muted = false;
+  var timers = [];
+  var sceneStart = 0;              // performance.now() baseline for current scene
+  var elapsedAtPause = 0;
+  var advanceArmed = false;
+
+  // ---- Setup -----------------------------------------------------------
+
+  function $(sel) { return document.querySelector(sel); }
+
+  function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+
+  // A scene's "diagram source" is either Mermaid text or hand-authored SVG markup.
+  // Scenes that share the same source reveal one diagram cumulatively across scenes.
+  function sceneSource(s) { return s.mermaid || s.svg || null; }
+
+  function totalDurationMs() {
+    return SCENES.reduce(function (a, s) { return a + sceneDurationMs(s); }, 0);
+  }
+
+  function sceneDurationMs(s) {
+    if (typeof s.durationSec === "number") return s.durationSec * 1000;
+    var target = (DECK.targetDurationSec || 150) * 1000;
+    return Math.round(target / Math.max(1, SCENES.length));
+  }
+
+  // For a shared diagram source used across several scenes, each scene must hide
+  // the tokens it (and later scenes) reveal, while leaving earlier scenes'
+  // reveals visible. Returns hideTokens[] per scene index.
+  function computeCumulative() {
+    var allTokens = {};   // sourceKey -> Set of every token revealed by any scene
+    SCENES.forEach(function (s) {
+      var key = sceneSource(s);
+      if (!key) return;
+      var set = allTokens[key] || (allTokens[key] = {});
+      (s.buildSteps || []).forEach(function (st) {
+        (st.reveal || []).forEach(function (t) { set[t] = true; });
+      });
+    });
+    var prior = {};       // sourceKey -> Set of tokens revealed by earlier scenes
+    return SCENES.map(function (s) {
+      var key = sceneSource(s);
+      if (!key) return [];
+      var seen = prior[key] || (prior[key] = {});
+      var hide = Object.keys(allTokens[key]).filter(function (t) { return !seen[t]; });
+      (s.buildSteps || []).forEach(function (st) {
+        (st.reveal || []).forEach(function (t) { seen[t] = true; });
+      });
+      return hide;
+    });
+  }
+
+  function buildDOM() {
+    els.stage = $("#stage");
+    els.progressFill = $("#progress-fill");
+    els.ticks = $("#progress-ticks");
+    els.counter = $("#scene-counter");
+    els.startOverlay = $("#start-overlay");
+    els.voiceStatus = $("#voice-status");
+
+    var HIDE = computeCumulative();
+    var total = totalDurationMs();
+    var acc = 0;
+    SCENES.forEach(function (scene, i) {
+      var src = sceneSource(scene);
+      var root = document.createElement("section");
+      root.className = "scene" + (src ? "" : " no-diagram");
+      root.setAttribute("data-kind", scene.kind || "content");
+      root.id = "scene-" + (scene.id || i);
+
+      var textWrap = document.createElement("div");
+      textWrap.className = "scene-text";
+      var beatEls = (scene.beats || []).map(function (beat) {
+        var b = document.createElement("div");
+        b.className = "beat beat--" + (beat.style || "body");
+        b.setAttribute("data-anim", REDUCED ? "fade" : (beat.anim || "fade-up"));
+        if ((beat.anim === "typewriter") && !REDUCED) {
+          var span = document.createElement("span");
+          span.className = "tw";
+          span.innerHTML = beat.text;
+          var n = (beat.text || "").replace(/<[^>]+>/g, "").length || 1;
+          b.style.setProperty("--tw-steps", String(n));
+          b.style.setProperty("--tw-dur", Math.min(2.4, Math.max(0.6, n * 0.05)) + "s");
+          b.appendChild(span);
+        } else {
+          b.innerHTML = beat.text;
+        }
+        textWrap.appendChild(b);
+        return b;
+      });
+      root.appendChild(textWrap);
+
+      var diagram = null;
+      if (src) {
+        diagram = document.createElement("div");
+        diagram.className = "scene-diagram";
+        root.appendChild(diagram);
+      }
+      if (scene.caption) {
+        var cap = document.createElement("div");
+        cap.className = "scene-caption";
+        cap.textContent = scene.caption;
+        root.appendChild(cap);
+      }
+
+      els.stage.appendChild(root);
+      sceneEls.push({ root: root, beats: beatEls, diagram: diagram, svg: null,
+                      isSvg: !!scene.svg, edges: [], edgeLabels: [], hideTokens: HIDE[i],
+                      plan: buildScenePlan(scene) });
+
+      // progress tick
+      acc += sceneDurationMs(scene);
+      if (i < SCENES.length - 1) {
+        var tick = document.createElement("div");
+        tick.className = "tick";
+        tick.style.left = (100 * acc / total) + "%";
+        els.ticks.appendChild(tick);
+      }
+    });
+  }
+
+  // Precompute beat times and build-step times for a scene.
+  function buildScenePlan(scene) {
+    var beats = scene.beats || [];
+    var beatTimes = beats.map(function (b, i) {
+      return typeof b.atMs === "number" ? b.atMs : i * BEAT_STAGGER;
+    });
+    var builds = (scene.buildSteps || []).map(function (step) {
+      var at = typeof step.atMs === "number"
+        ? step.atMs
+        : (beatTimes[step.atBeat] != null ? beatTimes[step.atBeat] : 0);
+      return { at: at, reveal: step.reveal || [], effect: step.effect || "appear" };
+    });
+    var lastEvent = Math.max(0,
+      beatTimes.length ? beatTimes[beatTimes.length - 1] : 0,
+      builds.reduce(function (m, b) { return Math.max(m, b.at); }, 0));
+    return { beatTimes: beatTimes, builds: builds, lastEvent: lastEvent };
+  }
+
+  // ---- Mermaid rendering ----------------------------------------------
+
+  function initMermaid() {
+    if (!window.mermaid || typeof window.mermaid.initialize !== "function") return false;
+    var cfg = Object.assign({
+      startOnLoad: false,
+      securityLevel: "loose",
+      theme: "base",
+      htmlLabels: false,
+      flowchart: { htmlLabels: false, curve: "basis", nodeSpacing: 45, rankSpacing: 55, padding: 12 },
+      themeVariables: {
+        fontFamily: "inherit",
+        fontSize: "18px",
+        lineColor: "#9db0cf",
+        primaryColor: "#e8eef7",
+        primaryTextColor: "#29417a",
+        primaryBorderColor: "#4682b4",
+        clusterBkg: "rgba(255,255,255,0.04)",
+        clusterBorder: "#4682b4",
+        titleColor: "#ffffff",
+        edgeLabelBackground: "#16233f"
+      }
+    }, DECK.mermaidConfig || {});
+    window.mermaid.initialize(cfg);
+    return true;
+  }
+
+  // Hand-authored SVG scenes: drop the markup straight in, grab the <svg>, and
+  // let it scale to the column. Reveal targets are matched by data-reveal tokens.
+  function mountSvgScene(rec) {
+    rec.diagram.innerHTML = rec_scene_svg(rec);
+    rec.svg = rec.diagram.querySelector("svg");
+    if (rec.svg) {
+      rec.svg.removeAttribute("height");
+      rec.svg.style.maxWidth = "100%";
+      rec.svg.style.width = "100%";
+    }
+  }
+  function rec_scene_svg(rec) { return rec._svgSrc || ""; }
+
+  function renderAll() {
+    var jobs = SCENES.map(function (scene, i) {
+      if (scene.svg) {
+        sceneEls[i]._svgSrc = scene.svg;
+        mountSvgScene(sceneEls[i]);
+        return Promise.resolve();
+      }
+      if (!scene.mermaid) return Promise.resolve();
+      if (!window.mermaid || typeof window.mermaid.render !== "function") {
+        sceneEls[i].diagram.innerHTML =
+          '<div style="color:#ff9d9d;font-size:.9rem">Diagram unavailable (mermaid.js failed to load)</div>';
+        return Promise.resolve();
+      }
+      var id = "mmd-" + i + "-" + Math.random().toString(36).slice(2);
+      return window.mermaid.render(id, scene.mermaid).then(function (res) {
+        var rec = sceneEls[i];
+        rec.diagram.innerHTML = res.svg;
+        rec.svg = rec.diagram.querySelector("svg");
+        if (rec.svg) {
+          rec.svg.removeAttribute("height");
+          rec.svg.style.maxWidth = "100%";
+          rec.svg.style.width = "100%";
+          // max-height is governed by CSS (.scene-diagram svg) so the mobile
+          // media query can shrink it; an inline value would override that.
+          rec.edges = collectEdges(rec.svg);
+          rec.edgeLabels = Array.prototype.slice.call(
+            rec.svg.querySelectorAll(".edgeLabels .edgeLabel, .edgeLabel"));
+        }
+      }).catch(function (err) {
+        sceneEls[i].diagram.innerHTML =
+          '<div style="color:#ff9d9d;font-size:.9rem">Diagram error: ' +
+          String(err && err.message || err) + "</div>";
+      });
+    });
+    return Promise.all(jobs);
+  }
+
+  function collectEdges(svg) {
+    var e = svg.querySelectorAll("path.flowchart-link");
+    if (!e.length) e = svg.querySelectorAll(".edgePaths path, g.edgePaths path");
+    return Array.prototype.slice.call(e);
+  }
+
+  // Resolve a reveal token to SVG elements within a scene record.
+  function resolveToken(rec, token) {
+    if (!rec.svg) return [];
+    if (rec.isSvg) {
+      // Hand-authored SVG: tokens match `data-reveal="<token>"` (space-separated
+      // list allowed) or an element id. Returns every matching element.
+      var out = Array.prototype.slice.call(
+        rec.svg.querySelectorAll('[data-reveal~="' + cssAttr(token) + '"]'));
+      var byId = rec.svg.querySelector('#' + cssEsc(token));
+      if (byId && out.indexOf(byId) === -1) out.push(byId);
+      return out;
+    }
+    if (token.indexOf("edge:") === 0) {
+      var n = parseInt(token.slice(5), 10);
+      var out = [];
+      if (rec.edges[n]) out.push(rec.edges[n]);
+      if (rec.edgeLabels[n]) out.push(rec.edgeLabels[n]);
+      return out;
+    }
+    // node first, then cluster/subgraph
+    var sel = 'g.node[id*="-' + token + '-"], g.node[id$="-' + token + '"], ' +
+              'g.node[id="' + token + '"], g.node#' + cssEsc(token);
+    var nodes = Array.prototype.slice.call(rec.svg.querySelectorAll(sel));
+    if (nodes.length) return nodes;
+    var csel = 'g.cluster[id="' + token + '"], g.cluster[id$="' + token + '"], ' +
+               'g.cluster[id*="-' + token + '"], g.cluster#' + cssEsc(token);
+    return Array.prototype.slice.call(rec.svg.querySelectorAll(csel));
+  }
+
+  function cssEsc(s) {
+    return (window.CSS && CSS.escape) ? CSS.escape(s) : s.replace(/[^a-zA-Z0-9_-]/g, "\\$&");
+  }
+  // Escape a token for use inside an attribute-selector string ("...").
+  function cssAttr(s) { return String(s).replace(/(["\\])/g, "\\$1"); }
+
+  // Elements to hide at the start of this scene (its own + future reveals on the
+  // same diagram); earlier scenes' reveals are left visible.
+  function managedElements(rec) {
+    var set = new Set();
+    (rec.hideTokens || []).forEach(function (tok) {
+      resolveToken(rec, tok).forEach(function (el) { set.add(el); });
+    });
+    return set;
+  }
+
+  function isPath(el) { return el && el.tagName && el.tagName.toLowerCase() === "path"; }
+
+  function hideManaged(rec) {
+    if (!rec.svg) return;
+    managedElements(rec).forEach(function (el) {
+      el.classList.add("mm-hidden");
+      el.classList.remove("revealed", "mm-pulse");
+      el.style.transition = "";
+      el.style.strokeDashoffset = "";
+      el.style.strokeDasharray = "";
+      var shape = el.querySelector ? el.querySelector(".mm-pulse") : null;
+      if (shape) shape.classList.remove("mm-pulse");
+      if (!isPath(el)) el.classList.add("mm-anim");
+    });
+  }
+
+  function revealEls(els2, effect) {
+    els2.forEach(function (el, i) {
+      var delay = REDUCED ? 0 : i * REVEAL_STAGGER;
+      var act = function () {
+        el.classList.remove("mm-hidden");
+        if (effect === "draw" && isPath(el)) {
+          var len = 0;
+          try { len = el.getTotalLength(); } catch (e) { len = 0; }
+          el.style.opacity = "1";
+          if (len && !REDUCED) {
+            el.style.strokeDasharray = len;
+            el.style.strokeDashoffset = len;
+            el.getBoundingClientRect();           // reflow
+            el.style.transition = "stroke-dashoffset .7s ease";
+            el.style.strokeDashoffset = "0";
+          } else {
+            el.style.strokeDashoffset = "0";
+          }
+        } else {
+          el.classList.add("mm-anim", "revealed");
+        }
+        if (effect === "pulse" && !REDUCED) {
+          // Pulse the shape child, not the <g>: scaling the group's CSS transform
+          // would clobber its SVG positioning transform.
+          var shape = isPath(el) ? el : (el.querySelector("rect, polygon, circle, ellipse") || el);
+          shape.classList.add("mm-pulse");
+        }
+      };
+      if (delay) timers.push(setTimeout(act, delay)); else act();
+    });
+  }
+
+  function revealToken(rec, tok, effect) { revealEls(resolveToken(rec, tok), effect); }
+
+  // On phones the diagram is rendered larger than the viewport (so labels stay
+  // legible) and its container scrolls. After a build step reveals elements,
+  // pan that container so the newly-revealed elements are centred in view —
+  // otherwise the highlighted part of a wide diagram can be off-screen.
+  function isNarrow() {
+    return !!(window.matchMedia && window.matchMedia("(max-width: 760px)").matches);
+  }
+
+  // Size a scene's diagram for the current viewport. On desktop the SVG fits
+  // the column width. On phones, shrinking a wide diagram to the screen width
+  // makes its labels unreadable, so we render it at a legible scale (≈0.6px per
+  // design unit) — small diagrams still just fit the width, dense/wide ones grow
+  // past the screen and become horizontally pannable. Capped so nothing becomes
+  // absurdly large, and never taller than the available height. Must run while
+  // the scene is visible (an inactive scene has zero width).
+  function sizeDiagram(rec) {
+    var svg = rec && rec.svg;
+    if (!svg) return;
+    if (!isNarrow()) {
+      svg.style.width = "100%";
+      svg.style.height = "";
+      svg.style.maxWidth = "100%";
+      return;
+    }
+    var vb = svg.viewBox && svg.viewBox.baseVal;
+    if (!vb || !vb.width || !vb.height) return;
+    var cont = rec.diagram;
+    var cw = cont.clientWidth || (window.innerWidth - 40);
+    if (!cw) return;
+    var aspect = vb.width / vb.height;
+    var TARGET = 0.6;                              // rendered px per design unit
+    var w = Math.max(cw, vb.width * TARGET);
+    w = Math.min(w, cw * 3);                       // don't over-zoom huge diagrams
+    var maxH = window.innerHeight * 0.6;           // keep within the visible height
+    if (w / aspect > maxH) w = maxH * aspect;
+    w = Math.max(cw, w);                           // never narrower than the screen
+    svg.style.width = Math.round(w) + "px";
+    svg.style.height = "auto";
+    svg.style.maxWidth = "none";
+  }
+
+  function focusDiagram(rec, list) {
+    if (!isNarrow() || !rec.diagram || !list || !list.length) return;
+    var cont = rec.diagram;
+    if (cont.scrollWidth <= cont.clientWidth + 1 &&
+        cont.scrollHeight <= cont.clientHeight + 1) return;
+    var cr = cont.getBoundingClientRect();
+    var minL = Infinity, minT = Infinity, maxR = -Infinity, maxB = -Infinity;
+    list.forEach(function (el) {
+      if (!el || !el.getBoundingClientRect) return;
+      var r = el.getBoundingClientRect();
+      if (!r.width && !r.height) return;
+      minL = Math.min(minL, r.left); minT = Math.min(minT, r.top);
+      maxR = Math.max(maxR, r.right); maxB = Math.max(maxB, r.bottom);
+    });
+    if (minL === Infinity) return;
+    var left = cont.scrollLeft + ((minL + maxR) / 2 - cr.left) - cr.width / 2;
+    var top = cont.scrollTop + ((minT + maxB) / 2 - cr.top) - cr.height / 2;
+    left = Math.max(0, left); top = Math.max(0, top);
+    try { cont.scrollTo({ left: left, top: top, behavior: REDUCED ? "auto" : "smooth" }); }
+    catch (e) { cont.scrollLeft = left; cont.scrollTop = top; }
+  }
+
+  // ---- Playback --------------------------------------------------------
+
+  function showBeat(rec, i) { if (rec.beats[i]) rec.beats[i].classList.add("is-in"); }
+  function hideBeats(rec) { rec.beats.forEach(function (b) { b.classList.remove("is-in"); }); }
+
+  function activate(i) {
+    sceneEls.forEach(function (r, j) { r.root.classList.toggle("is-active", j === i); });
+    updateCounter();
+  }
+
+  // Reveal everything up to `fromMs` instantly, schedule the rest. If `autoAdvance`
+  // and not the last scene, arm advancing to the next scene.
+  function runScene(i, fromMs, autoAdvance) {
+    clearTimers();
+    var rec = sceneEls[i];
+    var scene = SCENES[i];
+    var plan = rec.plan;
+    if (REDUCED) { fromMs = Infinity; autoAdvance = false; }  // reveal instantly, no autoplay
+
+    hideBeats(rec);
+    hideManaged(rec);
+    sizeDiagram(rec);   // the scene is now visible, so its width is measurable
+
+    plan.beatTimes.forEach(function (t, bi) {
+      if (t <= fromMs) showBeat(rec, bi);
+      else timers.push(setTimeout(function () { showBeat(rec, bi); }, t - fromMs));
+    });
+
+    plan.builds.forEach(function (b) {
+      var fire = function () {
+        var targets = [];
+        b.reveal.forEach(function (tok) {
+          var found = resolveToken(rec, tok);
+          revealEls(found, b.effect);
+          targets = targets.concat(found);
+        });
+        focusDiagram(rec, targets);
+      };
+      if (b.at <= fromMs) fire();
+      else timers.push(setTimeout(fire, b.at - fromMs));
+    });
+
+    sceneStart = performance.now() - fromMs;
+    elapsedAtPause = fromMs;
+
+    if (fromMs === 0 && !muted && SPEECH_OK && !REDUCED && scene.kind !== undefined) speak(scene);
+
+    if (autoAdvance && i < SCENES.length - 1) armAdvance(i, fromMs, scene);
+  }
+
+  // Rough spoken duration so a scene holds long enough for its narration even
+  // when the speech engine never fires onend (Chrome can swallow it silently).
+  function estimateSpeechMs(scene) {
+    var t = narrationText(scene);
+    if (!t) return 0;
+    var words = t.split(/\s+/).filter(Boolean).length;
+    var rate = (DECK.audio && DECK.audio.rate) || 1;
+    // ~2.4 words/sec is intentionally a touch slower than typical TTS so the
+    // scene holds until narration finishes, plus a tail buffer.
+    return (words / (2.4 * Math.max(0.5, rate))) * 1000 + 900;
+  }
+
+  // Auto-advance is timer-driven and does NOT depend on the speech callback, so
+  // playback never stalls if narration is dropped or unavailable. speak()'s
+  // onend may still advance early once the visuals have finished.
+  function armAdvance(i, fromMs, scene) {
+    advanceArmed = true;
+    var hold = Math.max(sceneDurationMs(scene), sceneEls[i].plan.lastEvent + 1200);
+    if (!muted && SPEECH_OK && !REDUCED && narrationText(scene)) {
+      hold = Math.max(hold, estimateSpeechMs(scene));
+    }
+    timers.push(setTimeout(function () { doAdvance(i); }, Math.max(1200, hold - fromMs)));
+  }
+
+  function doAdvance(i) {
+    if (!advanceArmed || i !== idx || !playing) return;
+    advanceArmed = false;
+    go(idx + 1);
+  }
+
+  function go(i) {
+    if (i < 0 || i >= SCENES.length) return;
+    if (SPEECH_OK) { stopKeepAlive(); window.speechSynthesis.cancel(); }
+    idx = i;
+    activate(i);
+    if (playing) runScene(i, 0, true);
+    else runScene(i, Infinity, false);   // paused: land fully revealed
+    if (i === SCENES.length - 1 && playing) {
+      // last scene: let it play out, then stop
+    }
+  }
+
+  function play() {
+    if (els.startOverlay) els.startOverlay.classList.add("hidden");
+    if (playing) return;
+    // boot() pre-renders the first scene with fromMs=Infinity (fully revealed,
+    // no autoplay). Starting from that state must begin the scene fresh, else
+    // the advance timer collapses to its floor and the first scene's narration
+    // (which only fires at fromMs===0) is skipped.
+    if (!isFinite(elapsedAtPause)) elapsedAtPause = 0;
+    playing = true;
+    started = true;
+    setPlayIcon();
+    // Voices often finish enumerating only after this first user gesture.
+    loadVoices();
+    updateVoiceStatus();
+    runScene(idx, elapsedAtPause, true);
+  }
+
+  function pause() {
+    if (!playing) return;
+    playing = false;
+    advanceArmed = false;
+    elapsedAtPause = performance.now() - sceneStart;
+    clearTimers();
+    if (SPEECH_OK) { stopKeepAlive(); window.speechSynthesis.cancel(); }
+    setPlayIcon();
+  }
+
+  function toggle() { playing ? pause() : play(); }
+
+  function next() { pause(); go(Math.min(SCENES.length - 1, idx + 1)); }
+  function prev() { pause(); go(Math.max(0, idx - 1)); }
+
+  function replay() {
+    if (SPEECH_OK) { stopKeepAlive(); window.speechSynthesis.cancel(); }
+    idx = 0; elapsedAtPause = 0; playing = true;
+    activate(0); setPlayIcon();
+    if (els.startOverlay) els.startOverlay.classList.add("hidden");
+    runScene(0, 0, true);
+  }
+
+  // ---- Narration -------------------------------------------------------
+
+  function narrationText(scene) {
+    if (scene.narration) return scene.narration;
+    return (scene.beats || []).map(function (b) {
+      return (b.text || "").replace(/<[^>]+>/g, "");
+    }).join(". ");
+  }
+
+  var keepAlive = null;
+  function stopKeepAlive() { if (keepAlive) { clearInterval(keepAlive); keepAlive = null; } }
+
+  function speak(scene) {
+    var text = narrationText(scene);
+    if (!text) return;
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+    stopKeepAlive();
+
+    var u = new SpeechSynthesisUtterance(text);
+    var hint = (DECK.audio && DECK.audio.voiceHint) || "en";
+    var v = VOICES.filter(function (vc) {
+      return vc.lang && vc.lang.toLowerCase().indexOf(hint.toLowerCase()) === 0;
+    })[0];
+    if (v) u.voice = v;
+    u.rate = (DECK.audio && DECK.audio.rate) || 1;
+
+    u.onstart = function () {
+      // Chrome silently stops utterances after ~15s; a periodic pause/resume
+      // keeps long narration going to the end.
+      stopKeepAlive();
+      keepAlive = setInterval(function () {
+        if (!window.speechSynthesis.speaking) { stopKeepAlive(); return; }
+        try { window.speechSynthesis.pause(); window.speechSynthesis.resume(); } catch (e) {}
+      }, 9000);
+    };
+    // Pacing is driven solely by the armAdvance timer (sized to the larger of
+    // the visual timeline and the estimated narration length), NOT by onend.
+    // Browsers fire onend/onstart instantly when no voice actually speaks, which
+    // would otherwise race the deck through every scene. Narration just plays
+    // alongside and finishes within the timed window.
+    u.onend = u.onerror = function () { stopKeepAlive(); };
+
+    // Chrome drops an utterance queued in the same tick as cancel(); defer a
+    // beat and resume() first to clear any stuck paused state.
+    setTimeout(function () {
+      try { window.speechSynthesis.resume(); } catch (e) {}
+      try { window.speechSynthesis.speak(u); } catch (e) {}
+    }, 60);
+  }
+
+  // ---- UI glue ---------------------------------------------------------
+
+  function updateCounter() {
+    if (els.counter) els.counter.textContent = (idx + 1) + " / " + SCENES.length;
+    if (els.progressFill) {
+      els.progressFill.style.transition = REDUCED ? "none" : "width .4s linear";
+      els.progressFill.style.width = (100 * (idx + 1) / SCENES.length) + "%";
+    }
+  }
+
+  function setPlayIcon() {
+    var b = $("#btn-play");
+    if (b) b.textContent = playing ? "⏸" : "▶";
+  }
+
+  function setMuteIcon() {
+    var b = $("#btn-mute");
+    if (b) b.textContent = muted ? "🔇" : "🔊";
+  }
+
+  function wireControls() {
+    $("#btn-prev").addEventListener("click", prev);
+    $("#btn-play").addEventListener("click", toggle);
+    $("#btn-next").addEventListener("click", next);
+    $("#btn-replay").addEventListener("click", replay);
+    var mute = $("#btn-mute");
+    if (mute) mute.addEventListener("click", function () {
+      muted = !muted; setMuteIcon();
+      if (muted && SPEECH_OK) { stopKeepAlive(); window.speechSynthesis.cancel(); }
+      // Unmuting mid-scene starts narration for the current scene immediately.
+      else if (!muted && playing) speak(SCENES[idx]);
+      updateVoiceStatus();
+    });
+    var start = $("#start-btn");
+    if (start) start.addEventListener("click", function () { idx = 0; activate(0); play(); });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.code === "Space") { e.preventDefault(); toggle(); }
+      else if (e.code === "ArrowRight") next();
+      else if (e.code === "ArrowLeft") prev();
+      else if (e.key === "r" || e.key === "R") replay();
+    });
+
+    if (REDUCED) {
+      var hint = $("#reduced-hint");
+      if (hint) hint.style.display = "inline";
+    }
+
+    // Re-fit the visible diagram when the viewport changes (rotation, resize).
+    var resizeT;
+    window.addEventListener("resize", function () {
+      clearTimeout(resizeT);
+      resizeT = setTimeout(function () { sizeDiagram(sceneEls[idx]); }, 150);
+    });
+  }
+
+  // ---- Boot ------------------------------------------------------------
+
+  function boot() {
+    buildDOM();
+    wireControls();
+    setMuteIcon();
+    activate(0);
+    initMermaid();
+    renderAll().then(function () {
+      // hide all managed elements up front so nothing flashes before its scene
+      sceneEls.forEach(hideManaged);
+      activate(0);
+      // First scene shown fully (under the start overlay) so the title is visible.
+      runScene(0, Infinity, false);
+      // Voices load asynchronously in some browsers.
+      if (SPEECH_OK) window.speechSynthesis.getVoices();
+    });
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+})();
+
+  </script>
+</body>
+</html>

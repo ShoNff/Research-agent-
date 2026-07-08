@@ -28,7 +28,17 @@ export default async function ProjectPage({
   if (!project) notFound();
 
   const decks = project.artifacts.filter((a) => a.type === "deck" || a.type === "document");
-  const images = project.artifacts.filter((a) => a.type === "image");
+  // Charts referenced inline by the report shouldn't repeat in the gallery.
+  const images = project.artifacts.filter(
+    (a) => a.type === "image" && !project.reportHtml.includes(`src="${a.url}"`)
+  );
+
+  // Mini-TOC from the report's h2 anchors (ids are added at build time).
+  const toc: { id: string; label: string }[] = [];
+  for (const m of project.reportHtml.matchAll(/<h2 id="([^"]+)">(.*?)<\/h2>/g)) {
+    toc.push({ id: m[1], label: m[2].replace(/<[^>]+>/g, "") });
+  }
+  const showToc = toc.length >= 3;
 
   return (
     <main className="shell">
@@ -67,10 +77,22 @@ export default async function ProjectPage({
       )}
 
       {project.hasReport && (
-        <article
-          className="prose"
-          dangerouslySetInnerHTML={{ __html: project.reportHtml }}
-        />
+        <div className={showToc ? "reportLayout" : undefined}>
+          {showToc && (
+            <nav className="toc" aria-label="Report contents">
+              <div className="tocTitle">Contents</div>
+              {toc.map((t) => (
+                <a key={t.id} href={`#${t.id}`}>
+                  {t.label}
+                </a>
+              ))}
+            </nav>
+          )}
+          <article
+            className="prose"
+            dangerouslySetInnerHTML={{ __html: project.reportHtml }}
+          />
+        </div>
       )}
 
       {images.length > 0 && (

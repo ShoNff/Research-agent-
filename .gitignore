@@ -12,3 +12,6 @@ build/
 
 # Per-environment hook firing log (not shared)
 .claude/logs/
+
+# Edition run logs (the edition.json/md are committed; the traces are not)
+editions/*/logs/

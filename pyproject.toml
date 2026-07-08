@@ -18,6 +18,7 @@ dependencies = [
 
 [project.scripts]
 research-agent = "research_agent.cli:main"
+research-paper = "research_agent.paper_cli:main"
 
 [build-system]
 requires = ["setuptools>=68.0"]

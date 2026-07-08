@@ -1,0 +1,36 @@
+{
+  "slug": "blaze-deployment-platform",
+  "title": "Blaze Deployment Platform",
+  "topic": "Everyone Is a Developer: how Blaze auto-deploys apps built by anyone, in any tool, and owns compliance end to end",
+  "summary": "Pitch deck for Blaze: anyone builds or changes an app at scale in any tool, and Blaze deploys it and owns compliance automatically — templates, tools, environments, and a compliance status thread tie the story together.",
+  "tags": [
+    "deployment",
+    "compliance",
+    "platform",
+    "devops"
+  ],
+  "key_claims": [
+    "Blaze's premise is that anyone can build or change an app; deployment and compliance are automated away from the builder.",
+    "Templates are the source of truth; apps flow from any authoring tool through Blaze into governed environments.",
+    "Compliance is owned by the platform as a continuous status thread, not a manual gate at the end."
+  ],
+  "created": "2026-07-07",
+  "updated": "2026-07-07",
+  "published_at": "2026-07-07T19:33:41.566229+00:00",
+  "version": 1,
+  "artifacts": [
+    {
+      "type": "deck",
+      "path": "deck.html"
+    }
+  ],
+  "sources": [],
+  "related": [],
+  "changelog": [
+    {
+      "version": 1,
+      "date": "2026-07-07",
+      "note": "published existing deck (manifest added retroactively)"
+    }
+  ]
+}

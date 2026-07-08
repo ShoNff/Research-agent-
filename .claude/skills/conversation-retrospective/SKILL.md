@@ -91,10 +91,10 @@ default, prompt line, or schema field to change, not a vague "update the prompt"
 | Learning | Source of truth to change |
 |---|---|
 | Report style / length / tone | `src/research_agent/prompts/writer.py` (style rules) and/or the `writing_style` default in `src/research_agent/config.py` |
-| Visuals — diagrams / maps / pictures, how many | `src/research_agent/prompts/visual.py` and/or the `visual_emphasis` default in `config.py` |
+| Visuals — diagrams / maps / pictures, how many | `src/research_agent/prompts/visual.py` |
 | Deck sound / narration default | `.claude/skills/animated-mermaid-deck/template/deck_engine.js` (`narrationIntended` — controls whether narration plays), the `audio.enabled` field in that skill's `SKILL.md` schema, and the `audio` block in example decks |
 | Source-reliability strictness | `src/research_agent/prompts/qa.py`, `src/research_agent/prompts/search.py`, `src/research_agent/tools/source_eval.py` |
-| Default formats / models / budget | defaults in `src/research_agent/config.py` (`formats`, `models`, `max_budget_usd`); update `--format`/option help in `src/research_agent/cli.py` to match |
+| Default formats / models / depth budgets | defaults in `src/research_agent/config.py` (`formats`, `models`, `RunLimits`, `PROFILES`); update `--format`/option help in `src/research_agent/cli.py` to match |
 | Workflow / process conventions (phases, ordering, mandatory steps) | `src/research_agent/prompts/orchestrator.py` |
 | Harness behavior (hooks, env vars, "stop asking me to confirm X") | **delegate to the `update-config` skill** — it owns `.claude/settings.json`. Do not hand-edit settings here. |
 | Reduce permission prompts | **delegate to the `fewer-permission-prompts` skill** |

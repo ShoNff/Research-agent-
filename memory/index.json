@@ -1,6 +1,25 @@
 {
   "projects": [
     {
+      "slug": "blaze-deployment-platform",
+      "title": "Blaze Deployment Platform",
+      "topic": "Everyone Is a Developer: how Blaze auto-deploys apps built by anyone, in any tool, and owns compliance end to end",
+      "summary": "Pitch deck for Blaze: anyone builds or changes an app at scale in any tool, and Blaze deploys it and owns compliance automatically — templates, tools, environments, and a compliance status thread tie the story together.",
+      "tags": [
+        "deployment",
+        "compliance",
+        "platform",
+        "devops"
+      ],
+      "key_claims": [
+        "Blaze's premise is that anyone can build or change an app; deployment and compliance are automated away from the builder.",
+        "Templates are the source of truth; apps flow from any authoring tool through Blaze into governed environments.",
+        "Compliance is owned by the platform as a continuous status thread, not a manual gate at the end."
+      ],
+      "updated": "2026-07-07",
+      "version": 1
+    },
+    {
       "slug": "azure-workspaces",
       "title": "Azure Workspaces",
       "topic": "How an Azure engagement boundary is built: Tenant -> Subscription -> Resource Groups -> Workspace, and how agents operate inside it",
@@ -81,6 +100,29 @@
       ],
       "updated": "2026-06-08",
       "version": 2
+    },
+    {
+      "slug": "research-agent-architecture",
+      "title": "Research Agent Architecture",
+      "topic": "The architecture of this research agent: GitHub as the central source of truth, Anthropic-powered Claude Code agents in ephemeral sandboxes as the write path, Vercel as the runtime/presentation layer with a password auth gate, living reports, templated-repo patterns (graph DB + agentic parsing; project-management layer with source plugins like Azure DevOps), and the Vercel-to-Advisory-Digital-Gateway hosting evolution.",
+      "summary": "Documents this system as an instance of a reusable pattern — GitHub as the single source of truth, Claude Code as the only write path, and a runtime layer (Vercel today) as the read path with a password gate — then generalizes it into templated repos and a Vercel-to-Digital-Gateway hosting path with a short-term quick win.",
+      "tags": [
+        "architecture",
+        "github",
+        "claude-code",
+        "vercel",
+        "agents"
+      ],
+      "key_claims": [
+        "GitHub is the single source of truth; the web library and memory index are derived from projects/<slug>/manifest.json, never hand-curated.",
+        "Claude Code, running in ephemeral Anthropic-powered sandboxes, is the only write path to the source of truth.",
+        "The runtime layer (Vercel today) is the read path: build-library.mjs renders the repo into a Next.js library on every push, with a single-password gate as the auth layer.",
+        "Living reports: a deterministic slug means re-running a topic revises the same project folder in place, bumping version and appending a changelog.",
+        "The pattern is templatable: swap the payload for a graph database with an agentic parsing layer, or a project-management layer with source connectors like Microsoft Azure DevOps.",
+        "Hosting evolves while the core stays put: Vercel today to the Advisory Digital Gateway on Azure tomorrow; the short-term quick win is shipping on Vercel behind a real APP_PASSWORD."
+      ],
+      "updated": "2026-06-08",
+      "version": 1
     }
   ]
 }

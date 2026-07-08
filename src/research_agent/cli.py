@@ -29,10 +29,17 @@ import click
     help="Writing style. Default: concise",
 )
 @click.option(
-    "--visual-emphasis",
-    type=click.Choice(["low", "medium", "high"]),
-    default="high",
-    help="How many diagrams to generate. Default: high",
+    "--profile",
+    type=click.Choice(["deep", "standard", "light"]),
+    default=None,
+    help="Depth/cost profile: deep (more searches+extracts+rounds), standard, "
+    "light (fewer, all-sonnet). Default: standard",
+)
+@click.option(
+    "--config", "-c",
+    "config_path",
+    default=None,
+    help="Path to a JSON config file. Default: ./research-agent.config.json if present",
 )
 @click.option(
     "--model",
@@ -50,12 +57,6 @@ import click
     help="Show configuration without executing",
 )
 @click.option(
-    "--max-budget",
-    type=float,
-    default=2.0,
-    help="Max spend in USD. Default: 2.0",
-)
-@click.option(
     "--log-level",
     type=click.Choice(["off", "summary", "full"]),
     default="summary",
@@ -71,11 +72,11 @@ def main(
     formats: str,
     output_dir: str,
     style: str,
-    visual_emphasis: str,
+    profile: str | None,
+    config_path: str | None,
     model: str | None,
     verbose: bool,
     dry_run: bool,
-    max_budget: float,
     log_level: str,
     log_dir: str | None,
 ) -> None:
@@ -97,15 +98,14 @@ def main(
         "formats": format_list,
         "output_dir": Path(output_dir),
         "writing_style": style,
-        "visual_emphasis": visual_emphasis,
+        "profile": profile,
         "model_override": model,
-        "max_budget_usd": max_budget,
         "log_level": log_level,
     }
     if log_dir:
         overrides["log_dir"] = Path(log_dir)
 
-    config = load_config(cli_overrides=overrides)
+    config = load_config(config_path=config_path, cli_overrides=overrides)
 
     if dry_run:
         from research_agent.projects import slugify
@@ -114,12 +114,16 @@ def main(
         click.echo(f"  Topic:            {topic}")
         click.echo(f"  Formats:          {', '.join(config.formats)}")
         click.echo(f"  Style:            {config.writing_style}")
-        click.echo(f"  Visual emphasis:  {visual_emphasis}")
+        click.echo(f"  Profile:          {config.profile}")
         click.echo(f"  Projects root:    {config.output_dir}")
         click.echo(f"  Project folder:   {config.output_dir / slugify(topic)}")
         click.echo(f"  Log level:        {config.log_level}")
         click.echo(f"  Log dir:          {config.log_dir or '<project>/logs'}")
-        click.echo(f"  Max budget:       ${config.max_budget_usd:.2f}")
+        click.echo(
+            f"  Limits:           {config.limits.max_searches} searches, "
+            f"{config.limits.max_extracts} extracts, "
+            f"{config.limits.max_research_rounds} follow-up rounds"
+        )
         click.echo(f"  Models:")
         click.echo(f"    Orchestrator:   {config.models.orchestrator}")
         click.echo(f"    Search:         {config.models.search}")

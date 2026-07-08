@@ -40,8 +40,29 @@ For EACH research question, invoke the search-agent subagent. In the prompt you 
 - The specific research question
 - 2-3 suggested search queries
 - Any context from previous findings
+- A reminder to DEEP-READ the best sources in full and return quoted passages,
+  not just search snippets
 
 Collect all findings before proceeding.
+
+### Phase 2.5: Coverage Review & Follow-up (max {max_research_rounds} follow-up rounds)
+Before writing, audit the evidence. Write out an explicit coverage matrix:
+
+| Question | Coverage | Evidence quality | Gaps |
+|---|---|---|---|
+| Q1 ... | strong/partial/weak | full-text quotes / snippet-only | from the GAPS lines |
+
+Rate each question:
+- strong: answered with full-text evidence from reputable+ sources
+- partial: answered but thin — snippet-only sources, or key sub-questions open
+- weak: mostly unanswered, or only opinion-tier sources
+
+For every partial/weak row, launch targeted follow-up search-agent invocations
+with NARROWER questions and a suggested source type (e.g. "find the primary
+pricing documentation", "find the original benchmark paper", "find official
+docs rather than commentary"). Fold the new findings back into the matrix.
+Run at most {max_research_rounds} follow-up rounds, then proceed with the best
+evidence you have — note remaining weak areas so the writer can hedge them.
 
 ### Phase 3: Report Writing (use writer-agent)
 Invoke the writer-agent with a SINGLE prompt containing:
@@ -62,22 +83,32 @@ Invoke the qa-agent with a prompt containing:
 
 ### Phase 5: Revision (conditional — max {max_revisions} revision cycles)
 If the qa-agent returns overall_pass: false:
-1. Invoke writer-agent again with the original draft + specific QA feedback
-2. Invoke qa-agent again on the revision
+1. If the QA feedback lists missing_coverage items, you may run ONE additional
+   round of targeted search-agent invocations on those items first (this counts
+   against the {max_research_rounds} follow-up rounds from Phase 2.5, not
+   against revision cycles) and pass the new findings to the writer.
+2. Invoke writer-agent again with the original draft + specific QA feedback
+3. Invoke qa-agent again on the revision
 Maximum {max_revisions} revision cycles. If still failing, proceed with the best draft.
 
 ### Phase 6: Visuals (use visual-agent)
 Invoke the visual-agent with a prompt containing:
-- The final report content
-- The output directory: {output_dir}
+- The final report content (including its data tables/numbers)
+- The output directory: {output_dir} and the slug: "{slug}"
 - Instructions to create:
-  - 1 overview/architecture diagram for the topic
-  - 1 diagram per major finding (where visual representation adds value)
+  - 1-3 brand-standard SVG data charts from the report's quantitative findings
+    (generate_chart — bar/line/timeline/stat_row)
+  - At most 1-2 structural Mermaid diagrams, only for genuine process/architecture flows
+  - The presentation deck (MANDATORY): author {slug}.deck.json with hand-authored
+    SVG scenes and render it to {output_dir}/deck.html via render_deck
+Collect the chart markdown_refs the visual-agent reports back.
 
 ### Phase 7: Output Generation
 This project lives in the directory: {output_dir} (slug: "{slug}").
 Write ALL artifacts into that directory. After visuals are generated:
-1. ALWAYS save the markdown report to {output_dir}/report.md using the Write tool
+1. ALWAYS save the markdown report to {output_dir}/report.md using the Write tool.
+   Embed the generated charts at the relevant points in the report using their
+   markdown_refs (e.g. `![Chart title](chart-name.svg)`).
 2. If "docx" is in the requested formats: call mcp__output__render_docx
 3. If "pptx" is in the requested formats: call mcp__output__render_pptx
 4. If "email" is in the requested formats: call mcp__output__render_email

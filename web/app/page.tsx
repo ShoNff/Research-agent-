@@ -1,5 +1,9 @@
+import Link from "next/link";
+
+import EditionView from "@/components/EditionView";
 import LogoutButton from "@/components/LogoutButton";
 import LibraryBrowser, { ExtraCard, ProjectCard } from "@/components/LibraryBrowser";
+import { EDITIONS, latestEdition } from "@/lib/editions";
 import { PROJECTS, allTags } from "@/lib/library";
 import { POCS, isLive } from "@/lib/pocs";
 
@@ -24,6 +28,8 @@ export default function LauncherPage() {
     emoji: p.emoji,
   }));
 
+  const edition = latestEdition();
+
   return (
     <main className="shell">
       <header className="topbar">
@@ -33,6 +39,17 @@ export default function LauncherPage() {
         </div>
         <LogoutButton />
       </header>
+
+      {edition && (
+        <>
+          <EditionView edition={edition} />
+          {EDITIONS.length > 1 && (
+            <div className="editionArchiveLink">
+              <Link href="/paper">Past editions ({EDITIONS.length}) →</Link>
+            </div>
+          )}
+        </>
+      )}
 
       <LibraryBrowser projects={projects} tags={allTags()} extras={extras} />
 

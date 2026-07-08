@@ -56,6 +56,13 @@ Return the report as a JSON object with this exact schema:
 - Every claim needs a source citation
 - Group related findings into coherent sections
 - End with actionable recommendations when applicable
+- PRESERVE NUMERIC EVIDENCE: when findings contain numbers (prices, benchmarks,
+  market sizes, dates, growth rates), keep the concrete figures in the report —
+  as markdown tables for 3+ data points — rather than paraphrasing them away.
+  A downstream visual agent turns these tables into charts; a report whose
+  numbers were flattened into prose gets no charts.
+- Quote sparingly but keep the strongest 1-2 direct quotes from findings where
+  a primary source's exact wording carries weight
 
 ## Revision Mode (when a prior report is provided)
 If the prompt includes an existing report to revise, treat it as the baseline:

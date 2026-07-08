@@ -1,0 +1,53 @@
+{
+  "reader": {
+    "name": "Colin",
+    "persona": "A consulting / technology-strategy executive who works with enterprise cloud (Azure), AI adoption, and advisory clients. Wants the 'so what' for client conversations and his own decisions — not just headlines. Values concrete numbers, primary sources, and connections to work he has already researched."
+  },
+  "interests": [
+    {
+      "id": "ai-llm-industry",
+      "label": "AI / LLM Industry",
+      "queries": [
+        "AI model releases enterprise LLM news",
+        "AI agent tooling enterprise adoption",
+        "LLM pricing token economics news"
+      ],
+      "time_range": "d"
+    },
+    {
+      "id": "azure-cloud-enterprise",
+      "label": "Azure & Cloud Enterprise",
+      "queries": [
+        "Microsoft Azure platform announcements",
+        "enterprise cloud governance architecture news"
+      ],
+      "time_range": "w"
+    },
+    {
+      "id": "markets-investing",
+      "label": "Markets & Investing",
+      "queries": [
+        "stock market moves macro economy today",
+        "technology sector earnings investing news"
+      ],
+      "time_range": "d"
+    },
+    {
+      "id": "consulting-strategy",
+      "label": "Consulting & Tech Strategy",
+      "queries": [
+        "Big Four consulting industry news",
+        "digital transformation enterprise technology strategy trends"
+      ],
+      "time_range": "w"
+    }
+  ],
+  "watch_library": {
+    "mode": "all"
+  },
+  "email": {
+    "to": ["mcgeec@gmail.com"],
+    "from": "Research Agent <onboarding@resend.dev>",
+    "subject_prefix": "The Daily Brief"
+  }
+}
